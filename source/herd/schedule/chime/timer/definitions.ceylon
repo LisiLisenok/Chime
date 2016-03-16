@@ -77,6 +77,13 @@ shared object definitions
 	shared String timeZoneID = "time zone";
 	
 	
+	// delay in seconds
+	shared String delay = "delay";
+	
+	// timer types
+	shared String typeCronStyle = "cron";
+	shared String typeInterval = "interval";	
+	
 	// operation codes
 	
 	"create timer"

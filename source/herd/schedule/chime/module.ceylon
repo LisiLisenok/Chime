@@ -4,7 +4,7 @@
  * scheduling with _cron-style_ and _interval_ timers
  * applying time zones available on _JVM_
  
- >Compiled for Ceylon 1.2.0 and Vert.x 3.2.1
+ >Compiled for Ceylon 1.2.2 and Vert.x 3.2.2
  
  
  ## Running.
@@ -14,7 +14,7 @@
  		import io.vertx.ceylon.core { vertx }
  
  		vertx.vertx().deployVerticle (
- 			\"ceylon:herd.schedule.chime/0.1.0\",
+ 			\"ceylon:herd.schedule.chime/0.1.1\",
  			(String|Throwable res) {
  				...
  			}
@@ -199,8 +199,10 @@
  * __Interval timer__. Timer which fires after each given time period (minimum 1 second)
  		{  
  			\"type\" -> \"interval\" // timer type, mandatory  	
- 			\"increment seconds\" -> Integer // increment in seconds, if <= 0 timer fires only once, mandatory
+ 			\"delay\" -> Integer // timer delay in seconds, if <= 0 timer fires only once, mandatory
  		}
+ 
+ >Interval timer delay is in _seconds_
  
  
  ##### Scheduler response on timer request.
@@ -256,6 +258,7 @@
  
  ##### Timer example.
  
+ 		// creat new Scheduler with name \"schedule manager\" at first and then the timer
  		eventBus.send<JSON> (
  			\"chime\",
  			JSON {
@@ -265,13 +268,14 @@
  			},
  			(Throwable|Message<JSON> msg) {
  				if (is Message<JSON> msg) {
+ 					// create timer
  					eventBus.send<JSON>(
  						\"chime\",
  						JSON {
  							\"operation\" -> \"create\",
- 							\"name\" -> \"schedule manager:schedule timer\",
+ 							\"name\" -> \"schedule manager:scheduled timer\", // full timer name == address to listen timer
  							\"state\" -> \"running\",
- 							\"publish\" -> false,
+ 							\"publish\" -> false, // timer will send messages
  							\"max count\" -> 3,
  							\"time zone\" -> \"Europe/Paris\",
  							\"descirption\" -> JSON {
@@ -286,13 +290,21 @@
  							}
  						},
  						(Throwable|Message<JSON> msg) {
- 							print(msg);
+ 							print(msg); // Chime replies if timer successfully created or some error occured
  						}
  					);
  				}
  				else {
  					print(\"time scheduler creation error: \`\`msg\`\`\");
  				}
+ 			}
+ 		);
+ 		
+ 		// listen timer
+ 		eventBus.consumer (
+ 			\"schedule manager:scheduled timer\",
+ 			(Throwable | Message<JSON> msg) {
+ 				...
  			}
  		);
  
@@ -323,8 +335,8 @@
  * \"unsupported time zone\"
  * \"timer description has to be specified\"
  * \"timer state has to be one of - 'get', 'paused', 'running'\"
- * \"interval has to be specified\"
- * \"interval has to be greater than zero\"
+ * \"delay has to be specified\"
+ * \"delay has to be greater than zero\"
  * \"incorrect cron timer description\"
  
  
@@ -395,7 +407,7 @@ license (
 )
 by( "Lis" )
 native( "jvm" )
-module herd.schedule.chime "0.1.0" {
-	shared import io.vertx.ceylon.core "3.2.1";
-	import ceylon.time "1.2.0";
+module herd.schedule.chime "0.1.1" {
+	shared import io.vertx.ceylon.core "3.2.2";
+	import ceylon.time "1.2.2";
 }

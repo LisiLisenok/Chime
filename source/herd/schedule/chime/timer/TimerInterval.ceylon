@@ -11,7 +11,7 @@ import ceylon.time {
  "
 by( "Lis" )
 class TimerInterval (
-	"Timing interval in miliseconds, to be >= 0." shared Integer intervalMilliseconds
+	"Timing delay in miliseconds, to be >= 0." shared Integer intervalMilliseconds
 )
 		satisfies Timer
 {

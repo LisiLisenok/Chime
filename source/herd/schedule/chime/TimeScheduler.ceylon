@@ -110,7 +110,7 @@ import herd.schedule.chime.cron {
  * interval timer description:  
  	{  
  		\"type\" -> String // timer type, mandatory  	
- 		\"increment seconds\" -> Integer // increment in seconds, if <= 0 timer fires only once, mandatory
+ 		\"delay\" -> Integer // timer delay in seconds, if <= 0 timer fires only once, mandatory
  	}
 
   
