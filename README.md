@@ -19,7 +19,7 @@ Available on [Ceylon Herd](https://herd.ceylon-lang.org/modules/herd.schedule.ch
 
 ## Usage and documentation.
 
-1. Deploy _Chime_ verticle programmatically using `Vertx.deployVerticle("ceylon:herd.schedule.chime/0.2.0")` or using Vert.x CLI with corresponding command. Vert.x downloads the module from [Ceylon Herd](https://herd.ceylon-lang.org) and deploys it.
-2. Create and listen timers on _EventBus_, see details in [API docs](https://modules.ceylon-lang.org/repo/1/herd/schedule/chime/0.2.0/module-doc/api/index.html)
+1. Deploy _Chime_ verticle programmatically using `Vertx.deployVerticle("ceylon:herd.schedule.chime/0.1.1")` or using Vert.x CLI with corresponding command. Vert.x downloads the module from [Ceylon Herd](https://herd.ceylon-lang.org) and deploys it.
+2. Create and listen timers on _EventBus_, see details in [API docs](https://modules.ceylon-lang.org/repo/1/herd/schedule/chime/0.1.1/module-doc/api/index.html)
 
 Also, see [example](examples/herd/examples/schedule/chime)
