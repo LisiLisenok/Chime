@@ -24,8 +24,8 @@ shared class StandardTimerFactory( "max year limitation" Integer maxYearPeriod =
 	
 	"Initializes factory - to be called before using (creators adding is performed here)."
 	shared TimerFactory initialize() {
-		addCreator( timerDefinitions.typeCronStyle, createCronTimer );
-		addCreator( timerDefinitions.typeInterval, createIntervalTimer );
+		addCreator( definitions.typeCronStyle, createCronTimer );
+		addCreator( definitions.typeInterval, createIntervalTimer );
 		return this;
 	}
 	
@@ -74,16 +74,16 @@ shared class StandardTimerFactory( "max year limitation" Integer maxYearPeriod =
 	
 	"Creates interval timer."
 	Timer|String createIntervalTimer( "Timer description." JSON description ) {
-		if ( is Integer interval = description.get( timerDefinitions.intervalSeconds ) ) {
+		if ( is Integer delay = description.get( definitions.delay ) ) {
 			
-			if ( interval > 0 ) {
-				return TimerInterval( interval * 1000 );
+			if ( delay > 0 ) {
+				return TimerInterval( delay * 1000 );
 			}
 			else {
-				return errorMessages.intervalHasToBeGreaterThanZero;
+				return errorMessages.delayHasToBeGreaterThanZero;
 			}
 		}
-		return errorMessages.intervalHasToBeSpecified;
+		return errorMessages.delayHasToBeSpecified;
 	}
 	
 }

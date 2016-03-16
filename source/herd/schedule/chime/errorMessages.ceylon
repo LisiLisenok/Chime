@@ -39,9 +39,9 @@ shared object errorMessages {
 	
 	shared String incorrectTimerState = "timer state has to be one of - 'get', 'paused', 'running'";
 	
-	shared String intervalHasToBeSpecified = "interval has to be specified";
+	shared String delayHasToBeSpecified = "delay has to be specified";
 	
-	shared String intervalHasToBeGreaterThanZero = "interval has to be greater than zero";
+	shared String delayHasToBeGreaterThanZero = "delay has to be greater than zero";
 	
 	shared String incorrectCronTimerDescription = "incorrect cron timer description";
 	

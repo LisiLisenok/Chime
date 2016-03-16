@@ -18,7 +18,7 @@ import io.vertx.ceylon.core {
 shared void run() {
 	value v = vertx.vertx();
 	v.deployVerticle (
-		"ceylon:herd.schedule.chime/0.1.0",
+		"ceylon:herd.schedule.chime/0.1.1",
 		( String|Throwable res ) {
 			if ( is String res ) {
 				value scheduler = Scheduler( v );
@@ -32,8 +32,7 @@ shared void run() {
 }
 
 
-"Performs scheduler run. Creates cron-style timer and listens it.
- "
+"Performs scheduler run. Creates cron-style timer and listens it."
 class Scheduler( Vertx v, String address = "chime" )
 {
 	EventBus eventBus = v.eventBus();
@@ -45,12 +44,12 @@ class Scheduler( Vertx v, String address = "chime" )
 			address,
 			JSON {
 				"operation" -> "create",
-				"name" -> "schedule manager",
+				"name" -> "scheduler",
 				"state" -> "running"
 			},
 			( Throwable | Message<JSON> msg ) {
 				if ( is Message<JSON> msg ) {
-					managerCreated( msg );
+					schedulerCreated( msg );
 				}
 				else {
 					print( "error in onConnect ``msg``" );
@@ -80,22 +79,26 @@ class Scheduler( Vertx v, String address = "chime" )
 	}
 	
 	
-	void managerCreated( Message<JSON> msg ) {
+	void schedulerCreated( Message<JSON> msg ) {
 		
-		eventBus.consumer( "schedule manager:timer", printMessage );
+		eventBus.consumer( "scheduler:timer", printMessage );
 		
 		eventBus.send<JSON>(
 			address,
 			JSON {
 				"operation" -> "create",
-				"name" -> "schedule manager:timer",
+				"name" -> "scheduler:timer",
 				"state" -> "running",
 				"publish" -> false,
 				"max count" -> 3,
 				"time zone" -> "Europe/Paris",
+				/*"descirption" -> JSON {
+					"type" -> "interval",
+					"delay" -> 10
+				}*/
 				"descirption" -> JSON {
 					"type" -> "cron",
-					"seconds" -> "27/30",
+					"seconds" -> "20/15",
 					"minutes" -> "*",
 					"hours" -> "0-23",
 					"days of month" -> "1-31",
