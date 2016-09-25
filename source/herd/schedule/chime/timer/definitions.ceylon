@@ -1,5 +1,3 @@
-
-
 "Defines scheduler constants."
 by( "Lis" )
 shared object definitions
@@ -46,7 +44,7 @@ shared object definitions
 	shared String fieldError = "error";
 	
 	"timer description"
-	shared String fieldDescription = "descirption";
+	shared String fieldDescription = "description";
 	
 	"time field"
 	shared String fieldTime = "time";
