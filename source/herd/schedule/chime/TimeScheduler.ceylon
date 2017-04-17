@@ -132,7 +132,12 @@ class TimeScheduler(
 	)
 		extends Operator( eventBus )
 {
-	
+		
+	"Next ID used when no timer name specified."
+	variable Integer nextID = 0;
+		
+	String nameWithSeparator = name + Chime.configuration.nameSeparator;
+		
 	"Tolerance to compare fire time."
 	variable Period tolerancePeriod = zero.plusMilliseconds( tolerance );
 	
@@ -168,7 +173,13 @@ class TimeScheduler(
 		Chime.key.timers -> JSONArray( { for ( timer in timers.items ) timer.name } )
 	};
 	
-		
+	
+	"Generates unique name for the timer."
+	String generateUniqueName() {
+		while ( timers.contains( ( ++ nextID ).string ) ) {}
+		return nextID.string;
+	}
+	
 // timers map methods
 	
 	"`true` if timer is completed."
@@ -319,11 +330,11 @@ class TimeScheduler(
 
 	"Returns timer full name from short name."
 	String timerFullName( String timerShortName ) {
-		if ( timerShortName.startsWith( name + Chime.configuration.nameSeparator ) ) {
+		if ( timerShortName.startsWith( nameWithSeparator ) && timerShortName.size > nameWithSeparator.size ) {
 			return timerShortName;
 		}
 		else {
-			return name + Chime.configuration.nameSeparator + timerShortName;
+			return nameWithSeparator + timerShortName;
 		}
 	}
 	
@@ -360,14 +371,26 @@ class TimeScheduler(
 
 	"Creates new timer."
 	shared void operationCreate( Message<JSON?> msg ) {
-		if ( exists request = msg.body(), is String tName = request.get( Chime.key.name ) ) {
-			String timerName = timerFullName( tName );
+		if ( exists request = msg.body(), request.get( Chime.key.description ) exists ) {
+			String timerName;
+			if ( is String tName = request.get( Chime.key.name ) ) {
+				if ( tName.startsWith( nameWithSeparator ) && tName.size > nameWithSeparator.size ) {
+					timerName = tName;
+				}
+				else {
+					timerName = nameWithSeparator + generateUniqueName();
+				}
+			}
+			else {
+				// timer name is not specified - generate unique name
+				timerName = nameWithSeparator + generateUniqueName();
+			}
 			if ( timers.defines( timerName ) ) {
 				// timer already exists
 				failMessage( msg, errorMessages.timerAlreadyExists );
 			}
 			else {
-				value timer = factory.createTimer( timerFullName( tName ), request );
+				value timer = factory.createTimer( timerName, request );
 				if ( is TimerContainer timer ) {
 					addTimer( timer, extractState( request ) else timerRunning );
 					// timer successfully added
@@ -381,7 +404,7 @@ class TimeScheduler(
 		}
 		else {
 			// timer name to be specified
-			failMessage( msg, errorMessages.timerNameHasToBeSpecified );
+			failMessage( msg, errorMessages.timerDescriptionHasToBeSpecified );
 		}
 		
 	}

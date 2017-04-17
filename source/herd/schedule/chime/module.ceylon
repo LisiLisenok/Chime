@@ -3,6 +3,13 @@
  _Chime_ is time scheduler which works on _Vert.x_ event bus and provides:  
  * scheduling with _cron-style_ and _interval_ timers  
  * applying time zones available on _JVM_  
+ * flexible timers management system:  
+ 	* grouping timers  
+ 	* defining timer start or end time  
+ 	* pausing / resuming  
+ 	* fire counting  
+ * sending messages in _JSON_  
+ * _publish_ or _send_ timer fire event to the address of your choice  
  
  
  ## Running.
@@ -159,6 +166,16 @@
  	* otherwise error is returned
  
  > Timer fires only if both _timer_ and _scheduler_ states are _running_.   
+ 
+ 
+ ##### Unique timer name.  
+ 
+ The _Chime_ may generate unique timer name automatically. Just follow next steps:  
+ 1. Set \"operation\" field to \"create\".  
+ 2. Set \"name\" field to scheduler name (i.e. omit timer name).  
+ 3. Fill \"description\" field with required timer data.  
+ 4. Send message to _Chime_ or scheduler address.  
+ 5. Take the unique timer name from the response.  
  
  
  ##### Supported timers.
@@ -364,7 +381,7 @@
  	* allowed special characters: , - * /
  
  
- > Names of months and days of the week are _not_ case sensitive, i.e. it doesn't matter lower or uppercase the name is given.
+ > Names of months and days of the week are case insensitive.
  
  
  ##### Special characters.

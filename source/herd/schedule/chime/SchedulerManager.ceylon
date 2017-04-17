@@ -118,7 +118,7 @@ class SchedulerManager(
 			return sch;
 		}
 	}
-	
+
 	
 // operation methods
 	
@@ -145,7 +145,7 @@ class SchedulerManager(
 				timerName = "";
 			}
 			value scheduler = addScheduler( schedulerName, extractState( request ) else timerRunning );
-			if ( timerName.empty ) {
+			if ( !request.get( Chime.key.description ) exists ) {
 				respondMessage( msg, scheduler.shortInfo );
 			}
 			else {

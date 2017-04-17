@@ -189,8 +189,9 @@ shared class SimpleTimers()
 					context.complete();
 				}
 				else {
-					if ( exists body = msg.body(), is String resp = body.get( Chime.key.response ), resp == Chime.response.ok ) {
-					}
+					if ( exists body = msg.body(), is String resp = body.get( Chime.key.response ),
+						resp == Chime.response.ok
+					) {}
 					else {
 						context.fail( Exception( "Chime rejects to setup interval timer" ), "Interval timer setup" );
 						context.complete();
@@ -233,8 +234,9 @@ shared class SimpleTimers()
 					context.complete();
 				}
 				else {
-					if ( exists body = msg.body(), is String resp = body.get( Chime.key.response ), resp == Chime.response.ok ) {
-					}
+					if ( exists body = msg.body(), is String resp = body.get( Chime.key.response ),
+						resp == Chime.response.ok
+					) {}
 					else {
 						context.fail( Exception( "Chime rejects to setup cron timer" ), "Cron timer setup" );
 						context.complete();

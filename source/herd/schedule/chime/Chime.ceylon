@@ -14,6 +14,9 @@ import herd.schedule.chime.timer {
 
 
 "Chime scheduler verticle. Starts scheduling.  
+ 
+ > Ensure that the verticle is started just a once!  
+ 
  Static strings contain keys of the JSON messages and some possible values."
 since( "0.1.0" ) by( "Lis" )
 shared class Chime extends Verticle
