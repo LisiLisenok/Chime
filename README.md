@@ -7,10 +7,9 @@ _Chime_ is time scheduler which works on _Vert.x_ event bus and provides:
 * flexible timers management system:  
 	* grouping timers  
 	* defining timer start or end time  
-	* fire counting  
-	* send or publish message  
 	* pausing / resuming  
-* sending messages in JSON format  
+	* fire counting  
+* sending messages in _JSON_  
 * _publish_ or _send_ timer fire event to the address of your choice  
 
 Available on [Ceylon Herd](https://herd.ceylon-lang.org/modules/herd.schedule.chime)
