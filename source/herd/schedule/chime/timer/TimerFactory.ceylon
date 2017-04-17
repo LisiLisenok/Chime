@@ -8,12 +8,13 @@ import ceylon.collection {
 }
 import herd.schedule.chime {
 
-	errorMessages
+	errorMessages,
+	Chime
 }
 
 
 "Factory to create timers."
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 shared interface TimerFactory
 {
 	shared formal Timer|String createTimer( "Timer description." JSON description );
@@ -39,7 +40,7 @@ shared class FactoryJSONBase() satisfies TimerFactory
 	"Searches creators from added via [[addCreator]] and use them to create timers.  
 	 description to contain field \"type\" which is used to find creator function."
 	shared actual Timer|String createTimer( "timer description" JSON description ) {
-		if ( is String type = description.get( definitions.type ) ) {
+		if ( is String type = description.get( Chime.key.type ) ) {
 			if ( exists creator = creators.get( type ) ) {
 				return creator( description );
 			}

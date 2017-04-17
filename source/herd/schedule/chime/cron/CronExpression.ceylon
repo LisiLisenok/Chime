@@ -1,6 +1,6 @@
 
 "Cron expression parsed by items."
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 shared class CronExpression (
 	"Set of exoression seconds, 0-59." shared Set<Integer> seconds,
 	"Set of exoression minutes, 0-59." shared Set<Integer> minutes,

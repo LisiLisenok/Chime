@@ -1,6 +1,6 @@
 
 "defines some constant used within cron expresion"
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 object cron
 {	
 	

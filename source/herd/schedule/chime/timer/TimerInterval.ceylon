@@ -9,7 +9,7 @@ import ceylon.time {
  and increments on certain miliseconds each time when fired - [[intervalMilliseconds]].    
  [[intervalMilliseconds]] to be >= 0. 
  "
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 class TimerInterval (
 	"Timing delay in miliseconds, to be >= 0." shared Integer intervalMilliseconds
 )

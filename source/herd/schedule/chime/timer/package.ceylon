@@ -3,5 +3,5 @@
  * cron-style timer [[TimerCronStyle]]
  * interval timer [[TimerInterval]]
  "
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 package herd.schedule.chime.timer;

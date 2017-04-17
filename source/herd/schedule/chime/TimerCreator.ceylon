@@ -10,7 +10,6 @@ import ceylon.time {
 import herd.schedule.chime.timer {
 
 	TimerFactory,
-	definitions,
 	Timer
 }
 import herd.schedule.chime.cron {
@@ -20,16 +19,14 @@ import herd.schedule.chime.cron {
 
 
 "Uses [[JSON]] description to creates [[TimerContainer]] with timer [[Timer]] created by timer factory."
-by( "Lis" )
-see( `interface TimerFactory` )
-see( `interface Timer` )
-see( `class TimerContainer` )
+see( `interface TimerFactory`, `interface Timer`, `class TimerContainer` )
+since( "0.1.0" ) by( "Lis" )
 class TimerCreator( "Factory to create timers." TimerFactory factory )
 {
 		
 	"Creates timer from creation request."
-	shared TimerContainer|String createTimer( "Timer name." String name, "Tequest with timer description." JSON request ) {
-		if ( is JSON description = request.get( definitions.fieldDescription ) ) {
+	shared TimerContainer|String createTimer( "Timer name." String name, "Request with timer description." JSON request ) {
+		if ( is JSON description = request.get( Chime.key.description ) ) {
 			value timer = factory.createTimer( description );
 			if ( is Timer timer ) {
 				return createTimerContainer( request, description, name, timer );
@@ -54,7 +51,7 @@ class TimerCreator( "Factory to create timers." TimerFactory factory )
 	) {
 		// extract start date if exists
 		DateTime? startDate;
-		if ( is JSON startTime = request.get( definitions.fieldStartTime ) ) {
+		if ( is JSON startTime = request.get( Chime.key.startTime ) ) {
 			if ( exists st = extractDate( startTime ) ) {
 				startDate = st;
 			}
@@ -68,7 +65,7 @@ class TimerCreator( "Factory to create timers." TimerFactory factory )
 		
 		// extract end date if exists
 		DateTime? endDate;
-		if ( is JSON endTime = request.get( definitions.fieldEndTime ) ) {
+		if ( is JSON endTime = request.get( Chime.key.endTime ) ) {
 			if ( exists st = extractDate( endTime ) ) {
 				endDate = st;
 			}
@@ -122,12 +119,12 @@ class TimerCreator( "Factory to create timers." TimerFactory factory )
 	
 	"Extracts date from [[JSON]], key returns [[JSON]] object with date."
 	DateTime? extractDate( JSON date ) {
-		if ( is Integer seconds = date.get( calendar.seconds ),
-			is Integer minutes = date.get( calendar.minutes ),
-			is Integer hours = date.get( calendar.hours ),
-			is Integer dayOfMonth = date.get( calendar.dayOfMonth ),
-			is Integer year = date.get( calendar.year ),
-			exists month = extractMonth( date, calendar.month )
+		if ( is Integer seconds = date.get( Chime.date.seconds ),
+			is Integer minutes = date.get( Chime.date.minutes ),
+			is Integer hours = date.get( Chime.date.hours ),
+			is Integer dayOfMonth = date.get( Chime.date.dayOfMonth ),
+			is Integer year = date.get( Chime.date.year ),
+			exists month = extractMonth( date, Chime.date.month )
 		) {
 			try {
 				return dateTime( year, month, dayOfMonth, hours, minutes, seconds );
@@ -143,7 +140,7 @@ class TimerCreator( "Factory to create timers." TimerFactory factory )
 	 `publish` or `send` are nonmandatory field.  
 	 If no field extracted - default to be send." 
 	Boolean extractPublish( JSON description ) {
-		if ( is Boolean b = description.get( definitions.fieldPublish ) ) {
+		if ( is Boolean b = description.get( Chime.key.publish ) ) {
 			return b;
 		}
 		else {
@@ -153,7 +150,7 @@ class TimerCreator( "Factory to create timers." TimerFactory factory )
 	
 	"`maxCount` - nonmandatory field, if not specified - infinitely."
 	Integer? extractMaxCount( JSON description ) {
-		if ( is Integer c = description.get( definitions.fieldMaxCount ) ) {
+		if ( is Integer c = description.get( Chime.key.maxCount ) ) {
 			if ( c > 0 ) {
 				return c;
 			}

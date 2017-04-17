@@ -1,6 +1,6 @@
 
 "Defines error messages."
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 shared object errorMessages {
 	
 	shared String unsupportedOperation = "unsupported operation";

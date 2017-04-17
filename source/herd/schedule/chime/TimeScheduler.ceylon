@@ -27,13 +27,6 @@ import ceylon.time.timezone {
 
 	timeZone
 }
-import herd.schedule.chime.timer {
-	definitions
-}
-import herd.schedule.chime.cron {
-	
-	calendar
-}
 
 
 "Scheduler - listen address of scheduler [[name]] on event bus and manages timers.
@@ -129,7 +122,7 @@ import herd.schedule.chime.cron {
  	}  
  
  "
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 class TimeScheduler(
 	"Scheduler name." shared String name,
 	"Vertx the scheduler operates on." Vertx vertx,
@@ -158,8 +151,8 @@ class TimeScheduler(
 	"Scheduler `JSON` short info (name and state)."
 	shared JSON shortInfo
 			=> JSON {
-				definitions.fieldName -> name,
-				definitions.fieldState -> schedulerState.string
+				Chime.key.name -> name,
+				Chime.key.state -> schedulerState.string
 			};
 	
 	"Scheduler full info in `JSON`:
@@ -169,23 +162,17 @@ class TimeScheduler(
 	 	\"timers\" -> array of timer names
 	 "
 	shared JSON fullInfo => JSON {
-		definitions.fieldResponse -> definitions.responseOK,
-		definitions.fieldName -> name,
-		definitions.fieldState -> state.string,
-		definitions.fieldTimers -> JSONArray( { for ( timer in timers.items ) timer.name } )
+		Chime.key.response -> Chime.response.ok,
+		Chime.key.name -> name,
+		Chime.key.state -> state.string,
+		Chime.key.timers -> JSONArray( { for ( timer in timers.items ) timer.name } )
 	};
 	
 		
 // timers map methods
 	
-	"`true` if timer is running."
-	Boolean selectRunning( TimerContainer timer ) => timer.state == timerRunning;
-	
 	"`true` if timer is completed."
 	Boolean selectCompleted( TimerContainer timer ) => timer.state == timerCompleted;
-	
-	"`true` if timer is running or paused."
-	Boolean selectIncompleted( TimerContainer timer ) => timer.state != timerCompleted;
 	
 	"Name of the given timer."
 	String timerName( TimerContainer timer ) => timer.name;
@@ -198,8 +185,8 @@ class TimeScheduler(
 	Integer minDelay() {
 		DateTime current = localTime();
 		variable Integer delay = 0;
-		for ( timer in timers.items.filter( selectRunning ) ) {
-			if ( exists localDate = timer.localFireTime ) {
+		for ( timer in timers.items ) {
+			if ( timer.state == timerRunning, exists localDate = timer.localFireTime ) {
 				Integer offset = localDate.offset( current );
 				if ( offset <= 0 ) {
 					if ( delay > 500 || delay == 0 ) {
@@ -221,13 +208,16 @@ class TimeScheduler(
 	void fireTimers() {
 		variable Boolean completed = false;
 		DateTime current = localTime().plus( tolerancePeriod );
-		for ( timer in timers.items.filter( selectRunning ) ) {
-			if ( exists localDate = timer.localFireTime, exists remoteDate = timer.remoteFireTime ) {
+		for ( timer in timers.items ) {
+			if ( timer.state == timerRunning,
+				 exists localDate = timer.localFireTime,
+				 exists remoteDate = timer.remoteFireTime
+			) {
 				if ( localDate < current ) {
 					timer.shiftTime();
-					sendTimerMessage( timer, remoteDate );
+					sendFireEvent( timer, remoteDate );
 					if ( timer.state == timerCompleted ) {
-						sendTimerMessage( timer );
+						sendCompleteEvent( timer );
 						completed = true;
 					}
 				}
@@ -238,43 +228,54 @@ class TimeScheduler(
 		}
 	}
 	
-	"Sends fire or completed message in standard Chime format.
+	"Sends fire event in standard Chime format.
 	 
 	 message format:  
 	 {  
 	 	\"name\": timer name, String   
+	 	\"event\": \"fire\"
 	 	\"time\": String formated time / date from [[TimerContainer.remoteFireTime]] or nothing if not specified   
 	 	\"count\": total number of fire times  
-	 	\"state\": String representation of [[TimerContainer.state]]   
 	 }
 	 "
-	shared void sendTimerMessage( TimerContainer timer, DateTime? date = null ) {
-		JSON message;
-		
-		// date string
-		if ( exists date ) {
-			message = JSON {
-				definitions.fieldName -> timer.name,
-				definitions.fieldTime -> date.string,
-				definitions.fieldCount -> timer.count,
-				definitions.fieldState -> timer.state.string,
-				calendar.seconds -> date.seconds,
-				calendar.minutes -> date.minutes,
-				calendar.hours -> date.hours,
-				calendar.dayOfMonth -> date.day,
-				calendar.month -> date.month.integer,
-				calendar.year -> date.year,
-				definitions.timeZoneID -> timer.timeZoneID
-			};
+	shared void sendFireEvent( TimerContainer timer, DateTime date ) {
+		JSON message = JSON {
+			Chime.key.event -> Chime.event.fire,
+			Chime.key.name -> timer.name,
+			Chime.key.time -> date.string,
+			Chime.key.count -> timer.count,
+			Chime.date.seconds -> date.seconds,
+			Chime.date.minutes -> date.minutes,
+			Chime.date.hours -> date.hours,
+			Chime.date.dayOfMonth -> date.day,
+			Chime.date.month -> date.month.integer,
+			Chime.date.year -> date.year,
+			Chime.key.timeZoneID -> timer.timeZoneID
+		};
+		// send message
+		if ( timer.publish ) {
+			eventBus.publish( timer.name, message );
 		}
 		else {
-			message = JSON {
-				definitions.fieldName -> timer.name,
-				definitions.fieldCount -> timer.count,
-				definitions.fieldState -> timer.state.string
-			};
+			eventBus.send( timer.name, message );
 		}
-		
+	}
+	
+	"Sends complete event in standard Chime format.
+	 
+	 message format:  
+	 {  
+	 	\"name\": timer name, String   
+	 	\"event\": \"complete\"
+	 	\"count\": total number of fire times  
+	 }
+	 "
+	shared void sendCompleteEvent( TimerContainer timer ) {
+		JSON message = JSON {
+			Chime.key.event -> Chime.event.complete,
+			Chime.key.name -> timer.name,
+			Chime.key.count -> timer.count
+		};
 		// send message
 		if ( timer.publish ) {
 			eventBus.publish( timer.name, message );
@@ -318,11 +319,11 @@ class TimeScheduler(
 
 	"Returns timer full name from short name."
 	String timerFullName( String timerShortName ) {
-		if ( timerShortName.startsWith( name + definitions.nameSeparator ) ) {
+		if ( timerShortName.startsWith( name + Chime.configuration.nameSeparator ) ) {
 			return timerShortName;
 		}
 		else {
-			return name + definitions.nameSeparator + timerShortName;
+			return name + Chime.configuration.nameSeparator + timerShortName;
 		}
 	}
 	
@@ -339,7 +340,7 @@ class TimeScheduler(
 				buildVertxTimer();
 			}
 			else {
-				sendTimerMessage( timer );
+				sendCompleteEvent( timer );
 			}
 		}
 		else if ( state == timerPaused ) {
@@ -349,17 +350,17 @@ class TimeScheduler(
 
 	
 	"Creates operators map."
-	shared actual Map<String, Anything(Message<JSON>)> createOperators()
-			=> map<String, Anything(Message<JSON>)> {
-				definitions.opCreate -> operationCreate,
-				definitions.opDelete -> operationDelete,
-				definitions.opState -> operationState,
-				definitions.opInfo -> operationInfo
+	shared actual Map<String, Anything(Message<JSON?>)> createOperators()
+			=> map<String, Anything(Message<JSON?>)> {
+				Chime.operation.create -> operationCreate,
+				Chime.operation.delete -> operationDelete,
+				Chime.operation.state -> operationState,
+				Chime.operation.info -> operationInfo
 			};
 
 	"Creates new timer."
-	shared void operationCreate( Message<JSON> msg ) {
-		if ( exists request = msg.body(), is String tName = request.get( definitions.fieldName ) ) {
+	shared void operationCreate( Message<JSON?> msg ) {
+		if ( exists request = msg.body(), is String tName = request.get( Chime.key.name ) ) {
 			String timerName = timerFullName( tName );
 			if ( timers.defines( timerName ) ) {
 				// timer already exists
@@ -386,8 +387,8 @@ class TimeScheduler(
 	}
 	
 	"Deletes existing timer."
-	shared void operationDelete( Message<JSON> msg ) {
-		if ( exists request = msg.body(), is String tName = request.get( definitions.fieldName ) ) {
+	shared void operationDelete( Message<JSON?> msg ) {
+		if ( exists request = msg.body(), is String tName = request.get( Chime.key.name ) ) {
 			String timerName = timerFullName( tName );
 			// delete timer
 			if ( exists t = timers.remove( timerName ) ) {
@@ -407,12 +408,12 @@ class TimeScheduler(
 	}
 	
 	"Processes 'timer state' operation."
-	shared void operationState( Message<JSON> msg ) {
-		if ( exists request = msg.body(), is String tName = request.get( definitions.fieldName ) ) {
-			 if ( is String state = request.get( definitions.fieldState ) ) {
+	shared void operationState( Message<JSON?> msg ) {
+		if ( exists request = msg.body(), is String tName = request.get( Chime.key.name ) ) {
+			 if ( is String state = request.get( Chime.key.state ) ) {
 				String timerName = timerFullName( tName );
 				if ( exists t = timers.get( timerName ) ) {
-					if ( state == definitions.stateGet ) {
+					if ( state == Chime.state.get ) {
 						// return state
 						respondMessage( msg, t.stateDescription() );
 					}
@@ -430,7 +431,7 @@ class TimeScheduler(
 							}
 							else {
 								timers.remove( t.name );
-								sendTimerMessage( t );
+								sendCompleteEvent( t );
 							}
 						}
 						respondMessage( msg, t.stateDescription() );
@@ -457,8 +458,8 @@ class TimeScheduler(
 	}
 		
 	"Replies with scheduler info - array of timer names."
-	shared void operationInfo( Message<JSON> msg ) {
-		if ( exists request = msg.body(), is String tName = request.get( definitions.fieldName ) ) {
+	shared void operationInfo( Message<JSON?> msg ) {
+		if ( exists request = msg.body(), is String tName = request.get( Chime.key.name ) ) {
 			// contains name field - reply with info about timer with specified name
 			String timerName = timerFullName( tName );
 			if ( exists t = timers.get( timerName ) ) {
@@ -486,10 +487,12 @@ class TimeScheduler(
 		if ( state != timerRunning ) {
 			schedulerState = timerRunning;
 			DateTime current = localTime();
-			for ( timer in timers.items.filter( selectRunning ) ) {
-				timer.start( current );
-				if ( timer.state == timerCompleted ) {
-					sendTimerMessage( timer );
+			for ( timer in timers.items ) {
+				if ( timer.state == timerRunning ) {
+					timer.start( current );
+					if ( timer.state == timerCompleted ) {
+						sendCompleteEvent( timer );
+					}
 				}
 			}
 			removeCompleted();
@@ -507,14 +510,14 @@ class TimeScheduler(
 	"Completes all timers and terminates this scheduler."
 	shared void stop() {
 		schedulerState = timerCompleted;
-		
 		// fire completed on all timers
-		for ( timer in timers.items.filter( selectIncompleted ) ) {
-			timer.complete();
-			sendTimerMessage( timer );
+		for ( timer in timers.items ) {
+			if ( timer.state != timerCompleted ) {
+				timer.complete();
+				sendCompleteEvent( timer );
+			}
 		}
 		timers.clear();
-		
 		cancelCurrentVertxTimer();
 	}
 	

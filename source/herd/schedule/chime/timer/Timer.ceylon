@@ -5,7 +5,7 @@ import ceylon.time {
 
 
 "Timer interface."
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 shared interface Timer
 {
 	

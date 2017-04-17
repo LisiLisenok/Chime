@@ -5,7 +5,7 @@ import ceylon.time {
 
 
 "Parses cron expression from strings."
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 shared CronExpression? parseCron (
 	"cron style string with seconds" String seconds,
 	"cron style string with minutes" String minutes,

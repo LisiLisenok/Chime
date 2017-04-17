@@ -17,8 +17,7 @@ import ceylon.collection {
 	HashMap
 }
 import herd.schedule.chime.timer {
-	TimerFactory,
-	definitions
+	TimerFactory
 }
 
 
@@ -84,7 +83,7 @@ import herd.schedule.chime.timer {
  	} 
 
  "
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 see(`class TimeScheduler`)
 class SchedulerManager(
 	"Vetrx the scheduler is running on." Vertx vertx,
@@ -124,31 +123,30 @@ class SchedulerManager(
 // operation methods
 	
 	"Creates operators map"
-	shared actual Map<String, Anything(Message<JSON>)> createOperators()
-			=> map<String, Anything(Message<JSON>)> {
-				definitions.opCreate -> operationCreate,
-				definitions.opDelete -> operationDelete,
-				definitions.opState -> operationState,
-				definitions.opInfo -> operationInfo
+	shared actual Map<String, Anything(Message<JSON?>)> createOperators()
+			=> map<String, Anything(Message<JSON?>)> {
+				Chime.operation.create -> operationCreate,
+				Chime.operation.delete -> operationDelete,
+				Chime.operation.state -> operationState,
+				Chime.operation.info -> operationInfo
 			};
 	
 	"Processes 'create new scheduler' operation."
-	void operationCreate( Message<JSON> msg ) {
-		if ( exists request = msg.body(), is String name = request.get( definitions.fieldName ) ) {
-			
-			String schedulerNamer;
+	void operationCreate( Message<JSON?> msg ) {
+		if ( exists request = msg.body(), is String name = request.get( Chime.key.name ) ) {
+			String schedulerName;
 			String timerName;
-			if ( exists inc = name.firstInclusion( definitions.nameSeparator ) ) {
-				schedulerNamer = name.spanTo( inc - 1 );
+			if ( exists inc = name.firstInclusion( Chime.configuration.nameSeparator ) ) {
+				schedulerName = name.spanTo( inc - 1 );
 				timerName = name;
 			}
 			else {
-				schedulerNamer = name;
+				schedulerName = name;
 				timerName = "";
 			}
-			value scheduler = addScheduler( schedulerNamer, extractState( request ) else timerRunning );
+			value scheduler = addScheduler( schedulerName, extractState( request ) else timerRunning );
 			if ( timerName.empty ) {
-				failMessage( msg, errorMessages.timerAlreadyExists );
+				respondMessage( msg, scheduler.shortInfo );
 			}
 			else {
 				// add timer to scheduler
@@ -162,8 +160,8 @@ class SchedulerManager(
 	}
 	
 	"Processes 'delete scheduler' operation."
-	void operationDelete( Message<JSON> msg ) {
-		if ( exists request = msg.body(), is String name = request.get( definitions.fieldName ) ) {
+	void operationDelete( Message<JSON?> msg ) {
+		if ( exists request = msg.body(), is String name = request.get( Chime.key.name ) ) {
 			// delete scheduler
 			if ( exists sch = schedulers.remove( name ) ) {
 				sch.stop();
@@ -172,7 +170,7 @@ class SchedulerManager(
 			}
 			else {
 				// scheduler doesn't exists - look if name is full timer name
-				value schedulerName = name.spanTo( ( name.firstInclusion( definitions.nameSeparator ) else 0 ) - 1 );
+				value schedulerName = name.spanTo( ( name.firstInclusion( Chime.configuration.nameSeparator ) else 0 ) - 1 );
 				if ( !schedulerName.empty, exists sch = schedulers.get( schedulerName ) ) {
 					// scheduler has to remove timer
 					sch.operationDelete( msg );
@@ -190,11 +188,11 @@ class SchedulerManager(
 	}
 	
 	"Processes 'scheduler state' operation."
-	void operationState( Message<JSON> msg ) {
-		if ( exists request = msg.body(), is String name = request.get( definitions.fieldName ) ) {
-			if ( is String state = request.get( definitions.fieldState ) ) {
+	void operationState( Message<JSON?> msg ) {
+		if ( exists request = msg.body(), is String name = request.get( Chime.key.name ) ) {
+			if ( is String state = request.get( Chime.key.state ) ) {
 				if ( exists sch = schedulers.get( name ) ) {
-					if ( state == definitions.stateGet ) {
+					if ( state == Chime.state.get ) {
 						// return state
 						respondMessage( msg, sch.shortInfo );
 					}
@@ -215,7 +213,7 @@ class SchedulerManager(
 				}
 				else {
 					// scheduler doesn't exists - look if name is full timer name
-					value schedulerName = name.spanTo( ( name.firstInclusion( definitions.nameSeparator ) else 0 ) - 1 );
+					value schedulerName = name.spanTo( ( name.firstInclusion( Chime.configuration.nameSeparator ) else 0 ) - 1 );
 					if ( !schedulerName.empty, exists sch = schedulers.get( schedulerName ) ) {
 						// scheduler has to provide timer state
 						sch.operationState( msg );
@@ -238,15 +236,15 @@ class SchedulerManager(
 	}
 	
 	"Replies with Chime info - array of scheduler names."
-	void operationInfo( Message<JSON> msg ) {
-		if ( is String name = msg.body()?.get( definitions.fieldName ) ) {
+	void operationInfo( Message<JSON?> msg ) {
+		if ( is String name = msg.body()?.get( Chime.key.name ) ) {
 			if ( exists sch = schedulers.get( name ) ) {
 				// reply with scheduler info
 				msg.reply( sch.fullInfo );
 			}
 			else {
 				// scheduler doesn't exists - look if name is full timer name
-				value schedulerName = name.spanTo( ( name.firstInclusion( definitions.nameSeparator ) else 0 ) - 1 );
+				value schedulerName = name.spanTo( ( name.firstInclusion( Chime.configuration.nameSeparator ) else 0 ) - 1 );
 				if ( !schedulerName.empty, exists sch = schedulers.get( schedulerName ) ) {
 					// scheduler has to reply for timer info
 					sch.operationInfo( msg );
@@ -260,8 +258,8 @@ class SchedulerManager(
 		else {
 			msg.reply (
 				JSON {
-					definitions.fieldResponse -> definitions.responseOK,
-					definitions.fieldSchedulers -> JSONArray( { for ( scheduler in schedulers.items ) scheduler.name } )
+					Chime.key.response -> Chime.response.ok,
+					Chime.key.schedulers -> JSONArray( { for ( scheduler in schedulers.items ) scheduler.name } )
 				}
 			);
 		}

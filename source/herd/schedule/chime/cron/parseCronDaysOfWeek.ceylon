@@ -13,7 +13,7 @@ import ceylon.time.base {
 
 
 "Parses days of week from string."
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 DaysOfWeekList? parseCronDaysOfWeek( String expression ) {
 	
 	// all values

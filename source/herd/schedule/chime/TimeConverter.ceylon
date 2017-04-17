@@ -11,14 +11,10 @@ import ceylon.json {
 
 	JSON=Object
 }
-import herd.schedule.chime.timer {
-
-	definitions
-}
 
 
 "Converting date-time according to rule (timezone)."
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 interface TimeConverter {
 	
 	"Converts remote date-time to local one."
@@ -33,7 +29,7 @@ interface TimeConverter {
 
 
 "Defines time converter which do no convertion."
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 object dummyConverter satisfies TimeConverter {
 	
 	"Local time zone."
@@ -41,7 +37,7 @@ object dummyConverter satisfies TimeConverter {
 	
 	"Returns converter by time zone name."
 	shared TimeConverter? getConverter( JSON description ) {
-		if ( is String timeZoneID = description.get( definitions.timeZoneID ) ) {
+		if ( is String timeZoneID = description.get( Chime.key.timeZoneID ) ) {
 			JavaTimeZone tz = JavaTimeZone.getTimeZone( timeZoneID );
 			if ( tz.id == timeZoneID ) {
 				return ConverterWithTimezone( tz );
@@ -67,7 +63,7 @@ object dummyConverter satisfies TimeConverter {
 
 
 "Converts according to specified remote time zone."
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 class ConverterWithTimezone( JavaTimeZone remoteTimeZone ) satisfies TimeConverter {
 	
 	

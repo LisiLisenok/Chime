@@ -1,27 +1,19 @@
 
 "
- _Chime_ is time scheduler which works on _Vert.x_ event bus and provides:
- * scheduling with _cron-style_ and _interval_ timers
- * applying time zones available on _JVM_
- 
- >Compiled for Ceylon 1.2.2 and Vert.x 3.2.2
+ _Chime_ is time scheduler which works on _Vert.x_ event bus and provides:  
+ * scheduling with _cron-style_ and _interval_ timers  
+ * applying time zones available on _JVM_  
  
  
  ## Running.
  
- Deploy _Chime_ using `Vertx.deployVerticle` method.  
+ Deploy _Chime_ using `Verticle.deployVerticle` method.  
  
  		import io.vertx.ceylon.core { vertx }
+ 		import herd.schedule.chime { Chime }
+ 		Chime c = Chime().deploy(vertx.vertx());
  
- 		vertx.vertx().deployVerticle (
- 			\"ceylon:herd.schedule.chime/0.1.1\",
- 			(String|Throwable res) {
- 				...
- 			}
- 		);
-
- 
- >_Chime_ exchanges events with customers via event bus with `JSON` messages.  
+ > _Chime_ exchanges events with customers via event bus with `JSON` messages.  
  
  
  ## Configuration.
@@ -52,8 +44,8 @@
  			\"state\" -> String // state, mandatory only if operation = 'state'   
  		}
  
- >_Chime_ listens event bus on \"scheduler name\" address with messages for the given _scheduler_.  
-  
+ > _Chime_ listens event bus on \"scheduler name\" address with messages for the given _scheduler_.  
+ 
  
  ##### Scheduler operation codes.
   
@@ -94,7 +86,7 @@
  			\"schedulers\" -> JSONArray // scheduler names, exists as response on \"info\" operation with no \"name\" field  
  			\"error\" -> String // error description, exists only if response == \"error\"
  		}
-
+ 
  
  ### _Timer_.
  
@@ -105,11 +97,10 @@
  * sending message on _Chime_ address using full timer name which is \"scheduler name:timer name\"
  
  
- >Timer full name is _scheduler name_ and _timer name_ separated with ':', i.e. \"scheduler name:timer name\".
+ > Timer full name is _scheduler name_ and _timer name_ separated with ':', i.e. \"scheduler name:timer name\".  
  
- 
- >Request on _Chime_ address with _timer full name_ and request on _scheduler_ address with timer full or short name
-  are equivalent.  
+ > Request on _Chime_ address with _timer full name_ and request on _scheduler_ address with timer full or short name
+   are equivalent.  
  
  
  ##### Timer request.
@@ -153,7 +144,7 @@
  	}  
  
  
- >_Chime_ address could be specified in `verticle` configuration, default is \"chime\".  
+ > _Chime_ address could be specified in `verticle` configuration, default is \"chime\".  
  
  
  ##### Timer operation codes.
@@ -167,7 +158,7 @@
  	* if state field is \"paused\" timer state is to be set to _paused_
  	* otherwise error is returned
  
- >Timer fires only if both _timer_ and _scheduler_ states are _running_.   
+ > Timer fires only if both _timer_ and _scheduler_ states are _running_.   
  
  
  ##### Supported timers.
@@ -202,7 +193,7 @@
  			\"delay\" -> Integer // timer delay in seconds, if <= 0 timer fires only once, mandatory
  		}
  
- >Interval timer delay is in _seconds_
+ > Interval timer delay is in _seconds_
  
  
  ##### Scheduler response on timer request.
@@ -219,15 +210,15 @@
  		// 'Info' operation returns fields from 'create' operation
  	}  
  
+
+ ##### Timer events
  
- ##### Timer firing.
- 
- When _timer_ fires it sends or publishes `JSON` message on _full timer name_ address in the following format:
- 
+ Timer sends or publishes on _full timer name_ address two types of events in `JSON`:
+ * fire event  
  		{  
  			\"name\" -> String, timer name
+ 			\"event\" -> \"fire\"
  			\"count\" -> Integer, total number of fire times
- 			\"state\" -> String, timer state, one of 'running', 'paused' or 'completed'
  			\"time\" -> String formated time / date
  			\"seconds\" -> Integer, number of seconds since last minute
  			\"minutes\" -> Integer, number of minutes since last hour
@@ -236,16 +227,21 @@
  			\"month\" -> Integer, month
  			\"year\" -> Integer, year
  			\"time zone\" -> String, time zone ID
- 		}
+ 		}  
+ * complete event  
+ 		{  
+ 			\"name\" -> String, timer name
+ 			\"event\" -> \"complete\"
+ 			\"count\" -> Integer, total number of fire times
+ 		}   
  
+ > The value at the 'event' key indicates the event type.  
  
- >_Timer full name_ is _scheduler name_ and _timer name_ separated with ':', i.e. \"scheduler name:timer name\".  
+ > _Timer full name_ is _scheduler name_ and _timer name_ separated with ':', i.e. \"scheduler name:timer name\".  
  
+ > Timer _sends_ or _publishes_ message depending on \"publish\" field in timer description (passed at timer creation request).  
  
- >Timer _sends_ or _publishes_ message depending on \"publish\" field in timer description (passed at timer creation request).  
-  
- 
- >String formatted time / date is per [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).  
+ > String formatted time / date is per [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).  
  
  
  ##### Time zones.
@@ -366,9 +362,9 @@
  * _years_, nonmandatory
  	* allowed values 1970-2099
  	* allowed special characters: , - * /
-
  
- >Names of months and days of the week are _not_ case sensitive.
+ 
+ > Names of months and days of the week are _not_ case sensitive, i.e. it doesn't matter lower or uppercase the name is given.
  
  
  ##### Special characters.
@@ -407,7 +403,7 @@ license (
 )
 by( "Lis" )
 native( "jvm" )
-module herd.schedule.chime "0.1.1" {
-	shared import io.vertx.ceylon.core "3.2.2";
-	import ceylon.time "1.2.2";
+module herd.schedule.chime "0.2.0" {
+	shared import io.vertx.ceylon.core "3.4.0";
+	import ceylon.time "1.3.2";
 }

@@ -12,7 +12,7 @@ import ceylon.collection {
  * `FROM`/`STEP`, `FROM` and `STEP` are digits, TO eqauls to max possible value
  * `FROM`-`TO`, FROM and TO are digits, step is supposed to be 1
  "
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 Set<Integer> parseCronStyle(
 	"expression to be parsed" String expression,
 	"min possible value" Integer minValue,

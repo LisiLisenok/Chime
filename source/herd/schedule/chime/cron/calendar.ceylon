@@ -1,29 +1,11 @@
 
 
 "Defines calendar constants."
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 shared object calendar
 {	
 	
-	// description fields
-	
-	// cron and date fields
-	shared String seconds = "seconds";
-	shared String minutes = "minutes";
-	shared String hours = "hours";
-	shared String daysOfWeek = "days of week";
-	
-	shared String daysOfMonth = "days of month";
-	shared String months = "months";
-	shared String years = "years";
-	
-	shared String dayOfMonth = "day of month";
-	shared String month = "month";
-	shared String year = "year";
-	
-	// name to id maps
-	
-	"mapping of month name to month id"
+	"Mapping month short name to month id."
 	shared Map<String, Integer> monthShortMap =
 		map<String, Integer> {
 			"JAN" -> 1,
@@ -40,6 +22,7 @@ shared object calendar
 			"DEC" -> 12
 		};
 	
+	"Mapping month name to month id."
 	shared Map<String, Integer> monthFullMap = 
 		map<String, Integer> {
 			"JANUARY" -> 1,
@@ -56,7 +39,7 @@ shared object calendar
 			"DECEMBER" -> 12
 		};
 	
-	"mapping of day name to day id"
+	"Mapping day of week short name to day of week id."
 	shared Map<String, Integer> dayOfWeekShortMap =
 		map<String, Integer> {
 			"SUN" -> 1,
@@ -68,7 +51,7 @@ shared object calendar
 			"SAT" -> 7
 		};
 	
-	"mapping of day name to day id"
+	"Mapping day of week name to day of week id."
 	shared Map<String, Integer> dayOfWeekFullMap =
 		map<String, Integer> {
 			"SUNDAY" -> 1,
@@ -96,6 +79,5 @@ shared object calendar
 	"Replace all occurancies of weekday names by corresponding number."
 	shared String replaceDayOfWeekByNumber( String expression )
 			=> replaceStringToNumber( replaceStringToNumber( expression, dayOfWeekFullMap ), dayOfWeekShortMap );
-	
-	
+
 }

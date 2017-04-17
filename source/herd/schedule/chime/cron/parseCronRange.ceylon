@@ -12,7 +12,7 @@ import ceylon.collection {
  * `FROM`-`TO`, FROM and TO are digits, step is supposed to be 1
  * TO and FROM have to be greater or equal min and less or equal max
 "
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 Set<Integer>? parseCronRange( String expression, Integer minValue, Integer maxValue ) {
 	HashSet<Integer> ret = HashSet<Integer>();
 	{String*} ranged = expression.split( cron.special.contains, false ).map( String.trimmed );

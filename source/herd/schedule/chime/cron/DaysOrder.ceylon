@@ -9,7 +9,7 @@ import ceylon.time.base {
 
 
 "Checks order of day of week."
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 shared interface DayOrder
 {
 	"`true` if data falls on a one of ordered day and `false` otherwise."

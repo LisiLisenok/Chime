@@ -7,26 +7,23 @@ import io.vertx.ceylon.core.eventbus {
 	Message,
 	EventBus
 }
-import herd.schedule.chime.timer {
-	definitions
-}
 
 
 "Provides basic operations with [[JSON]] message."
 see( `class SchedulerManager`, `class TimeScheduler` )
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 abstract class Operator( "EventBus to pass messages." shared EventBus eventBus )
 {
 	
 	"Operators map."	
-	variable Map<String, Anything(Message<JSON>)>? operators = null;
+	variable Map<String, Anything(Message<JSON?>)>? operators = null;
 	
 	"creates operators map."
-	shared formal Map<String, Anything(Message<JSON>)> createOperators();
+	shared formal Map<String, Anything(Message<JSON?>)> createOperators();
 	
 	
 	"Returns operator by operation code."
-	shared Anything(Message<JSON>)? getOperator( "operation code" String code ) {
+	shared Anything(Message<JSON?>)? getOperator( "operation code" String code ) {
 		if ( !operators exists ) {			
 			// create operators map if doesn't exists
 			operators = createOperators();
@@ -44,27 +41,27 @@ abstract class Operator( "EventBus to pass messages." shared EventBus eventBus )
 	 		description -> JSON // item description
 	 	}
 	 "
-	shared void respondMessage( "Message to respond on." Message<JSON> msg, "Rreply to be send" JSON reply ) {
-		reply.put( definitions.fieldResponse, definitions.responseOK );
+	shared void respondMessage( "Message to respond on." Message<JSON?> msg, "Rreply to be send" JSON reply ) {
+		reply.put( Chime.key.response, Chime.response.ok );
 		msg.reply( reply );
 	}
 	
 	"Fails message with message."
 	shared void failMessage (
-		"Message to be responded with failure." Message<JSON> msg,
+		"Message to be responded with failure." Message<JSON?> msg,
 		"Error to fail with." String errorMessage )
 	{
 		msg.reply (
 			JSON {
-				definitions.fieldResponse -> definitions.responseError,
-				definitions.fieldError -> errorMessage
+				Chime.key.response -> Chime.response.error,
+				Chime.key.error -> errorMessage
 			}
 		);
 	}
 	
 	"Extracts state from request, helper method."
 	shared TimerState? extractState( JSON request ) {
-		if ( is String state = request.get( definitions.fieldState ) ) {
+		if ( is String state = request.get( Chime.key.state ) ) {
 			return timerRunning.byName( state );
 		}
 		else {
@@ -73,8 +70,8 @@ abstract class Operator( "EventBus to pass messages." shared EventBus eventBus )
 	}
 		
 	"Message has been received from event bus - process it!."
-	void onMessage( "Message from event bus." Message<JSON> msg ) {
-		if ( exists request = msg.body(), is String operation = request.get( definitions.fieldOperation ) ) {
+	void onMessage( "Message from event bus." Message<JSON?> msg ) {
+		if ( exists request = msg.body(), is String operation = request.get( Chime.key.operation ) ) {
 			// depending on operation code
 			if ( exists operator = getOperator( operation ) ) {
 				operator( msg );

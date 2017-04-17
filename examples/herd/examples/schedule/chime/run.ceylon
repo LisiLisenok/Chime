@@ -12,20 +12,25 @@ import io.vertx.ceylon.core {
 	Vertx,
 	vertx
 }
+import herd.schedule.chime {
+	Chime
+}
 
 
 "Runs the module `herd.examples.schedule.chime`."
 shared void run() {
 	value v = vertx.vertx();
-	v.deployVerticle (
-		"ceylon:herd.schedule.chime/0.1.1",
-		( String|Throwable res ) {
-			if ( is String res ) {
-				value scheduler = Scheduler( v );
+	Chime c = Chime();
+	c.deploy (
+		v, null, 
+		(String|Throwable res) {
+			if (is String res) {
+				value scheduler = Scheduler(v);
 				scheduler.initialize();
 			}
 			else {
-				print( "deploying error ``res``");
+				print("deploying error: ``res``");
+				v.close();
 			}
 		}
 	);    
@@ -33,7 +38,7 @@ shared void run() {
 
 
 "Performs scheduler run. Creates cron-style timer and listens it."
-class Scheduler( Vertx v, String address = "chime" )
+class Scheduler(Vertx v, String address = Chime.configuration.defaultAddress)
 {
 	EventBus eventBus = v.eventBus();
 	
@@ -43,16 +48,16 @@ class Scheduler( Vertx v, String address = "chime" )
 		eventBus.send<JSON> (
 			address,
 			JSON {
-				"operation" -> "create",
-				"name" -> "scheduler",
-				"state" -> "running"
+				Chime.key.operation -> Chime.operation.create,
+				Chime.key.name -> "scheduler",
+				Chime.key.state -> Chime.state.running
 			},
-			( Throwable | Message<JSON> msg ) {
-				if ( is Message<JSON> msg ) {
-					schedulerCreated( msg );
+			(Throwable | Message<JSON?> msg) {
+				if (is Message<JSON?> msg) {
+					schedulerCreated(msg);
 				}
 				else {
-					print( "error in onConnect ``msg``" );
+					print("error when creating scheduler: ``msg``");
 					v.close();
 				}
 			}
@@ -60,55 +65,51 @@ class Scheduler( Vertx v, String address = "chime" )
 	}
 	
 	
-	void printMessage( Throwable | Message<JSON> msg ) {
-		if ( is Message<JSON> msg ) {
-			if ( exists body = msg.body() ) {
-				print( body );
-				if ( is String state = body.get( "state" ), state == "completed" ) {
+	void printMessage(Throwable|Message<JSON?> msg) {
+		if (is Message<JSON?> msg) {
+			if (exists body = msg.body()) {
+				print(body);
+				if (is String event = body.get(Chime.key.event), event == Chime.event.complete) {
 					v.close();
 				}
 			}
 			else {
-				print( "no body in the message" );
+				print("no body in the message");
 				v.close();
 			}
 		}
 		else {
-			print( "error: ``msg``" );
+			print("error: ``msg``");
 		}
 	}
 	
 	
-	void schedulerCreated( Message<JSON> msg ) {
+	void schedulerCreated(Message<JSON?> msg) {
 		
-		eventBus.consumer( "scheduler:timer", printMessage );
+		eventBus.consumer("scheduler:timer", printMessage);
 		
 		eventBus.send<JSON>(
 			address,
 			JSON {
-				"operation" -> "create",
-				"name" -> "scheduler:timer",
-				"state" -> "running",
-				"publish" -> false,
-				"max count" -> 3,
-				"time zone" -> "Europe/Paris",
-				/*"descirption" -> JSON {
-					"type" -> "interval",
-					"delay" -> 10
-				}*/
-				"descirption" -> JSON {
-					"type" -> "cron",
-					"seconds" -> "20/15",
-					"minutes" -> "*",
-					"hours" -> "0-23",
-					"days of month" -> "1-31",
-					"months" -> "*",
-					"days of week" -> "*",
-					"years" -> "2015-2019"
+				Chime.key.operation -> Chime.operation.create,
+				Chime.key.name -> "scheduler:timer",
+				Chime.key.state -> Chime.state.running,
+				Chime.key.publish -> false,
+				Chime.key.maxCount -> 3,
+				Chime.key.timeZoneID -> "Europe/Paris",
+				Chime.key.description -> JSON {
+					Chime.key.type -> Chime.type.cron,
+					Chime.date.seconds -> "20/15",
+					Chime.date.minutes -> "*",
+					Chime.date.hours -> "0-23",
+					Chime.date.daysOfMonth -> "1-31",
+					Chime.date.months -> "*",
+					Chime.date.daysOfWeek -> "*",
+					Chime.date.years -> "2015-2019"
 				}
 			},
 			printMessage
-		);		
+		);
 	}
 	
 }

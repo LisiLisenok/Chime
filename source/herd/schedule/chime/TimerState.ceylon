@@ -1,7 +1,7 @@
 
 
 "Timer state - running, paused or completed."
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 abstract class TimerState()
 	of timerRunning | timerPaused | timerCompleted
 {
@@ -32,19 +32,19 @@ abstract class TimerState()
 by( "Lis" )
 object timerRunning extends TimerState()
 {
-	shared actual String string = "running";
+	shared actual String string => Chime.state.running;
 }
 
 "Timer paused state."
 by( "Lis" )
 object timerPaused extends TimerState()
 {
-	shared actual String string = "paused";
+	shared actual String string => Chime.state.paused;
 }
 
 "Timer completed state."
 by( "Lis" )
 object timerCompleted extends TimerState()
 {
-	shared actual String string = "completed";
+	shared actual String string => Chime.state.completed;
 }

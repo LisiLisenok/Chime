@@ -7,20 +7,15 @@ import ceylon.time {
 	DateTime
 }
 import herd.schedule.chime.timer {
-	definitions,
 	Timer
-}
-import herd.schedule.chime.cron {
-
-	calendar
 }
 
 
 "Posses timer."
-by( "Lis" )
+since( "0.1.0" ) by( "Lis" )
 class TimerContainer (
 	"Timer full name, which is *'scheduler name':'timer name'*." shared String name,
-	"Timer [[JSON]] descirption" shared JSON description,
+	"Timer [[JSON]] description" shared JSON description,
 	"`true` if message to be published and `false` if message to be send" shared Boolean publish,
 	"Timer within this container." Timer timer,
 	"Remote-local date-time converter." TimeConverter converter,
@@ -50,49 +45,49 @@ class TimerContainer (
 	"Timer name + state."
 	shared JSON stateDescription() {
 		return JSON {
-			definitions.fieldName -> name,
-			definitions.fieldState -> state.string
+			Chime.key.name -> name,
+			Chime.key.state -> state.string
 		};
 	}
 	
 	"Returns _full_ timer description."
 	shared JSON fullDescription() {
 		JSON descr = JSON {
-			definitions.fieldName -> name,
-			definitions.fieldState -> state.string,
-			definitions.fieldCount -> count,
-			definitions.fieldDescription -> description,
-			definitions.fieldPublish -> publish
+			Chime.key.name -> name,
+			Chime.key.state -> state.string,
+			Chime.key.count -> count,
+			Chime.key.description -> description,
+			Chime.key.publish -> publish
 		};
 		
 		if ( exists d = maxCount ) {
-			descr.put( definitions.fieldMaxCount, d );
+			descr.put( Chime.key.maxCount, d );
 		}
 		
 		if ( exists d = startTime ) {
 			descr.put (
-				definitions.fieldStartTime,
+				Chime.key.startTime,
 				JSON {
-					calendar.seconds -> d.seconds,
-					calendar.minutes -> d.minutes,
-					calendar.hours -> d.hours,
-					calendar.dayOfMonth -> d.day,
-					calendar.month -> d.month.string,
-					calendar.year -> d.year
+					Chime.date.seconds -> d.seconds,
+					Chime.date.minutes -> d.minutes,
+					Chime.date.hours -> d.hours,
+					Chime.date.dayOfMonth -> d.day,
+					Chime.date.month -> d.month.string,
+					Chime.date.year -> d.year
 				}
 			);
 		}
 		
 		if ( exists d = endTime ) {
 			descr.put (
-				definitions.fieldEndTime,
+				Chime.key.endTime,
 				JSON {
-					calendar.seconds -> d.seconds,
-					calendar.minutes -> d.minutes,
-					calendar.hours -> d.hours,
-					calendar.dayOfMonth -> d.day,
-					calendar.month -> d.month.string,
-					calendar.year -> d.year
+					Chime.date.seconds -> d.seconds,
+					Chime.date.minutes -> d.minutes,
+					Chime.date.hours -> d.hours,
+					Chime.date.dayOfMonth -> d.day,
+					Chime.date.month -> d.month.string,
+					Chime.date.year -> d.year
 				}
 			);
 		}
