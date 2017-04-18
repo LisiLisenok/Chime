@@ -123,14 +123,7 @@ shared class Chime extends Verticle
 		"Value of the state field, if state is completed."
 		shared String completed = "completed";
 	}
-	
-	/*"Response codes."
-	shared static object response {
-		"Response code for the operation acception."
-		shared String ok = "ok";
-		"Response code for the error which has been occured during operation execution."
-		shared String error = "error";
-	}*/
+
 
 	"Cron and date fields"
 	shared static object date { 
