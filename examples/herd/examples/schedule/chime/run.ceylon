@@ -88,7 +88,7 @@ class Scheduler(Vertx v, String address = Chime.configuration.defaultAddress)
 		
 		eventBus.consumer("scheduler:timer", printMessage);
 		
-		eventBus.send<JSON>(
+		eventBus.send<JSON> (
 			address,
 			JSON {
 				Chime.key.operation -> Chime.operation.create,
@@ -96,7 +96,7 @@ class Scheduler(Vertx v, String address = Chime.configuration.defaultAddress)
 				Chime.key.state -> Chime.state.running,
 				Chime.key.publish -> false,
 				Chime.key.maxCount -> 3,
-				Chime.key.timeZoneID -> "Europe/Paris",
+				Chime.key.timeZone -> "Europe/Paris",
 				Chime.key.description -> JSON {
 					Chime.key.type -> Chime.type.cron,
 					Chime.date.seconds -> "20/15",

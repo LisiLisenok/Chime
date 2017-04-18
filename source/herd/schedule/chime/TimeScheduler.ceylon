@@ -260,7 +260,7 @@ class TimeScheduler(
 			Chime.date.dayOfMonth -> date.day,
 			Chime.date.month -> date.month.integer,
 			Chime.date.year -> date.year,
-			Chime.key.timeZoneID -> timer.timeZoneID
+			Chime.key.timeZone -> timer.timeZoneID
 		};
 		// send message
 		if ( timer.publish ) {

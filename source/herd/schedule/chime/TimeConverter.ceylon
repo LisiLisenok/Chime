@@ -28,7 +28,7 @@ interface TimeConverter {
 }
 
 
-"Defines time converter which do no convertion."
+"Defines time converter which does no convertion."
 since( "0.1.0" ) by( "Lis" )
 object dummyConverter satisfies TimeConverter {
 	
@@ -37,7 +37,7 @@ object dummyConverter satisfies TimeConverter {
 	
 	"Returns converter by time zone name."
 	shared TimeConverter? getConverter( JSON description ) {
-		if ( is String timeZoneID = description[Chime.key.timeZoneID] ) {
+		if ( is String timeZoneID = description[Chime.key.timeZone] ) {
 			JavaTimeZone tz = JavaTimeZone.getTimeZone( timeZoneID );
 			if ( tz.id == timeZoneID ) {
 				return ConverterWithTimezone( tz );

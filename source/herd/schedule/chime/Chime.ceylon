@@ -46,10 +46,6 @@ shared class Chime extends Verticle
 		shared String name = "name";
 		"Key for the timer state."
 		shared String state = "state";
-		//"Key for the response code."
-		//shared String response = "response";
-		//"Key for the error field."
-		//shared String error = "error";
 		"Key for the timer description."
 		shared String description = "description";
 		"Key for the time."
@@ -68,8 +64,8 @@ shared class Chime extends Verticle
 		shared String startTime = "start time";
 		"Key for the end time."
 		shared String endTime = "end time";
-		"Key for the time zone ID."
-		shared String timeZoneID = "time zone";
+		"Key for the time zone."
+		shared String timeZone = "time zone";
 		"Key for the delay."
 		shared String delay = "delay";
 		"Key for the imer description type."
