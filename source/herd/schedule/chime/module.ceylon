@@ -87,12 +87,15 @@
  
  _Chime_ responds on messages in `JSON` format:  
  		{
- 			\"response\" -> String // response code - one of \"ok\" or \"error\"  
  			\"name\" -> String // scheduler name  
  			\"state\" -> String // scheduler state  
  			\"schedulers\" -> JSONArray // scheduler names, exists as response on \"info\" operation with no \"name\" field  
- 			\"error\" -> String // error description, exists only if response == \"error\"
  		}
+ 
+ 
+ ##### Error response.  
+ 
+ Sent using `Message.fail` with corresponding code and message, see [[errorMessages]].
  
  
  ### _Timer_.
@@ -217,15 +220,17 @@
  
  _Chime_ responds on each request in `JSON` format:  
  	{  
- 		\"response\" -> String // response code - one of `ok` or `error`  
  		\"name\" -> String //  timer name  
  		\"state\" -> String // state  
- 		
- 		\"error\" -> String // error description, exists only if response == `error`
  		\"timers\" -> JSONArray // list of timer names currently scheduled - response on info operation with no name field specified
  		
  		// 'Info' operation returns fields from 'create' operation
  	}  
+ 
+ 
+ ##### Error response.  
+ 
+ Sent using `Message.fail` with corresponding code and message, see [[errorMessages]].
  
 
  ##### Timer events
@@ -302,7 +307,7 @@
  								\"years\" -> \"2015-2019\"
  							}
  						},
- 						(Throwable|Message<JSON> msg) {
+ 						(Throwable|Message<JSON?> msg) {
  							print(msg); // Chime replies if timer successfully created or some error occured
  						}
  					);
@@ -316,7 +321,7 @@
  		// listen timer
  		eventBus.consumer (
  			\"schedule manager:scheduled timer\",
- 			(Throwable | Message<JSON> msg) {
+ 			(Throwable | Message<JSON?> msg) {
  				...
  			}
  		);
@@ -324,11 +329,7 @@
  
  ### Error messages.
  
- When error occured _Chime_ replies on corresponding message with error:
- 		{
- 			\"response\" -> \"error\"  
- 			\"error\" -> String with error description
- 		}
+ The error is sent using `Message.fail` with corresponding code and message, see [[errorMessages]].
  
  possible errors (see [[value errorMessages]]):
  * \"unsupported operation\"

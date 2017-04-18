@@ -75,12 +75,12 @@ import herd.schedule.chime.timer {
  ### Response  
  response on messages is in `JSON`:  
  	{  
- 		\"response\" -> String // response code - one of \"ok\" or \"error\"  
  		\"name\" -> String // scheduler or full timer (\"scheduler name:timer name\") name  
  		\"state\" -> String // scheduler state  
  		\"schedulers\" -> JSONArray // scheduler names, exists as response on \"info\" operation with no \"name\" field  
- 		\"error\" -> String // error description, exists only if response == \"error\"
- 	} 
+ 	}
+ 	
+ or fail message with corresponding error, see [[errorMessages]].  
 
  "
 since( "0.1.0" ) by( "Lis" )
@@ -146,7 +146,7 @@ class SchedulerManager(
 			}
 			value scheduler = addScheduler( schedulerName, extractState( request ) else timerRunning );
 			if ( !request.get( Chime.key.description ) exists ) {
-				respondMessage( msg, scheduler.shortInfo );
+				msg.reply( scheduler.shortInfo );
 			}
 			else {
 				// add timer to scheduler
@@ -155,7 +155,7 @@ class SchedulerManager(
 		}
 		else {
 			// response with wrong format error
-			failMessage( msg, errorMessages.schedulerNameHasToBeSpecified );
+			msg.fail( errorMessages.codeSchedulerNameHasToBeSpecified, errorMessages.schedulerNameHasToBeSpecified );
 		}
 	}
 	
@@ -166,7 +166,7 @@ class SchedulerManager(
 			if ( exists sch = schedulers.remove( name ) ) {
 				sch.stop();
 				// scheduler successfully removed
-				respondMessage( msg, sch.shortInfo );
+				msg.reply( sch.shortInfo );
 			}
 			else {
 				// scheduler doesn't exists - look if name is full timer name
@@ -177,13 +177,13 @@ class SchedulerManager(
 				}
 				else {
 					// scheduler or timer doesn't exist
-					failMessage( msg, errorMessages.schedulerNotExists );
+					msg.fail( errorMessages.codeSchedulerNotExists, errorMessages.schedulerNotExists );
 				}
 			}
 		}
 		else {
 			// response with wrong format error
-			failMessage( msg, errorMessages.schedulerNameHasToBeSpecified );
+			msg.fail( errorMessages.codeSchedulerNameHasToBeSpecified, errorMessages.schedulerNameHasToBeSpecified );
 		}
 	}
 	
@@ -194,21 +194,21 @@ class SchedulerManager(
 				if ( exists sch = schedulers.get( name ) ) {
 					if ( state == Chime.state.get ) {
 						// return state
-						respondMessage( msg, sch.shortInfo );
+						msg.reply( sch.shortInfo );
 					}
 					else if ( state == timerPaused.string ){
 						// set paused state
 						sch.pause();
-						respondMessage( msg, sch.shortInfo );
+						msg.reply( sch.shortInfo );
 					}
 					else if ( state == timerRunning.string ){
 						// set running state
 						sch.start();
-						respondMessage( msg, sch.shortInfo );
+						msg.reply( sch.shortInfo );
 					}
 					else {
 						// state to be one of - get, paused, running
-						failMessage( msg, errorMessages.incorrectTimerState );
+						msg.fail( errorMessages.codeIncorrectTimerState, errorMessages.incorrectTimerState );
 					}
 				}
 				else {
@@ -220,18 +220,18 @@ class SchedulerManager(
 					}
 					else {
 						// scheduler or timer doesn't exist
-						failMessage( msg, errorMessages.schedulerNotExists );
+						msg.fail( errorMessages.codeSchedulerNotExists, errorMessages.schedulerNotExists );
 					}
 				}
 			}
 			else {
 				// scheduler state to be specified
-				failMessage( msg, errorMessages.stateToBeSpecified );
+				msg.fail( errorMessages.codeStateToBeSpecified, errorMessages.stateToBeSpecified );
 			}
 		}
 		else {
 			// scheduler name to be specified
-			failMessage( msg, errorMessages.schedulerNameHasToBeSpecified);
+			msg.fail( errorMessages.codeSchedulerNameHasToBeSpecified, errorMessages.schedulerNameHasToBeSpecified );
 		}
 	}
 	
@@ -251,14 +251,13 @@ class SchedulerManager(
 				}
 				else {
 					// scheduler or timer doesn't exist
-					failMessage( msg, errorMessages.schedulerNotExists );
+					msg.fail( errorMessages.codeSchedulerNotExists, errorMessages.schedulerNotExists );
 				}
 			}
 		}
 		else {
 			msg.reply (
 				JSON {
-					Chime.key.response -> Chime.response.ok,
 					Chime.key.schedulers -> JSONArray( { for ( scheduler in schedulers.items ) scheduler.name } )
 				}
 			);

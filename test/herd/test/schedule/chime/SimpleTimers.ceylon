@@ -79,12 +79,7 @@ shared class SimpleTimers()
 			},
 			( Throwable | Message<JSON?> msg ) {
 				if ( is Message<JSON?> msg ) {
-					if ( exists body = msg.body(), is String resp = body.get( Chime.key.response ), resp == Chime.response.ok ) {
-						initContext.proceed();
-					}
-					else {
-						initContext.abort( Exception( "Chime fails to create scheduler" ), "Scheduler creation" );
-					}
+					initContext.proceed();
 				}
 				else {
 					initContext.abort( msg, "Scheduler creation" );
@@ -189,10 +184,7 @@ shared class SimpleTimers()
 					context.complete();
 				}
 				else {
-					if ( exists body = msg.body(), is String resp = body.get( Chime.key.response ),
-						resp == Chime.response.ok
-					) {}
-					else {
+					if ( !msg.body() exists ) {
 						context.fail( Exception( "Chime rejects to setup interval timer" ), "Interval timer setup" );
 						context.complete();
 					}
@@ -234,10 +226,7 @@ shared class SimpleTimers()
 					context.complete();
 				}
 				else {
-					if ( exists body = msg.body(), is String resp = body.get( Chime.key.response ),
-						resp == Chime.response.ok
-					) {}
-					else {
+					if ( !msg.body() exists ) {
 						context.fail( Exception( "Chime rejects to setup cron timer" ), "Cron timer setup" );
 						context.complete();
 					}

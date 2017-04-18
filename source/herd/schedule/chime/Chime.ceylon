@@ -46,10 +46,10 @@ shared class Chime extends Verticle
 		shared String name = "name";
 		"Key for the timer state."
 		shared String state = "state";
-		"Key for the response code."
-		shared String response = "response";
-		"Key for the error field."
-		shared String error = "error";
+		//"Key for the response code."
+		//shared String response = "response";
+		//"Key for the error field."
+		//shared String error = "error";
 		"Key for the timer description."
 		shared String description = "description";
 		"Key for the time."
@@ -102,6 +102,8 @@ shared class Chime extends Verticle
 	
 	"Operation codes."
 	shared static object operation {
+		"Key for the operation field."
+		shared String key => Chime.key.operation;
 		"Operation code for the timer creation."
 		shared String create = "create";
 		"Operation code for the timer deletion."
@@ -114,6 +116,8 @@ shared class Chime extends Verticle
 	
 	"State fields."
 	shared static object state {
+		"Key for the state field."
+		shared String key => Chime.key.state;
 		"Value of the state field, if state is requested."
 		shared String get = "get";
 		"Value of the state field, if state is running."
@@ -124,13 +128,13 @@ shared class Chime extends Verticle
 		shared String completed = "completed";
 	}
 	
-	"Response codes."
+	/*"Response codes."
 	shared static object response {
 		"Response code for the operation acception."
 		shared String ok = "ok";
 		"Response code for the error which has been occured during operation execution."
 		shared String error = "error";
-	}
+	}*/
 
 	"Cron and date fields"
 	shared static object date { 

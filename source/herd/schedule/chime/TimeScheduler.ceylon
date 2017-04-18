@@ -167,7 +167,6 @@ class TimeScheduler(
 	 	\"timers\" -> array of timer names
 	 "
 	shared JSON fullInfo => JSON {
-		Chime.key.response -> Chime.response.ok,
 		Chime.key.name -> name,
 		Chime.key.state -> state.string,
 		Chime.key.timers -> JSONArray( { for ( timer in timers.items ) timer.name } )
@@ -387,24 +386,24 @@ class TimeScheduler(
 			}
 			if ( timers.defines( timerName ) ) {
 				// timer already exists
-				failMessage( msg, errorMessages.timerAlreadyExists );
+				msg.fail( errorMessages.codeTimerAlreadyExists, errorMessages.timerAlreadyExists );
 			}
 			else {
 				value timer = factory.createTimer( timerName, request );
 				if ( is TimerContainer timer ) {
 					addTimer( timer, extractState( request ) else timerRunning );
 					// timer successfully added
-					respondMessage( msg, timer.stateDescription() );
+					msg.reply( timer.stateDescription() );
 				}
 				else {
 					// wrong description
-					failMessage( msg, timer );
+					msg.fail( 0, timer );
 				}
 			}
 		}
 		else {
 			// timer name to be specified
-			failMessage( msg, errorMessages.timerDescriptionHasToBeSpecified );
+			msg.fail( errorMessages.codeTimerDescriptionHasToBeSpecified, errorMessages.timerDescriptionHasToBeSpecified );
 		}
 		
 	}
@@ -417,16 +416,16 @@ class TimeScheduler(
 			if ( exists t = timers.remove( timerName ) ) {
 				t.complete();
 				// timer successfully removed
-				respondMessage( msg, t.stateDescription() );
+				msg.reply( t.stateDescription() );
 			}
 			else {
 				// timer doesn't exist
-				failMessage( msg, errorMessages.timerNotExists );
+				msg.fail( errorMessages.codeTimerNotExists, errorMessages.timerNotExists );
 			}
 		}
 		else {
 			// timer name to be specified
-			failMessage( msg, errorMessages.timerNameHasToBeSpecified );
+			msg.fail( errorMessages.codeTimerNameHasToBeSpecified, errorMessages.timerNameHasToBeSpecified );
 		}
 	}
 	
@@ -438,12 +437,12 @@ class TimeScheduler(
 				if ( exists t = timers.get( timerName ) ) {
 					if ( state == Chime.state.get ) {
 						// return state
-						respondMessage( msg, t.stateDescription() );
+						msg.reply( t.stateDescription() );
 					}
 					else if ( state == timerPaused.string ){
 						// set paused state
 						t.state = timerPaused;
-						respondMessage( msg, t.stateDescription() );
+						msg.reply( t.stateDescription() );
 					}
 					else if ( state == timerRunning.string ) {
 						// set running state
@@ -457,26 +456,26 @@ class TimeScheduler(
 								sendCompleteEvent( t );
 							}
 						}
-						respondMessage( msg, t.stateDescription() );
+						msg.reply( t.stateDescription() );
 					}
 					else {
 						// state to be one of - get, paused, running
-						failMessage( msg, errorMessages.incorrectTimerState );
+						msg.fail( errorMessages.codeIncorrectTimerState, errorMessages.incorrectTimerState );
 					}
 				}
 				else {
 					// timer doesn't exist
-					failMessage( msg, errorMessages.timerNotExists );
+					msg.fail( errorMessages.codeTimerNotExists, errorMessages.timerNotExists );
 				}
 			}
 			else {
 				// timer state to be specified
-				failMessage( msg, errorMessages.stateToBeSpecified );
+				msg.fail( errorMessages.codeStateToBeSpecified, errorMessages.stateToBeSpecified );
 			}
 		}
 		else {
 			// timer name to be specified
-			failMessage( msg, "timer name has to be specified" );
+			msg.fail( errorMessages.codeTimerNameHasToBeSpecified, errorMessages.timerNameHasToBeSpecified );
 		}
 	}
 		
@@ -487,16 +486,16 @@ class TimeScheduler(
 			String timerName = timerFullName( tName );
 			if ( exists t = timers.get( timerName ) ) {
 				// timer successfully removed
-				respondMessage( msg, t.fullDescription() );
+				msg.reply( t.fullDescription() );
 			}
 			else {
 				// timer doesn't exist
-				failMessage( msg, errorMessages.timerNotExists );
+				msg.fail( errorMessages.codeTimerNotExists, errorMessages.timerNotExists );
 			}
 		}
 		else {
 			// timer name to be specified
-			failMessage( msg, errorMessages.timerNameHasToBeSpecified );
+			msg.fail( errorMessages.codeTimerNameHasToBeSpecified, errorMessages.timerNameHasToBeSpecified );
 		}
 	}
 

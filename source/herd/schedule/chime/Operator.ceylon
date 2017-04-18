@@ -30,34 +30,7 @@ abstract class Operator( "EventBus to pass messages." shared EventBus eventBus )
 		}
 		return operators?.get( code );
 	}
-	
-	"Responds on message. 
-	 respond format: 
-	 	{ 
-	 		response -> String // response code
-	 		error -> String // error description 
-	 		name -> String // item name
-	 		state -> String // item state
-	 		description -> JSON // item description
-	 	}
-	 "
-	shared void respondMessage( "Message to respond on." Message<JSON?> msg, "Rreply to be send" JSON reply ) {
-		reply.put( Chime.key.response, Chime.response.ok );
-		msg.reply( reply );
-	}
-	
-	"Fails message with message."
-	shared void failMessage (
-		"Message to be responded with failure." Message<JSON?> msg,
-		"Error to fail with." String errorMessage )
-	{
-		msg.reply (
-			JSON {
-				Chime.key.response -> Chime.response.error,
-				Chime.key.error -> errorMessage
-			}
-		);
-	}
+
 	
 	"Extracts state from request, helper method."
 	shared TimerState? extractState( JSON request ) {
@@ -77,12 +50,13 @@ abstract class Operator( "EventBus to pass messages." shared EventBus eventBus )
 				operator( msg );
 			}
 			else {
-				failMessage( msg, errorMessages.unsupportedOperation );
+				msg.fail( errorMessages.codeUnsupportedOperation, errorMessages.unsupportedOperation );
+				
 			}
 		}
 		else {
 			// response with wrong format error
-			failMessage( msg, errorMessages.operationIsNotSpecified );
+			msg.fail( errorMessages.codeOperationIsNotSpecified, errorMessages.operationIsNotSpecified );
 		}
 	}
 	
