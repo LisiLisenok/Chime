@@ -34,7 +34,7 @@ shared class StandardTimerFactory( "max year limitation" Integer maxYearPeriod =
 	// timer creators
 	
 	"Creates cron style timer."
-	Timer|String createCronTimer( "Timer description." JSON description ) {	 		
+	TimeRow|String createCronTimer( "Timer description." JSON description ) {	 		
 		if ( is String seconds = description[Chime.date.seconds],
 			is String minutes = description[Chime.date.minutes],
 			is String hours = description[Chime.date.hours],
@@ -74,7 +74,7 @@ shared class StandardTimerFactory( "max year limitation" Integer maxYearPeriod =
 	
 	
 	"Creates interval timer."
-	Timer|String createIntervalTimer( "Timer description." JSON description ) {
+	TimeRow|String createIntervalTimer( "Timer description." JSON description ) {
 		if ( is Integer delay = description[Chime.key.delay] ) {
 			if ( delay > 0 ) {
 				return TimerInterval( delay * 1000 );

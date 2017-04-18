@@ -7,7 +7,7 @@ import ceylon.time {
 	DateTime
 }
 import herd.schedule.chime.timer {
-	Timer
+	TimeRow
 }
 
 
@@ -17,7 +17,7 @@ class TimerContainer (
 	"Timer full name, which is *'scheduler name':'timer name'*." shared String name,
 	"Timer [[JSON]] description" shared JSON description,
 	"`true` if message to be published and `false` if message to be send" shared Boolean publish,
-	"Timer within this container." Timer timer,
+	"Timer within this container." TimeRow timer,
 	"Remote-local date-time converter." TimeConverter converter,
 	"Max count or null if not specified." shared Integer? maxCount,
 	"Timer start time or null if to be started immediately." shared DateTime? startTime,

@@ -19,7 +19,7 @@ since( "0.1.0" ) by( "Lis" )
 class TimerCronStyle (
 	"Cron expression rules the timer." CronExpression expression
 )
-		satisfies Timer
+		satisfies TimeRow
 {
 	
 	// indexies of current time

@@ -10,7 +10,7 @@ import ceylon.time {
 import herd.schedule.chime.timer {
 
 	TimerFactory,
-	Timer
+	TimeRow
 }
 import herd.schedule.chime.cron {
 
@@ -18,8 +18,8 @@ import herd.schedule.chime.cron {
 }
 
 
-"Uses [[JSON]] description to creates [[TimerContainer]] with timer [[Timer]] created by timer factory."
-see( `interface TimerFactory`, `interface Timer`, `class TimerContainer` )
+"Uses [[JSON]] description to creates [[TimerContainer]] with timer [[TimeRow]] created by timer factory."
+see( `interface TimerFactory`, `interface TimeRow`, `class TimerContainer` )
 since( "0.1.0" ) by( "Lis" )
 class TimerCreator( "Factory to create timers." TimerFactory factory )
 {
@@ -28,7 +28,7 @@ class TimerCreator( "Factory to create timers." TimerFactory factory )
 	shared TimerContainer|String createTimer( "Timer name." String name, "Request with timer description." JSON request ) {
 		if ( is JSON description = request[Chime.key.description] ) {
 			value timer = factory.createTimer( description );
-			if ( is Timer timer ) {
+			if ( is TimeRow timer ) {
 				return createTimerContainer( request, description, name, timer );
 			}
 			else {
@@ -47,7 +47,7 @@ class TimerCreator( "Factory to create timers." TimerFactory factory )
 		"Request on timer creation." JSON request,
 		"Timer desciption." JSON description,
 		"Timer name." String name,
-		"Timer." Timer timer
+		"Timer." TimeRow timer
 	) {
 		// extract start date if exists
 		DateTime? startDate;
