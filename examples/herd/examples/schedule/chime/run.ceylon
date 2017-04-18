@@ -69,7 +69,7 @@ class Scheduler(Vertx v, String address = Chime.configuration.defaultAddress)
 		if (is Message<JSON?> msg) {
 			if (exists body = msg.body()) {
 				print(body);
-				if (is String event = body.get(Chime.key.event), event == Chime.event.complete) {
+				if (is String event = body[Chime.key.event], event == Chime.event.complete) {
 					v.close();
 				}
 			}

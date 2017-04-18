@@ -40,8 +40,8 @@ shared class FactoryJSONBase() satisfies TimerFactory
 	"Searches creators from added via [[addCreator]] and use them to create timers.  
 	 description to contain field \"type\" which is used to find creator function."
 	shared actual Timer|String createTimer( "timer description" JSON description ) {
-		if ( is String type = description.get( Chime.key.type ) ) {
-			if ( exists creator = creators.get( type ) ) {
+		if ( is String type = description[Chime.key.type] ) {
+			if ( exists creator = creators[type] ) {
 				return creator( description );
 			}
 			else {

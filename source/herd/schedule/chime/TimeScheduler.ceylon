@@ -370,9 +370,9 @@ class TimeScheduler(
 
 	"Creates new timer."
 	shared void operationCreate( Message<JSON?> msg ) {
-		if ( exists request = msg.body(), request.get( Chime.key.description ) exists ) {
+		if ( exists request = msg.body(), request.defines( Chime.key.description ) ) {
 			String timerName;
-			if ( is String tName = request.get( Chime.key.name ) ) {
+			if ( is String tName = request[Chime.key.name] ) {
 				if ( tName.startsWith( nameWithSeparator ) && tName.size > nameWithSeparator.size ) {
 					timerName = tName;
 				}
@@ -410,7 +410,7 @@ class TimeScheduler(
 	
 	"Deletes existing timer."
 	shared void operationDelete( Message<JSON?> msg ) {
-		if ( exists request = msg.body(), is String tName = request.get( Chime.key.name ) ) {
+		if ( exists request = msg.body(), is String tName = request[Chime.key.name] ) {
 			String timerName = timerFullName( tName );
 			// delete timer
 			if ( exists t = timers.remove( timerName ) ) {
@@ -431,10 +431,10 @@ class TimeScheduler(
 	
 	"Processes 'timer state' operation."
 	shared void operationState( Message<JSON?> msg ) {
-		if ( exists request = msg.body(), is String tName = request.get( Chime.key.name ) ) {
-			 if ( is String state = request.get( Chime.key.state ) ) {
+		if ( exists request = msg.body(), is String tName = request[Chime.key.name] ) {
+			 if ( is String state = request[Chime.key.state] ) {
 				String timerName = timerFullName( tName );
-				if ( exists t = timers.get( timerName ) ) {
+				if ( exists t = timers[timerName] ) {
 					if ( state == Chime.state.get ) {
 						// return state
 						msg.reply( t.stateDescription() );
@@ -481,10 +481,10 @@ class TimeScheduler(
 		
 	"Replies with scheduler info - array of timer names."
 	shared void operationInfo( Message<JSON?> msg ) {
-		if ( exists request = msg.body(), is String tName = request.get( Chime.key.name ) ) {
+		if ( exists request = msg.body(), is String tName = request[Chime.key.name] ) {
 			// contains name field - reply with info about timer with specified name
 			String timerName = timerFullName( tName );
-			if ( exists t = timers.get( timerName ) ) {
+			if ( exists t = timers[timerName] ) {
 				// timer successfully removed
 				msg.reply( t.fullDescription() );
 			}

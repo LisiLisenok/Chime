@@ -133,7 +133,7 @@ class SchedulerManager(
 	
 	"Processes 'create new scheduler' operation."
 	void operationCreate( Message<JSON?> msg ) {
-		if ( exists request = msg.body(), is String name = request.get( Chime.key.name ) ) {
+		if ( exists request = msg.body(), is String name = request[Chime.key.name] ) {
 			String schedulerName;
 			String timerName;
 			if ( exists inc = name.firstInclusion( Chime.configuration.nameSeparator ) ) {
@@ -145,12 +145,13 @@ class SchedulerManager(
 				timerName = "";
 			}
 			value scheduler = addScheduler( schedulerName, extractState( request ) else timerRunning );
-			if ( !request.get( Chime.key.description ) exists ) {
-				msg.reply( scheduler.shortInfo );
-			}
-			else {
+			if ( request.defines( Chime.key.description ) ) {
 				// add timer to scheduler
 				scheduler.operationCreate( msg );
+			}
+			else {
+				// timer description is not specified - reply with info on scheduler
+				msg.reply( scheduler.shortInfo );
 			}
 		}
 		else {
@@ -161,7 +162,7 @@ class SchedulerManager(
 	
 	"Processes 'delete scheduler' operation."
 	void operationDelete( Message<JSON?> msg ) {
-		if ( exists request = msg.body(), is String name = request.get( Chime.key.name ) ) {
+		if ( exists request = msg.body(), is String name = request[Chime.key.name] ) {
 			// delete scheduler
 			if ( exists sch = schedulers.remove( name ) ) {
 				sch.stop();
@@ -171,7 +172,7 @@ class SchedulerManager(
 			else {
 				// scheduler doesn't exists - look if name is full timer name
 				value schedulerName = name.spanTo( ( name.firstInclusion( Chime.configuration.nameSeparator ) else 0 ) - 1 );
-				if ( !schedulerName.empty, exists sch = schedulers.get( schedulerName ) ) {
+				if ( !schedulerName.empty, exists sch = schedulers[schedulerName] ) {
 					// scheduler has to remove timer
 					sch.operationDelete( msg );
 				}
@@ -189,9 +190,9 @@ class SchedulerManager(
 	
 	"Processes 'scheduler state' operation."
 	void operationState( Message<JSON?> msg ) {
-		if ( exists request = msg.body(), is String name = request.get( Chime.key.name ) ) {
-			if ( is String state = request.get( Chime.key.state ) ) {
-				if ( exists sch = schedulers.get( name ) ) {
+		if ( exists request = msg.body(), is String name = request[Chime.key.name] ) {
+			if ( is String state = request[Chime.key.state] ) {
+				if ( exists sch = schedulers[name] ) {
 					if ( state == Chime.state.get ) {
 						// return state
 						msg.reply( sch.shortInfo );
@@ -214,7 +215,7 @@ class SchedulerManager(
 				else {
 					// scheduler doesn't exists - look if name is full timer name
 					value schedulerName = name.spanTo( ( name.firstInclusion( Chime.configuration.nameSeparator ) else 0 ) - 1 );
-					if ( !schedulerName.empty, exists sch = schedulers.get( schedulerName ) ) {
+					if ( !schedulerName.empty, exists sch = schedulers[schedulerName] ) {
 						// scheduler has to provide timer state
 						sch.operationState( msg );
 					}
@@ -238,14 +239,14 @@ class SchedulerManager(
 	"Replies with Chime info - array of scheduler names."
 	void operationInfo( Message<JSON?> msg ) {
 		if ( is String name = msg.body()?.get( Chime.key.name ) ) {
-			if ( exists sch = schedulers.get( name ) ) {
+			if ( exists sch = schedulers[name] ) {
 				// reply with scheduler info
 				msg.reply( sch.fullInfo );
 			}
 			else {
 				// scheduler doesn't exists - look if name is full timer name
 				value schedulerName = name.spanTo( ( name.firstInclusion( Chime.configuration.nameSeparator ) else 0 ) - 1 );
-				if ( !schedulerName.empty, exists sch = schedulers.get( schedulerName ) ) {
+				if ( !schedulerName.empty, exists sch = schedulers[schedulerName] ) {
 					// scheduler has to reply for timer info
 					sch.operationInfo( msg );
 				}

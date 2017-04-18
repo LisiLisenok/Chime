@@ -99,7 +99,7 @@ shared class SimpleTimers()
 		return ( Throwable | Message<JSON?> msg ) {
 			if ( is Message<JSON?> msg ) {
 				if ( exists body = msg.body() ) {
-					if ( is String event = body.get( Chime.key.event ) ) {
+					if ( is String event = body[Chime.key.event] ) {
 						if ( event == Chime.event.complete ) {
 							context.assertThat( fireCount, EqualTo( max + 1 ), "Total number of fires for ``timerName``" );
 							context.assertThat( totalDelay, EqualTo( delay * ( max - 1 ) ), "Total delay seconds for ``timerName``" );
@@ -107,7 +107,7 @@ shared class SimpleTimers()
 						}
 						else if ( event == Chime.event.fire ) {
 							fireCount ++;
-							if ( is Integer seconds = body.get( "seconds" ) ) {
+							if ( is Integer seconds = body[Chime.date.seconds] ) {
 								if ( exists prev = previousTime ) {
 									if ( seconds > prev ) {
 										totalDelay += seconds - prev; 

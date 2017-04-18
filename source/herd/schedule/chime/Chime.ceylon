@@ -184,16 +184,16 @@ shared class Chime extends Verticle
 	"Reads configuration from json."
 	void readConfiguration( "Configuration in JSON format." JSON config ) {
 		// read listening address
-		if ( is String addr = config.get( Chime.configuration.address ) ) {
+		if ( is String addr = config[Chime.configuration.address] ) {
 			actualAddress = addr;
 		}
 		// year period limitation
-		if ( is Integer maxYear = config.get ( Chime.configuration.maxYearPeriodLimit ) ) {
+		if ( is Integer maxYear = config[Chime.configuration.maxYearPeriodLimit] ) {
 			if ( maxYear < 100 ) { maxYearPeriod = maxYear; }
 			else { maxYearPeriod = 100; }
 		}
 		// tolerance to compare times
-		if ( is Integer tol = config.get ( Chime.configuration.tolerance ) ) {
+		if ( is Integer tol = config[Chime.configuration.tolerance] ) {
 			if ( tol > 0 ) { actualTolerance = tol; }
 		}
 	}

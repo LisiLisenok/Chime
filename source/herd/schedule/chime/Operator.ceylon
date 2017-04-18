@@ -34,7 +34,7 @@ abstract class Operator( "EventBus to pass messages." shared EventBus eventBus )
 	
 	"Extracts state from request, helper method."
 	shared TimerState? extractState( JSON request ) {
-		if ( is String state = request.get( Chime.key.state ) ) {
+		if ( is String state = request[Chime.key.state] ) {
 			return timerRunning.byName( state );
 		}
 		else {
@@ -44,7 +44,7 @@ abstract class Operator( "EventBus to pass messages." shared EventBus eventBus )
 		
 	"Message has been received from event bus - process it!."
 	void onMessage( "Message from event bus." Message<JSON?> msg ) {
-		if ( exists request = msg.body(), is String operation = request.get( Chime.key.operation ) ) {
+		if ( exists request = msg.body(), is String operation = request[Chime.key.operation] ) {
 			// depending on operation code
 			if ( exists operator = getOperator( operation ) ) {
 				operator( msg );
