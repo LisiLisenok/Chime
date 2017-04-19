@@ -148,10 +148,10 @@ class TimeScheduler(
 	variable Integer? timerID = null;
 	
 	"Value for scheduler state - running, paused or completed."
-	variable TimerState schedulerState = timerPaused;
+	variable State schedulerState = State.paused;
 	
 	"Scheduler state - running, paused or completed."
-	shared TimerState state => schedulerState;
+	shared State state => schedulerState;
 	
 	"Scheduler `JSON` short info (name and state)."
 	shared JSON shortInfo
@@ -182,7 +182,7 @@ class TimeScheduler(
 // timers map methods
 	
 	"`true` if timer is completed."
-	Boolean selectCompleted( TimerContainer timer ) => timer.state == timerCompleted;
+	Boolean selectCompleted( TimerContainer timer ) => timer.state == State.completed;
 	
 	"Name of the given timer."
 	String timerName( TimerContainer timer ) => timer.name;
@@ -196,7 +196,7 @@ class TimeScheduler(
 		DateTime current = localTime();
 		variable Integer delay = 0;
 		for ( timer in timers.items ) {
-			if ( timer.state == timerRunning, exists localDate = timer.localFireTime ) {
+			if ( timer.state == State.running, exists localDate = timer.localFireTime ) {
 				Integer offset = localDate.offset( current );
 				if ( offset <= 0 ) {
 					if ( delay > 500 || delay == 0 ) {
@@ -219,14 +219,14 @@ class TimeScheduler(
 		variable Boolean completed = false;
 		DateTime current = localTime().plus( tolerancePeriod );
 		for ( timer in timers.items ) {
-			if ( timer.state == timerRunning,
+			if ( timer.state == State.running,
 				 exists localDate = timer.localFireTime,
 				 exists remoteDate = timer.remoteFireTime
 			) {
 				if ( localDate < current ) {
 					timer.shiftTime();
 					sendFireEvent( timer, remoteDate );
-					if ( timer.state == timerCompleted ) {
+					if ( timer.state == State.completed ) {
 						sendCompleteEvent( timer );
 						completed = true;
 					}
@@ -317,7 +317,7 @@ class TimeScheduler(
 	
 	"Vertx timer has been fired - send message and use next vertx timer."
 	void vertxTimerFired( Integer id ) {
-		if ( state == timerRunning, exists currentID = timerID, currentID == id ) {
+		if ( state == State.running, exists currentID = timerID, currentID == id ) {
 			timerID = null;
 			fireTimers();
 			buildVertxTimer();
@@ -341,11 +341,11 @@ class TimeScheduler(
 	 If timer has been added previously it will be replaced."
 	void addTimer (
 		"timer to be added" TimerContainer timer,
-		"timer state" TimerState state )
+		"timer state" State state )
 	{
-		if ( state == timerRunning ) {
+		if ( state == State.running ) {
 			timer.start( localTime() );
-			if ( timer.state == timerRunning ) {
+			if ( timer.state == State.running ) {
 				timers.put( timer.name, timer );
 				buildVertxTimer();
 			}
@@ -353,7 +353,7 @@ class TimeScheduler(
 				sendCompleteEvent( timer );
 			}
 		}
-		else if ( state == timerPaused ) {
+		else if ( state == State.paused ) {
 			timers.put( timer.name, timer );
 		}
 	}
@@ -391,7 +391,7 @@ class TimeScheduler(
 			else {
 				value timer = factory.createTimer( timerName, request );
 				if ( is TimerContainer timer ) {
-					addTimer( timer, extractState( request ) else timerRunning );
+					addTimer( timer, extractState( request ) else State.running );
 					// timer successfully added
 					msg.reply( timer.stateDescription() );
 				}
@@ -439,16 +439,16 @@ class TimeScheduler(
 						// return state
 						msg.reply( t.stateDescription() );
 					}
-					else if ( state == timerPaused.string ){
+					else if ( state == State.paused.string ){
 						// set paused state
-						t.state = timerPaused;
+						t.state = State.paused;
 						msg.reply( t.stateDescription() );
 					}
-					else if ( state == timerRunning.string ) {
+					else if ( state == State.running.string ) {
 						// set running state
-						if ( t.state == timerPaused ) {
+						if ( t.state == State.paused ) {
 							t.start( localTime() );
-							if ( t.state == timerRunning ) {
+							if ( t.state == State.running ) {
 								buildVertxTimer();
 							}
 							else {
@@ -506,13 +506,13 @@ class TimeScheduler(
 	see( `function pause` )
 	see( `function stop` )
 	shared void start() {
-		if ( state != timerRunning ) {
-			schedulerState = timerRunning;
+		if ( state != State.running ) {
+			schedulerState = State.running;
 			DateTime current = localTime();
 			for ( timer in timers.items ) {
-				if ( timer.state == timerRunning ) {
+				if ( timer.state == State.running ) {
 					timer.start( current );
-					if ( timer.state == timerCompleted ) {
+					if ( timer.state == State.completed ) {
 						sendCompleteEvent( timer );
 					}
 				}
@@ -525,17 +525,17 @@ class TimeScheduler(
 	"Pauses scheduling - all fires to be missed while start not called."
 	see( `function start` )
 	shared void pause() {
-		schedulerState = timerPaused;
+		schedulerState = State.paused;
 		cancelCurrentVertxTimer();
 	}
 	
 	"Completes all timers and terminates this scheduler."
 	shared actual void stop() {
 		super.stop();
-		schedulerState = timerCompleted;
+		schedulerState = State.completed;
 		// fire completed on all timers
 		for ( timer in timers.items ) {
-			if ( timer.state != timerCompleted ) {
+			if ( timer.state != State.completed ) {
 				timer.complete();
 				sendCompleteEvent( timer );
 			}

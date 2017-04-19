@@ -35,9 +35,9 @@ abstract class Operator( "EventBus to pass messages." shared EventBus eventBus )
 
 	
 	"Extracts state from request, helper method."
-	shared TimerState? extractState( JSON request ) {
+	shared State? extractState( JSON request ) {
 		if ( is String state = request[Chime.key.state] ) {
-			return timerRunning.byName( state );
+			return stateByName( state );
 		}
 		else {
 			return null;

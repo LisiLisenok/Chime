@@ -28,7 +28,7 @@ class TimerContainer (
 	shared variable Integer count = 0;
 	
 	"Timer state."
-	shared variable TimerState state = timerPaused;
+	shared variable State state = State.paused;
 
 	"Next fire timer in remote TZ or null if completed."
 	variable DateTime? nextRemoteFireTime = null;
@@ -130,7 +130,7 @@ class TimerContainer (
 					return;
 				}
 			}
-			state = timerRunning;
+			state = State.running;
 			nextRemoteFireTime = date;
 		}
 		else {
@@ -141,12 +141,12 @@ class TimerContainer (
 	"Sets timer completed."
 	shared void complete() {
 		nextRemoteFireTime = null;
-		state = timerCompleted;
+		state = State.completed;
 	}
 	
 	"Shifts timer to the next time."
 	shared void shiftTime() {
-		if ( state == timerRunning ) {
+		if ( state == State.running ) {
 			count ++;
 			if ( exists date = timer.shiftTime() ) {
 				

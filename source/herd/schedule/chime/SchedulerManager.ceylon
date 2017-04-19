@@ -104,7 +104,7 @@ class SchedulerManager(
 	
 	"Adds new scheduler.  
 	 Retruns new or already existed shceduler with name `name`."
-	shared TimeScheduler addScheduler( "Scheduler name." String name, "Scheduler state." TimerState state ) {
+	shared TimeScheduler addScheduler( "Scheduler name." String name, "Scheduler state." State state ) {
 		if ( exists sch = getScheduler( name ) ) {
 			return sch;
 		}
@@ -112,7 +112,7 @@ class SchedulerManager(
 			TimeScheduler sch = TimeScheduler( name, vertx, eventBus, creator, tolerance );
 			schedulers.put( name, sch );
 			sch.connect( name );
-			if ( state == timerRunning ) {
+			if ( state == State.running ) {
 				sch.start();
 			}
 			return sch;
@@ -144,7 +144,7 @@ class SchedulerManager(
 				schedulerName = name;
 				timerName = "";
 			}
-			value scheduler = addScheduler( schedulerName, extractState( request ) else timerRunning );
+			value scheduler = addScheduler( schedulerName, extractState( request ) else State.running );
 			if ( request.defines( Chime.key.description ) ) {
 				// add timer to scheduler
 				scheduler.operationCreate( msg );
@@ -197,12 +197,12 @@ class SchedulerManager(
 						// return state
 						msg.reply( sch.shortInfo );
 					}
-					else if ( state == timerPaused.string ){
+					else if ( state == State.paused.string ){
 						// set paused state
 						sch.pause();
 						msg.reply( sch.shortInfo );
 					}
-					else if ( state == timerRunning.string ){
+					else if ( state == State.running.string ){
 						// set running state
 						sch.start();
 						msg.reply( sch.shortInfo );
