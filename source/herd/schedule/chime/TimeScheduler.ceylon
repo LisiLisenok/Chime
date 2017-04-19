@@ -530,7 +530,8 @@ class TimeScheduler(
 	}
 	
 	"Completes all timers and terminates this scheduler."
-	shared void stop() {
+	shared actual void stop() {
+		super.stop();
 		schedulerState = timerCompleted;
 		// fire completed on all timers
 		for ( timer in timers.items ) {

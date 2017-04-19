@@ -259,7 +259,7 @@ class SchedulerManager(
 		else {
 			msg.reply (
 				JSON {
-					Chime.key.schedulers -> JSONArray( { for ( scheduler in schedulers.items ) scheduler.name } )
+					Chime.key.schedulers -> JSONArray{ for ( scheduler in schedulers.items ) scheduler.name }
 				}
 			);
 		}

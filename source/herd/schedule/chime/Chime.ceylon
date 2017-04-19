@@ -201,4 +201,9 @@ shared class Chime extends Verticle
 		sch.connect( actualAddress );
 	}
 	
+	shared actual void stop() {
+		scheduler?.stop();
+		scheduler = null;
+	}
+	
 }

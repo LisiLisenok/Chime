@@ -5,7 +5,8 @@ import ceylon.json {
 import io.vertx.ceylon.core.eventbus {
 
 	Message,
-	EventBus
+	EventBus,
+	MessageConsumer
 }
 
 
@@ -14,7 +15,8 @@ see( `class SchedulerManager`, `class TimeScheduler` )
 since( "0.1.0" ) by( "Lis" )
 abstract class Operator( "EventBus to pass messages." shared EventBus eventBus )
 {
-	
+	variable MessageConsumer<JSON?>? consumer = null; 
+			
 	"Operators map."	
 	variable Map<String, Anything(Message<JSON?>)>? operators = null;
 	
@@ -62,8 +64,15 @@ abstract class Operator( "EventBus to pass messages." shared EventBus eventBus )
 	
 	"Connects to event bus, returns promise resolved when event listener registered."
 	shared default void connect( "Address to listen to." String address ) {
+		"Already connected."
+		assert( !consumer exists );
 		// setup event bus listener
-		eventBus.consumer( address, onMessage );
+		consumer = eventBus.consumer( address, onMessage );
+	}
+	
+	shared default void stop() {
+		consumer?.unregister();
+		consumer = null;
 	}
 
 }
