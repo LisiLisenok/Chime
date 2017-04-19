@@ -414,9 +414,9 @@ class TimeScheduler(
 			String timerName = timerFullName( tName );
 			// delete timer
 			if ( exists t = timers.remove( timerName ) ) {
-				t.complete();
-				// timer successfully removed
-				msg.reply( t.stateDescription() );
+				t.complete(); // mark timer as complete
+				sendCompleteEvent( t ); // send timer complete message
+				msg.reply( t.stateDescription() ); // timer successfully removed
 			}
 			else {
 				// timer doesn't exist
