@@ -422,6 +422,7 @@ license (
 by( "Lis" )
 native( "jvm" )
 module herd.schedule.chime "0.2.0" {
-	shared import io.vertx.ceylon.core "3.4.0";
-	import ceylon.time "1.3.2";
+	shared import io.vertx.ceylon.core "3.4.1";
+	shared import ceylon.time "1.3.2";
+	import ceylon.json "1.3.0";
 }

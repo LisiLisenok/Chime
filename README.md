@@ -14,7 +14,7 @@ _Chime_ is time scheduler which works on _Vert.x_ event bus and provides:
 
 Available on [Ceylon Herd](https://herd.ceylon-lang.org/modules/herd.schedule.chime)
 
-> Runs with Ceylon 1.3.2 and Vert.x 3.4.0
+> Runs with Ceylon 1.3.2 and Vert.x 3.4.1
 
 
 ## Usage and documentation.
