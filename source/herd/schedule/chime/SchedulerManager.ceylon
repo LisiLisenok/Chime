@@ -109,7 +109,7 @@ class SchedulerManager(
 			return sch;
 		}
 		else {
-			TimeScheduler sch = TimeScheduler( name, vertx, eventBus, creator, tolerance );
+			TimeScheduler sch = TimeScheduler( name, schedulers.remove, vertx, eventBus, creator, tolerance );
 			schedulers.put( name, sch );
 			sch.connect( name );
 			if ( state == State.running ) {
@@ -193,24 +193,7 @@ class SchedulerManager(
 		if ( exists request = msg.body(), is String name = request[Chime.key.name] ) {
 			if ( is String state = request[Chime.key.state] ) {
 				if ( exists sch = schedulers[name] ) {
-					if ( state == Chime.state.get ) {
-						// return state
-						msg.reply( sch.shortInfo );
-					}
-					else if ( state == State.paused.string ){
-						// set paused state
-						sch.pause();
-						msg.reply( sch.shortInfo );
-					}
-					else if ( state == State.running.string ){
-						// set running state
-						sch.start();
-						msg.reply( sch.shortInfo );
-					}
-					else {
-						// state to be one of - get, paused, running
-						msg.fail( errorMessages.codeIncorrectTimerState, errorMessages.incorrectTimerState );
-					}
+					sch.replyWithSchedulerState( state, msg );
 				}
 				else {
 					// scheduler doesn't exists - look if name is full timer name

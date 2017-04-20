@@ -125,6 +125,7 @@ import ceylon.time.timezone {
 since( "0.1.0" ) by( "Lis" )
 class TimeScheduler(
 	"Scheduler name." shared String name,
+	"Removes schedulerwhen delete operation requested." TimeScheduler?(String) removeScheduler,
 	"Vertx the scheduler operates on." Vertx vertx,
 	"EventBus to pass messages." EventBus eventBus,
 	"Factory to create timers." TimerCreator factory,
@@ -411,9 +412,14 @@ class TimeScheduler(
 	"Deletes existing timer."
 	shared void operationDelete( Message<JSON?> msg ) {
 		if ( exists request = msg.body(), is String tName = request[Chime.key.name] ) {
-			String timerName = timerFullName( tName );
-			// delete timer
-			if ( exists t = timers.remove( timerName ) ) {
+			if ( tName.empty || tName == name ) {
+				// delete this scheduler
+				removeScheduler( name );
+				stop();
+				msg.reply( shortInfo );
+			}
+			else if ( exists t = timers.remove( timerFullName( tName ) ) ) {
+				// delete timer
 				t.complete(); // mark timer as complete
 				sendCompleteEvent( t ); // send timer complete message
 				msg.reply( t.stateDescription() ); // timer successfully removed
@@ -429,12 +435,37 @@ class TimeScheduler(
 		}
 	}
 	
+	"Replies on the state request of this scheduler."
+	shared void replyWithSchedulerState( String state, Message<JSON?> msg ) {
+		if ( state == Chime.state.get ) {
+			// return state
+			msg.reply( shortInfo );
+		}
+		else if ( state == State.paused.string ){
+			// set paused state
+			pause();
+			msg.reply( shortInfo );
+		}
+		else if ( state == State.running.string ){
+			// set running state
+			start();
+			msg.reply( shortInfo );
+		}
+		else {
+			// state to be one of - get, paused, running
+			msg.fail( errorMessages.codeIncorrectTimerState, errorMessages.incorrectTimerState );
+		}
+	}
+	
 	"Processes 'timer state' operation."
 	shared void operationState( Message<JSON?> msg ) {
 		if ( exists request = msg.body(), is String tName = request[Chime.key.name] ) {
 			 if ( is String state = request[Chime.key.state] ) {
-				String timerName = timerFullName( tName );
-				if ( exists t = timers[timerName] ) {
+				if ( tName.empty || tName == name ) {
+					// this scheduler state is requested
+					replyWithSchedulerState( state, msg );
+				}
+				else if ( exists t = timers[timerFullName( tName )] ) {
 					if ( state == Chime.state.get ) {
 						// return state
 						msg.reply( t.stateDescription() );
@@ -483,8 +514,11 @@ class TimeScheduler(
 	shared void operationInfo( Message<JSON?> msg ) {
 		if ( exists request = msg.body(), is String tName = request[Chime.key.name] ) {
 			// contains name field - reply with info about timer with specified name
-			String timerName = timerFullName( tName );
-			if ( exists t = timers[timerName] ) {
+			if ( tName.empty || tName == name ) {
+				// reply with info on this scheduler
+				msg.reply( fullInfo );
+			}
+			else if ( exists t = timers[timerFullName( tName )] ) {
 				// timer successfully removed
 				msg.reply( t.fullDescription() );
 			}
