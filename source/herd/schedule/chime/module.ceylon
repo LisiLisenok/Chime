@@ -257,11 +257,12 @@
  			\"count\" -> Integer, total number of fire times
  		}   
  
- > The value at the 'event' key indicates the event type.  
+ > Complete event is always published in orderevery listener receives it.  
+   While fire event may be either published or send depending on 'publish' field in timer create request.  
+ 
+ > The value at the 'event' key indicates the event type (fire or complete).  
  
  > _Timer full name_ is _scheduler name_ and _timer name_ separated with ':', i.e. \"scheduler name:timer name\".  
- 
- > Timer _sends_ or _publishes_ message depending on \"publish\" field in timer description (passed at timer creation request).  
  
  > String formatted time / date is per [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).  
  

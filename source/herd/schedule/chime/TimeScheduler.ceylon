@@ -228,7 +228,7 @@ class TimeScheduler(
 					timer.shiftTime();
 					sendFireEvent( timer, remoteDate );
 					if ( timer.state == State.completed ) {
-						sendCompleteEvent( timer );
+						publishCompleteEvent( timer );
 						completed = true;
 					}
 				}
@@ -272,7 +272,7 @@ class TimeScheduler(
 		}
 	}
 	
-	"Sends complete event in standard Chime format.
+	"Publish complete event in standard Chime format.
 	 
 	 message format:  
 	 {  
@@ -280,20 +280,17 @@ class TimeScheduler(
 	 	\"event\": \"complete\"
 	 	\"count\": total number of fire times  
 	 }
+	 
+	 > Completed message is always published.
 	 "
-	shared void sendCompleteEvent( TimerContainer timer ) {
+	shared void publishCompleteEvent( TimerContainer timer ) {
 		JSON message = JSON {
 			Chime.key.event -> Chime.event.complete,
 			Chime.key.name -> timer.name,
 			Chime.key.count -> timer.count
 		};
-		// send message
-		if ( timer.publish ) {
-			eventBus.publish( timer.name, message );
-		}
-		else {
-			eventBus.send( timer.name, message );
-		}
+		// publish message
+		eventBus.publish( timer.name, message );
 	}
 
 
@@ -351,7 +348,7 @@ class TimeScheduler(
 				buildVertxTimer();
 			}
 			else {
-				sendCompleteEvent( timer );
+				publishCompleteEvent( timer );
 			}
 		}
 		else if ( state == State.paused ) {
@@ -421,7 +418,7 @@ class TimeScheduler(
 			else if ( exists t = timers.remove( timerFullName( tName ) ) ) {
 				// delete timer
 				t.complete(); // mark timer as complete
-				sendCompleteEvent( t ); // send timer complete message
+				publishCompleteEvent( t ); // send timer complete message
 				msg.reply( t.stateDescription() ); // timer successfully removed
 			}
 			else {
@@ -484,7 +481,7 @@ class TimeScheduler(
 							}
 							else {
 								timers.remove( t.name );
-								sendCompleteEvent( t );
+								publishCompleteEvent( t );
 							}
 						}
 						msg.reply( t.stateDescription() );
@@ -547,7 +544,7 @@ class TimeScheduler(
 				if ( timer.state == State.running ) {
 					timer.start( current );
 					if ( timer.state == State.completed ) {
-						sendCompleteEvent( timer );
+						publishCompleteEvent( timer );
 					}
 				}
 			}
@@ -571,7 +568,7 @@ class TimeScheduler(
 		for ( timer in timers.items ) {
 			if ( timer.state != State.completed ) {
 				timer.complete();
-				sendCompleteEvent( timer );
+				publishCompleteEvent( timer );
 			}
 		}
 		timers.clear();
