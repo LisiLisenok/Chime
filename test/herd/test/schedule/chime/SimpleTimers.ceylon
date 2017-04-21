@@ -160,9 +160,11 @@ shared class SimpleTimers()
 	
 	test shared void intervalTimer( AsyncTestContext context ) {
 
+		Integer timerDelay = 1;
+
 		eventBus.consumer (
 			interval,
-			timerValidation( interval, 10, 3, context )
+			timerValidation( interval, timerDelay, 3, context )
 		);
 		
 		eventBus.send<JSON>(
@@ -175,7 +177,7 @@ shared class SimpleTimers()
 				Chime.key.maxCount -> 3,
 				Chime.key.description -> JSON {
 					Chime.key.type -> Chime.type.interval,
-					Chime.key.delay -> 10
+					Chime.key.delay -> timerDelay
 				}
 			},
 			( Throwable | Message<JSON?> msg ) {
@@ -198,7 +200,7 @@ shared class SimpleTimers()
 		
 		eventBus.consumer (
 			cron,
-			timerValidation( cron, 10, 3, context )
+			timerValidation( cron, 1, 3, context )
 		);
 		
 		eventBus.send<JSON>(
@@ -211,7 +213,7 @@ shared class SimpleTimers()
 				Chime.key.maxCount -> 3,
 				Chime.key.description -> JSON {
 					Chime.key.type -> Chime.type.cron,
-					Chime.date.seconds -> "0,10,20,30,40,50",
+					Chime.date.seconds -> "0-59",
 					Chime.date.minutes -> "*",
 					Chime.date.hours -> "0-23",
 					Chime.date.daysOfMonth -> "1-31",

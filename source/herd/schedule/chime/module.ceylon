@@ -89,7 +89,7 @@
  		{
  			\"name\" -> String // scheduler name  
  			\"state\" -> String // scheduler state  
- 			\"schedulers\" -> JSONArray // scheduler names, exists as response on \"info\" operation with no \"name\" field  
+ 			\"schedulers\" -> JSONArray // schedulers info, exists as response on \"info\" operation with no \"name\" field  
  		}
  
  
@@ -222,7 +222,7 @@
  	{  
  		\"name\" -> String //  timer name  
  		\"state\" -> String // state  
- 		\"timers\" -> JSONArray // list of timer names currently scheduled - response on info operation with no name field specified
+ 		\"timers\" -> JSONArray // list of timer info currently scheduled - response on info operation with no name field specified
  		
  		// 'Info' operation returns fields from 'create' operation
  	}  

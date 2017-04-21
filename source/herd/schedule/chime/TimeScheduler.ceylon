@@ -170,7 +170,7 @@ class TimeScheduler(
 	shared JSON fullInfo => JSON {
 		Chime.key.name -> name,
 		Chime.key.state -> state.string,
-		Chime.key.timers -> JSONArray( { for ( timer in timers.items ) timer.name } )
+		Chime.key.timers -> JSONArray( [ for ( timer in timers.items ) timer.fullDescription() ] )
 	};
 	
 	
@@ -519,7 +519,7 @@ class TimeScheduler(
 				msg.reply( fullInfo );
 			}
 			else if ( exists t = timers[timerFullName( tName )] ) {
-				// timer successfully removed
+				// reply with timer info
 				msg.reply( t.fullDescription() );
 			}
 			else {
