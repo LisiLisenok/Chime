@@ -80,7 +80,7 @@ import herd.schedule.chime.timer {
  		\"schedulers\" -> JSONArray // scheduler names, exists as response on \"info\" operation with no \"name\" field  
  	}
  	
- or fail message with corresponding error, see [[errorMessages]].  
+ or fail message with corresponding error, see [[Chime.errors]].  
 
  "
 since( "0.1.0" ) by( "Lis" )
@@ -156,7 +156,7 @@ class SchedulerManager(
 		}
 		else {
 			// response with wrong format error
-			msg.fail( errorMessages.codeSchedulerNameHasToBeSpecified, errorMessages.schedulerNameHasToBeSpecified );
+			msg.fail( Chime.errors.codeSchedulerNameHasToBeSpecified, Chime.errors.schedulerNameHasToBeSpecified );
 		}
 	}
 	
@@ -178,13 +178,13 @@ class SchedulerManager(
 				}
 				else {
 					// scheduler or timer doesn't exist
-					msg.fail( errorMessages.codeSchedulerNotExists, errorMessages.schedulerNotExists );
+					msg.fail( Chime.errors.codeSchedulerNotExists, Chime.errors.schedulerNotExists );
 				}
 			}
 		}
 		else {
 			// response with wrong format error
-			msg.fail( errorMessages.codeSchedulerNameHasToBeSpecified, errorMessages.schedulerNameHasToBeSpecified );
+			msg.fail( Chime.errors.codeSchedulerNameHasToBeSpecified, Chime.errors.schedulerNameHasToBeSpecified );
 		}
 	}
 	
@@ -204,18 +204,18 @@ class SchedulerManager(
 					}
 					else {
 						// scheduler or timer doesn't exist
-						msg.fail( errorMessages.codeSchedulerNotExists, errorMessages.schedulerNotExists );
+						msg.fail( Chime.errors.codeSchedulerNotExists, Chime.errors.schedulerNotExists );
 					}
 				}
 			}
 			else {
 				// scheduler state to be specified
-				msg.fail( errorMessages.codeStateToBeSpecified, errorMessages.stateToBeSpecified );
+				msg.fail( Chime.errors.codeStateToBeSpecified, Chime.errors.stateToBeSpecified );
 			}
 		}
 		else {
 			// scheduler name to be specified
-			msg.fail( errorMessages.codeSchedulerNameHasToBeSpecified, errorMessages.schedulerNameHasToBeSpecified );
+			msg.fail( Chime.errors.codeSchedulerNameHasToBeSpecified, Chime.errors.schedulerNameHasToBeSpecified );
 		}
 	}
 	
@@ -235,7 +235,7 @@ class SchedulerManager(
 				}
 				else {
 					// scheduler or timer doesn't exist
-					msg.fail( errorMessages.codeSchedulerNotExists, errorMessages.schedulerNotExists );
+					msg.fail( Chime.errors.codeSchedulerNotExists, Chime.errors.schedulerNotExists );
 				}
 			}
 		}

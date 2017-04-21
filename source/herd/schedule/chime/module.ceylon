@@ -95,7 +95,7 @@
  
  ##### Error response.  
  
- Sent using `Message.fail` with corresponding code and message, see [[errorMessages]].
+ Sent using `Message.fail` with corresponding code and message, see [[Chime.errors]].
  
  
  ### _Timer_.
@@ -230,7 +230,7 @@
  
  ##### Error response.  
  
- Sent using `Message.fail` with corresponding code and message, see [[errorMessages]].
+ Sent using `Message.fail` with corresponding code and message, see [[Chime.errors]].
  
 
  ##### Timer events
@@ -330,9 +330,9 @@
  
  ### Error messages.
  
- The error is sent using `Message.fail` with corresponding code and message, see [[errorMessages]].
+ The error is sent using `Message.fail` with corresponding code and message, see [[Chime.errors]].
  
- possible errors (see [[value errorMessages]]):
+ possible errors (see [[Chime.errors]]):
  * \"unsupported operation\"
  * \"operation has to be specified\"
  * \"scheduler doesn't exist\"

@@ -52,13 +52,13 @@ abstract class Operator( "EventBus to pass messages." shared EventBus eventBus )
 				operator( msg );
 			}
 			else {
-				msg.fail( errorMessages.codeUnsupportedOperation, errorMessages.unsupportedOperation );
+				msg.fail( Chime.errors.codeUnsupportedOperation, Chime.errors.unsupportedOperation );
 				
 			}
 		}
 		else {
 			// response with wrong format error
-			msg.fail( errorMessages.codeOperationIsNotSpecified, errorMessages.operationIsNotSpecified );
+			msg.fail( Chime.errors.codeOperationIsNotSpecified, Chime.errors.operationIsNotSpecified );
 		}
 	}
 	

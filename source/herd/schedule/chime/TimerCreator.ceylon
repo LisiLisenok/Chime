@@ -25,7 +25,7 @@ class TimerCreator( "Factory to create timers." TimerFactory factory )
 {
 		
 	"Creates timer from creation request."
-	shared TimerContainer|String createTimer( "Timer name." String name, "Request with timer description." JSON request ) {
+	shared TimerContainer|<Integer->String> createTimer( "Timer name." String name, "Request with timer description." JSON request ) {
 		if ( is JSON description = request[Chime.key.description] ) {
 			value timer = factory.createTimer( description );
 			if ( is TimeRow timer ) {
@@ -37,13 +37,13 @@ class TimerCreator( "Factory to create timers." TimerFactory factory )
 		}
 		else {
 			// timer description to be specified
-			return errorMessages.timerDescriptionHasToBeSpecified;
+			return Chime.errors.codeTimerDescriptionHasToBeSpecified->Chime.errors.timerDescriptionHasToBeSpecified;
 		}
 	}
 	
 	
 	"Creates timer container by container and creation request."
-	TimerContainer|String createTimerContainer (
+	TimerContainer|<Integer->String> createTimerContainer (
 		"Request on timer creation." JSON request,
 		"Timer desciption." JSON description,
 		"Timer name." String name,
@@ -56,7 +56,7 @@ class TimerCreator( "Factory to create timers." TimerFactory factory )
 				startDate = st;
 			}
 			else {
-				return errorMessages.incorrectStartDate;
+				return Chime.errors.codeIncorrectStartDate->Chime.errors.incorrectStartDate;
 			}
 		}
 		else {
@@ -70,7 +70,7 @@ class TimerCreator( "Factory to create timers." TimerFactory factory )
 				endDate = st;
 			}
 			else {
-				return errorMessages.incorrectEndDate;
+				return Chime.errors.codeIncorrectEndDate->Chime.errors.incorrectEndDate;
 			}
 		}
 		else {
@@ -80,7 +80,7 @@ class TimerCreator( "Factory to create timers." TimerFactory factory )
 		// end date has to be after start!
 		if ( exists st = startDate, exists et = endDate ) {
 			if ( et <= st ) {
-				return errorMessages.endDateToBeAfterStartDate;
+				return Chime.errors.codeEndDateToBeAfterStartDate->Chime.errors.endDateToBeAfterStartDate;
 			}
 		}
 		
@@ -91,7 +91,7 @@ class TimerCreator( "Factory to create timers." TimerFactory factory )
 			);
 		}
 		else {
-			return errorMessages.unsupportedTimezone;
+			return Chime.errors.codeUnsupportedTimezone->Chime.errors.unsupportedTimezone;
 		}
 		
 	}

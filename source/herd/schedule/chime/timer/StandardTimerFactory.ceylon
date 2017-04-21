@@ -8,7 +8,6 @@ import herd.schedule.chime.cron {
 }
 import herd.schedule.chime {
 
-	errorMessages,
 	Chime
 }
 
@@ -34,7 +33,7 @@ shared class StandardTimerFactory( "max year limitation" Integer maxYearPeriod =
 	// timer creators
 	
 	"Creates cron style timer."
-	TimeRow|String createCronTimer( "Timer description." JSON description ) {	 		
+	TimeRow|<Integer->String> createCronTimer( "Timer description." JSON description ) {	 		
 		if ( is String seconds = description[Chime.date.seconds],
 			is String minutes = description[Chime.date.minutes],
 			is String hours = description[Chime.date.hours],
@@ -63,27 +62,27 @@ shared class StandardTimerFactory( "max year limitation" Integer maxYearPeriod =
 				return TimerCronStyle( cronExpr );
 			}
 			else {
-				return errorMessages.incorrectCronTimerDescription;
+				return Chime.errors.codeIncorrectCronTimerDescription->Chime.errors.incorrectCronTimerDescription;
 			}
 			
 		}
 		else {
-			return errorMessages.incorrectCronTimerDescription;
+			return Chime.errors.codeIncorrectCronTimerDescription->Chime.errors.incorrectCronTimerDescription;
 		}
 	}
 	
 	
 	"Creates interval timer."
-	TimeRow|String createIntervalTimer( "Timer description." JSON description ) {
+	TimeRow|<Integer->String> createIntervalTimer( "Timer description." JSON description ) {
 		if ( is Integer delay = description[Chime.key.delay] ) {
 			if ( delay > 0 ) {
 				return TimerInterval( delay * 1000 );
 			}
 			else {
-				return errorMessages.delayHasToBeGreaterThanZero;
+				return Chime.errors.codeDelayHasToBeGreaterThanZero->Chime.errors.delayHasToBeGreaterThanZero;
 			}
 		}
-		return errorMessages.delayHasToBeSpecified;
+		return Chime.errors.codeDelayHasToBeSpecified->Chime.errors.delayHasToBeSpecified;
 	}
 	
 }

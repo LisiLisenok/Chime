@@ -384,7 +384,7 @@ class TimeScheduler(
 			}
 			if ( timers.defines( timerName ) ) {
 				// timer already exists
-				msg.fail( errorMessages.codeTimerAlreadyExists, errorMessages.timerAlreadyExists );
+				msg.fail( Chime.errors.codeTimerAlreadyExists, Chime.errors.timerAlreadyExists );
 			}
 			else {
 				value timer = factory.createTimer( timerName, request );
@@ -395,13 +395,13 @@ class TimeScheduler(
 				}
 				else {
 					// wrong description
-					msg.fail( 0, timer );
+					msg.fail( timer.key, timer.item );
 				}
 			}
 		}
 		else {
 			// timer name to be specified
-			msg.fail( errorMessages.codeTimerDescriptionHasToBeSpecified, errorMessages.timerDescriptionHasToBeSpecified );
+			msg.fail( Chime.errors.codeTimerDescriptionHasToBeSpecified, Chime.errors.timerDescriptionHasToBeSpecified );
 		}
 		
 	}
@@ -423,12 +423,12 @@ class TimeScheduler(
 			}
 			else {
 				// timer doesn't exist
-				msg.fail( errorMessages.codeTimerNotExists, errorMessages.timerNotExists );
+				msg.fail( Chime.errors.codeTimerNotExists, Chime.errors.timerNotExists );
 			}
 		}
 		else {
 			// timer name to be specified
-			msg.fail( errorMessages.codeTimerNameHasToBeSpecified, errorMessages.timerNameHasToBeSpecified );
+			msg.fail( Chime.errors.codeTimerNameHasToBeSpecified, Chime.errors.timerNameHasToBeSpecified );
 		}
 	}
 	
@@ -450,7 +450,7 @@ class TimeScheduler(
 		}
 		else {
 			// state to be one of - get, paused, running
-			msg.fail( errorMessages.codeIncorrectTimerState, errorMessages.incorrectTimerState );
+			msg.fail( Chime.errors.codeIncorrectTimerState, Chime.errors.incorrectTimerState );
 		}
 	}
 	
@@ -488,22 +488,22 @@ class TimeScheduler(
 					}
 					else {
 						// state to be one of - get, paused, running
-						msg.fail( errorMessages.codeIncorrectTimerState, errorMessages.incorrectTimerState );
+						msg.fail( Chime.errors.codeIncorrectTimerState, Chime.errors.incorrectTimerState );
 					}
 				}
 				else {
 					// timer doesn't exist
-					msg.fail( errorMessages.codeTimerNotExists, errorMessages.timerNotExists );
+					msg.fail( Chime.errors.codeTimerNotExists, Chime.errors.timerNotExists );
 				}
 			}
 			else {
 				// timer state to be specified
-				msg.fail( errorMessages.codeStateToBeSpecified, errorMessages.stateToBeSpecified );
+				msg.fail( Chime.errors.codeStateToBeSpecified, Chime.errors.stateToBeSpecified );
 			}
 		}
 		else {
 			// timer name to be specified
-			msg.fail( errorMessages.codeTimerNameHasToBeSpecified, errorMessages.timerNameHasToBeSpecified );
+			msg.fail( Chime.errors.codeTimerNameHasToBeSpecified, Chime.errors.timerNameHasToBeSpecified );
 		}
 	}
 		
@@ -521,12 +521,12 @@ class TimeScheduler(
 			}
 			else {
 				// timer doesn't exist
-				msg.fail( errorMessages.codeTimerNotExists, errorMessages.timerNotExists );
+				msg.fail( Chime.errors.codeTimerNotExists, Chime.errors.timerNotExists );
 			}
 		}
 		else {
 			// timer name to be specified
-			msg.fail( errorMessages.codeTimerNameHasToBeSpecified, errorMessages.timerNameHasToBeSpecified );
+			msg.fail( Chime.errors.codeTimerNameHasToBeSpecified, Chime.errors.timerNameHasToBeSpecified );
 		}
 	}
 
