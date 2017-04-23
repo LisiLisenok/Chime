@@ -153,65 +153,104 @@ shared class Chime extends Verticle
 	"Defines error messages."
 	shared static object errors {
 		
-		shared Integer codeUnsupportedOperation = 1; 
+		"Code of 'unsupported operation' error."
+		shared Integer codeUnsupportedOperation = 1;
+		"Message of 'unsupported operation' error."
 		shared String unsupportedOperation = "unsupported operation";
 		
+		"Code of 'operation has to be specified' error."
 		shared Integer codeOperationIsNotSpecified = 2;
+		"Message of ''operation has to be specified' error."
 		shared String operationIsNotSpecified = "operation has to be specified";
 		
+		"Code of 'scheduler doesn't exist' error."
 		shared Integer codeSchedulerNotExists = 3;
+		"Message of ''scheduler doesn't exist' error."
 		shared String schedulerNotExists = "scheduler doesn't exist";
 		
+		"Code of 'scheduler name has to be specified' error."
 		shared Integer codeSchedulerNameHasToBeSpecified = 4;
+		"Message of ''scheduler name has to be specified' error."
 		shared String schedulerNameHasToBeSpecified = "scheduler name has to be specified";
 		
-		shared Integer codeIncorrectSchedulerState = 5;	
+		"Code of 'scheduler state has to be one of - 'get', 'paused', 'running'' error."
+		shared Integer codeIncorrectSchedulerState = 5;
+		"Message of ''scheduler state has to be one of - 'get', 'paused', 'running'' error."
 		shared String incorrectSchedulerState = "scheduler state has to be one of - 'get', 'paused', 'running'";
 		
+		"Code of 'state has to be specified' error."
 		shared Integer codeStateToBeSpecified = 6;
+		"Message of ''state has to be specified' error."
 		shared String stateToBeSpecified = "state has to be specified";
 		
-		
+		"Code of 'timer already exists' error."
 		shared Integer codeTimerAlreadyExists = 7;
+		"Message of ''timer already exists' error."
 		shared String timerAlreadyExists = "timer already exists";
 		
+		"Code of 'timer doesn't exist' error."
 		shared Integer codeTimerNotExists = 8;
+		"Message of ''timer doesn't exist' error."
 		shared String timerNotExists = "timer doesn't exist";
 		
+		"Code of 'timer name has to be specified' error."
 		shared Integer codeTimerNameHasToBeSpecified = 9;
+		"Message of ''timer name has to be specified' error."
 		shared String timerNameHasToBeSpecified = "timer name has to be specified";
 		
+		"Code of 'timer type has to be specified' error."
 		shared Integer codeTimerTypeHasToBeSpecified = 10;
+		"Message of ''timer type has to be specified' error."
 		shared String timerTypeHasToBeSpecified = "timer type has to be specified";
 		
+		"Code of 'unsupported timer type' error."
 		shared Integer codeUnsupportedTimerType = 11;
+		"Message of ''unsupported timer type' error."
 		shared String unsupportedTimerType = "unsupported timer type";
 		
+		"Code of 'incorrect start date' error."
 		shared Integer codeIncorrectStartDate = 12;
+		"Message of ''incorrect start date' error."
 		shared String incorrectStartDate = "incorrect start date";
 		
+		"Code of 'incorrect end date' error."
 		shared Integer codeIncorrectEndDate = 13;
+		"Message of ''incorrect end date' error."
 		shared String incorrectEndDate = "incorrect end date";
 		
+		"Code of 'end date has to be after start date' error."
 		shared Integer codeEndDateToBeAfterStartDate = 14;
+		"Message of ''end date has to be after start date' error."
 		shared String endDateToBeAfterStartDate = "end date has to be after start date";
 		
+		"Code of 'unsupported time zone' error."
 		shared Integer codeUnsupportedTimezone = 15;
+		"Message of ''unsupported time zone' error."
 		shared String unsupportedTimezone = "unsupported time zone";
 		
+		"Code of 'timer description has to be specified' error."
 		shared Integer codeTimerDescriptionHasToBeSpecified = 16;
+		"Message of ''timer description has to be specified' error."
 		shared String timerDescriptionHasToBeSpecified = "timer description has to be specified";
 		
+		"Code of 'timer state has to be one of - 'get', 'paused', 'running'' error."
 		shared Integer codeIncorrectTimerState = 17;
+		"Message of ''timer state has to be one of - 'get', 'paused', 'running'' error."
 		shared String incorrectTimerState = "timer state has to be one of - 'get', 'paused', 'running'";
 		
+		"Code of 'delay has to be specified' error."
 		shared Integer codeDelayHasToBeSpecified = 18;
+		"Message of ''delay has to be specified' error."
 		shared String delayHasToBeSpecified = "delay has to be specified";
 		
+		"Code of 'delay has to be greater than zero' error."
 		shared Integer codeDelayHasToBeGreaterThanZero = 19;
+		"Message of ''delay has to be greater than zero' error."
 		shared String delayHasToBeGreaterThanZero = "delay has to be greater than zero";
 		
+		"Code of 'incorrect cron timer description' error."
 		shared Integer codeIncorrectCronTimerDescription = 20;
+		"Message of ''incorrect cron timer description' error."
 		shared String incorrectCronTimerDescription = "incorrect cron timer description";
 		
 	}
@@ -233,6 +272,8 @@ shared class Chime extends Verticle
 	 Standard factory creates cron-like timer and interval timer."
 	TimerFactory timerFactory = StandardTimerFactory( maxYearPeriod ).initialize();
 
+	"Instantiates _Chime_.  
+	 > Ensure that the _Chime_ verticle is started just a once!"
 	shared new() extends Verticle() {}
 	
 
@@ -267,6 +308,7 @@ shared class Chime extends Verticle
 		sch.connect();
 	}
 	
+	"Stops the _Chime_ verticle."
 	shared actual void stop() {
 		scheduler?.stop();
 		scheduler = null;

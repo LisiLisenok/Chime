@@ -511,7 +511,6 @@ class TimeScheduler(
 	"Replies with scheduler info - array of timer names."
 	shared void operationInfo( Message<JSON?> msg ) {
 		if ( is String tName = msg.body()?.get( Chime.key.name ) ) {
-			// contains name field - reply with info about timer with specified name
 			if ( tName.empty || tName == address ) {
 				// reply with info on this scheduler
 				msg.reply( fullInfo );

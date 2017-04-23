@@ -29,16 +29,13 @@ shared class State of running | paused | completed
 	
 	shared actual String string;
 	
-	shared new running {
-		string = Chime.state.running;
-	}
+	"Indicates that the scheduler or timer is in running state."
+	shared new running { string = Chime.state.running; }
 	
-	shared new paused {
-		string = Chime.state.paused;
-	}
+	"Indicates that the scheduler or timer is in paused state."
+	shared new paused { string = Chime.state.paused; }
 	
-	shared new completed {
-		string = Chime.state.completed;
-	}
+	"Indicates that the scheduler or timer has been completed."
+	shared new completed { string = Chime.state.completed; }
 
 }

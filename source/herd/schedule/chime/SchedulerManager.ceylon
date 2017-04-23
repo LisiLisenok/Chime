@@ -134,7 +134,7 @@ class SchedulerManager(
 	
 	"Processes 'create new scheduler' operation."
 	void operationCreate( Message<JSON?> msg ) {
-		if ( exists request = msg.body(), is String name = request[Chime.key.name] ) {
+		if ( exists request = msg.body(), is String name = request[Chime.key.name], !name.empty && name != address ) {
 			String schedulerName;
 			String timerName;
 			if ( exists inc = name.firstInclusion( Chime.configuration.nameSeparator ) ) {
@@ -232,10 +232,10 @@ class SchedulerManager(
 		}
 	}
 	
-	"Replies with Chime info - array of scheduler names."
+	"Replies with Chime or particular scheduler or timer info."
 	void operationInfo( Message<JSON?> msg ) {
 		value nn = msg.body()?.get( Chime.key.name );
-		if ( is String name = nn ) {
+		if ( is String name = nn, !name.empty, name != address ) {
 			if ( exists sch = schedulers[name] ) {
 				// reply with scheduler info
 				msg.reply( sch.fullInfo );
