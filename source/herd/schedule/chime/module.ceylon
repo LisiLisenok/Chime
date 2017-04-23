@@ -36,14 +36,16 @@
  ## Scheduling.
  
  _Chime_ operates by two structures: _timer_ and _scheduler_.  
- Scheduler is a set or group of timers. At least one scheduler has to be created before creating timers.
+ Scheduler is a set or group of timers. At least one scheduler has to be created before creating timers.  
+ Each timer operates within some particular scheduler.  
+ All messages _Chime_ listens are to be sent to _Chime_ address or to scheduler address.
  
  
  ### _Scheduler_.
  
  #### Scheduler messages.
  
- In order to maintain schedulers send `JSON` message on _Chime_ address (specified in configuration, \"chime\" is default)
+ In order to maintain schedulers send `JSON` message to _Chime_ address (specified in configuration, \"chime\" is default)
  in the following format:
  		{
  			\"operation\" -> String // operation code, mandatory  
@@ -51,7 +53,7 @@
  			\"state\" -> String // state, mandatory only if operation = 'state'   
  		}
  
- > _Chime_ listens event bus on \"scheduler name\" address with messages for the given scheduler.  
+ > _Chime_ listens event bus at \"scheduler name\" address with messages for the given scheduler.  
  
  
  #### Scheduler operation codes.
@@ -75,7 +77,7 @@
  		\"name\" -> \"scheduler name\" 
  	} 
   	
-  	// change state of scheduler with \"scheduler name\" on paused
+  	// change state of scheduler with \"scheduler name\" to paused
  	JSON message = JSON { 
  		\"operation\" -> \"state\", 
  		\"name\" -> \"scheduler name\",  
@@ -127,7 +129,7 @@
  			\"schedulers\" -> JSONArray{...} 
  		}
  
- Where returned JSON array contains info on all schedulers the info is requested for.  
+ Where returned JSON array contains info for all schedulers the info is requested for.  
  
  
  #### Deleting all schedulers / timers
@@ -146,23 +148,21 @@
  
  Once shceduler is created timers can be run within.  
  
- There are two ways to access specific timer:
- * sending message on \"scheduler name\" address using timer short name \"timer name\"
- * sending message on _Chime_ address using full timer name which is \"scheduler name:timer name\"
+ There are two ways to access a given timer:
+ * sending message to \"scheduler name\" address using timer short name \"timer name\"
+ * sending message to _Chime_ address using full timer name which is \"scheduler name:timer name\"
  
  
  > Timer full name is _scheduler name_ and _timer name_ separated with ':', i.e. \"scheduler name:timer name\".  
  
- > Requests on _Chime_ address with _timer full name_ and request on _scheduler_ address with timer full or short name
-   are equivalent.  
+ > Timer fire message is sent to _timer full name_ address.  
  
  
  #### Timer request.
  
- Request has to be sent in `JSON` format on _scheduler name_ address with _timer short name_
- or on _Chime_ address with _timer full name_.  
- Request format:
- 
+ Request has to be sent in `JSON` format to _scheduler name_ address with _timer short name_
+ or to _Chime_ address with _timer full name_.  
+ Request format:  
  	{  
  		\"operation\" -> String // operation code, mandatory  
  		\"name\" -> String // timer short or full name, mandatory  
@@ -205,7 +205,7 @@
    
  * **\"create\"** - create new timer with specified name, state and description
  * **\"delete\"** - delete timer with name `name`
- * **\"info\"** - get information on timer (if timer name is specified) or scheduler (if timer name is not specified)
+ * **\"info\"** - get information for timer (if timer name is specified) or scheduler (if timer name is not specified)
  * **\"state\"**:
  	* if set to **\"get\"** timer state has to be returned
  	* if set to **\"running\"** timer state is to be set to _running_
@@ -262,8 +262,11 @@
  > Interval timer delay is in _seconds_
  
  
- #### Scheduler response on a request to particular scheduler.
+ #### Response on a timer request.  
  
+ > Remember: timer request has to be sent to _scheduler name_ address with _timer short name_
+ or to _Chime_ address with _timer full name_.  
+
  _Chime_ responds on each request to a scheduler in `JSON` format:  
  	{  
  		\"name\" -> String //  timer name  
@@ -272,7 +275,7 @@
  		// 'Info' request also returns fields from timer 'create' request
  	}  
 
- or as response on 'info' request with no or empty 'name' field specified - info on all timers is returned
+ or as response on 'info' request with no or empty 'name' field specified - info for all timers is returned
  
  	{
  		\"timers\" -> JSONArray // list of timer infos currently scheduled
@@ -291,7 +294,7 @@
 
  #### Timer events
  
- Timer sends or publishes on _full timer name_ address two types of events in `JSON`:
+ Timer sends or publishes to _full timer name_ address two types of events in `JSON`:
  * fire event  
  		{  
  			\"name\" -> String, timer name
@@ -313,7 +316,7 @@
  			\"count\" -> Integer, total number of fire times
  		}   
  
- > Complete event is always published in orderevery listener receives it.  
+ > Complete event is always published in order every listener receives it.  
    While fire event may be either published or send depending on 'publish' field in timer create request.  
  
  > The value at the 'event' key indicates the event type (fire or complete).  
