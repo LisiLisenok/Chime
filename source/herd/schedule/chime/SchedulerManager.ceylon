@@ -86,12 +86,13 @@ import herd.schedule.chime.timer {
 since( "0.1.0" ) by( "Lis" )
 see(`class TimeScheduler`)
 class SchedulerManager(
+	"Address the _Cime_ listens to." String address,
 	"Vetrx the scheduler is running on." Vertx vertx,
 	"Event bus used to dispatch messages." EventBus eventBus,
 	"Factory to create timers" TimerFactory factory,
 	"Tolerance to compare fire time and current time in miliseconds." Integer tolerance 
 )
-		extends Operator( eventBus )
+		extends Operator( address, eventBus )
 {
 	
 	"Time schedulers."
@@ -111,7 +112,7 @@ class SchedulerManager(
 		else {
 			TimeScheduler sch = TimeScheduler( name, schedulers.remove, vertx, eventBus, creator, tolerance );
 			schedulers.put( name, sch );
-			sch.connect( name );
+			sch.connect();
 			if ( state == State.running ) {
 				sch.start();
 			}
@@ -221,7 +222,8 @@ class SchedulerManager(
 	
 	"Replies with Chime info - array of scheduler names."
 	void operationInfo( Message<JSON?> msg ) {
-		if ( is String name = msg.body()?.get( Chime.key.name ) ) {
+		value nn = msg.body()?.get( Chime.key.name );
+		if ( is String name = nn ) {
 			if ( exists sch = schedulers[name] ) {
 				// reply with scheduler info
 				msg.reply( sch.fullInfo );
@@ -238,6 +240,15 @@ class SchedulerManager(
 					msg.fail( Chime.errors.codeSchedulerNotExists, Chime.errors.schedulerNotExists );
 				}
 			}
+		}
+		else if ( is JSONArray arr = nn, nonempty names = arr.narrow<String>().sequence() ) {
+			msg.reply (
+				JSON {
+					Chime.key.schedulers -> JSONArray (
+						[ for ( scheduler in schedulers.items ) if ( scheduler.address in names ) scheduler.fullInfo ]
+					)
+				}
+			);
 		}
 		else {
 			msg.reply (

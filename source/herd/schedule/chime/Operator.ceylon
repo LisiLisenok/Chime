@@ -13,16 +13,19 @@ import io.vertx.ceylon.core.eventbus {
 "Provides basic operations with [[JSON]] message."
 see( `class SchedulerManager`, `class TimeScheduler` )
 since( "0.1.0" ) by( "Lis" )
-abstract class Operator( "EventBus to pass messages." shared EventBus eventBus )
-{
+abstract class Operator (
+	"Address this operator listens to." shared String address,
+	"EventBus to pass messages." shared EventBus eventBus
+) {
+	
+	"Event bus consumer."
 	variable MessageConsumer<JSON?>? consumer = null; 
 			
 	"Operators map."	
 	variable Map<String, Anything(Message<JSON?>)>? operators = null;
 	
-	"creates operators map."
+	"Creates operators map."
 	shared formal Map<String, Anything(Message<JSON?>)> createOperators();
-	
 	
 	"Returns operator by operation code."
 	shared Anything(Message<JSON?>)? getOperator( "operation code" String code ) {
@@ -63,7 +66,7 @@ abstract class Operator( "EventBus to pass messages." shared EventBus eventBus )
 	}
 	
 	"Connects to event bus, returns promise resolved when event listener registered."
-	shared default void connect( "Address to listen to." String address ) {
+	shared default void connect() {
 		"Already connected."
 		assert( !consumer exists );
 		// setup event bus listener

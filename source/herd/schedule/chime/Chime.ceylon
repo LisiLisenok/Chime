@@ -262,9 +262,9 @@ shared class Chime extends Verticle
 		}
 		
 		// create scheduler
-		SchedulerManager sch = SchedulerManager( vertx, vertx.eventBus(), timerFactory, actualTolerance );
+		SchedulerManager sch = SchedulerManager( actualAddress, vertx, vertx.eventBus(), timerFactory, actualTolerance );
 		scheduler = sch;
-		sch.connect( actualAddress );
+		sch.connect();
 	}
 	
 	shared actual void stop() {

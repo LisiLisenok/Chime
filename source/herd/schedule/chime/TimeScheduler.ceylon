@@ -29,7 +29,7 @@ import ceylon.time.timezone {
 }
 
 
-"Scheduler - listen address of scheduler [[name]] on event bus and manages timers.
+"Scheduler - listen address of scheduler [[address]] on event bus and manages timers.
  This class is used internaly by Chime
  
  ### Requests
@@ -124,20 +124,20 @@ import ceylon.time.timezone {
  "
 since( "0.1.0" ) by( "Lis" )
 class TimeScheduler(
-	"Scheduler name." shared String name,
+	"Scheduler name." String address,
 	"Removes schedulerwhen delete operation requested." TimeScheduler?(String) removeScheduler,
 	"Vertx the scheduler operates on." Vertx vertx,
 	"EventBus to pass messages." EventBus eventBus,
 	"Factory to create timers." TimerCreator factory,
 	"Tolerance to compare fire time and current time in miliseconds." Integer tolerance 
 	)
-		extends Operator( eventBus )
+		extends Operator( address, eventBus )
 {
-		
+	
 	"Next ID used when no timer name specified."
 	variable Integer nextID = 0;
 		
-	String nameWithSeparator = name + Chime.configuration.nameSeparator;
+	String nameWithSeparator = address + Chime.configuration.nameSeparator;
 		
 	"Tolerance to compare fire time."
 	variable Period tolerancePeriod = zero.plusMilliseconds( tolerance );
@@ -157,7 +157,7 @@ class TimeScheduler(
 	"Scheduler `JSON` short info (name and state)."
 	shared JSON shortInfo
 			=> JSON {
-				Chime.key.name -> name,
+				Chime.key.name -> address,
 				Chime.key.state -> schedulerState.string
 			};
 	
@@ -168,7 +168,7 @@ class TimeScheduler(
 	 	\"timers\" -> array of timer names
 	 "
 	shared JSON fullInfo => JSON {
-		Chime.key.name -> name,
+		Chime.key.name -> address,
 		Chime.key.state -> state.string,
 		Chime.key.timers -> JSONArray( [ for ( timer in timers.items ) timer.fullDescription() ] )
 	};
@@ -284,13 +284,14 @@ class TimeScheduler(
 	 > Completed message is always published.
 	 "
 	shared void publishCompleteEvent( TimerContainer timer ) {
-		JSON message = JSON {
-			Chime.key.event -> Chime.event.complete,
-			Chime.key.name -> timer.name,
-			Chime.key.count -> timer.count
-		};
-		// publish message
-		eventBus.publish( timer.name, message );
+		eventBus.publish (
+			timer.name,
+			JSON {
+				Chime.key.event -> Chime.event.complete,
+				Chime.key.name -> timer.name,
+				Chime.key.count -> timer.count
+			}
+		);
 	}
 
 
@@ -409,9 +410,9 @@ class TimeScheduler(
 	"Deletes existing timer."
 	shared void operationDelete( Message<JSON?> msg ) {
 		if ( exists request = msg.body(), is String tName = request[Chime.key.name] ) {
-			if ( tName.empty || tName == name ) {
+			if ( tName.empty || tName == address ) {
 				// delete this scheduler
-				removeScheduler( name );
+				removeScheduler( address );
 				stop();
 				msg.reply( shortInfo );
 			}
@@ -458,7 +459,7 @@ class TimeScheduler(
 	shared void operationState( Message<JSON?> msg ) {
 		if ( exists request = msg.body(), is String tName = request[Chime.key.name] ) {
 			 if ( is String state = request[Chime.key.state] ) {
-				if ( tName.empty || tName == name ) {
+				if ( tName.empty || tName == address ) {
 					// this scheduler state is requested
 					replyWithSchedulerState( state, msg );
 				}
@@ -509,9 +510,9 @@ class TimeScheduler(
 		
 	"Replies with scheduler info - array of timer names."
 	shared void operationInfo( Message<JSON?> msg ) {
-		if ( exists request = msg.body(), is String tName = request[Chime.key.name] ) {
+		if ( is String tName = msg.body()?.get( Chime.key.name ) ) {
 			// contains name field - reply with info about timer with specified name
-			if ( tName.empty || tName == name ) {
+			if ( tName.empty || tName == address ) {
 				// reply with info on this scheduler
 				msg.reply( fullInfo );
 			}
@@ -525,8 +526,8 @@ class TimeScheduler(
 			}
 		}
 		else {
-			// timer name to be specified
-			msg.fail( Chime.errors.codeTimerNameHasToBeSpecified, Chime.errors.timerNameHasToBeSpecified );
+			// reply with info on this scheduler
+			msg.reply( fullInfo );
 		}
 	}
 

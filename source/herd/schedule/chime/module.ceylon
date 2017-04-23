@@ -59,7 +59,7 @@
  * \"create\" - create new scheduler with specified name, state and description,
    if state is not specified, scheduler is put to running state.
  * \"delete\" - delete scheduler with name `name`. All timers within _scheduler_ will be canceled.
- * \"info\" - requesting info on _Chime_ or specific scheduler (scheduler name to be provided)
+ * \"info\" - requesting info on _Chime_ or on a particular scheduler (scheduler name to be provided)
  * \"state\":
  	* if is \"get\" state is to be returned
  	* if is \"running\" scheduler is to be set to _running_, which leads all non paused timers are _running_
@@ -67,7 +67,7 @@
  	* otherwise error is returned
  
  
- ##### Scheduler examples.
+ ##### Scheduler request examples.
  
  	// create new scheduler with name \"scheduler name\"
  	JSON message = JSON { 
@@ -82,7 +82,7 @@
  		\"state\" -> \"paused\"
  	} 
  	
- 	
+ 
  ##### Scheduler response.
  
  _Chime_ responds on messages in `JSON` format:  
@@ -95,7 +95,23 @@
  
  ##### Error response.  
  
- Sent using `Message.fail` with corresponding code and message, see [[Chime.errors]].
+ Sent using `Message.fail` with corresponding code and message, see [[Chime.errors]]. 
+ 
+ ##### Info on a list of schedulers.  
+ 
+ Send message: 
+ 		JSON message = JSON { 
+ 			\"operation\" -> \"info\", 
+ 			\"name\" -> JSONArray{\"name1\", ...} 
+ 		} 
+ 
+ I.e. name field contains JSON array with list of schedulers name.
+ _Chime_ responds with:
+ 		JSON {
+ 			\"schedulers\" -> JSONArray{...} 
+ 		}
+ 
+ Where returned JSON array contains info on all schedulers the info is requested for.  
  
  
  ### _Timer_.
@@ -326,6 +342,18 @@
  				...
  			}
  		);
+ 
+ 
+ ### Scheduler and Timer interfaces.
+ 
+ [[Scheduler]] interface provides a convenient way to exchange messages with particular scheduler.  
+ In order to connect to already existed scheduler or to create new one [[connectToScheduler]]
+ function can be used. The function sends create scheduler request to the _Chime_ and wraps
+ the event bus with implementation of [[Scheduler]] interface.  
+ 
+ [[Timer]] interface provides a convenient way to exchange messages with particular scheduler.  
+ To get an instance of the [[Timer]] call [[Scheduler.createIntervalTimer]]
+ or  [[Scheduler.createCronTimer]].  
  
  
  ### Error messages.

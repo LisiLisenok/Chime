@@ -4,6 +4,7 @@ import herd.asynctest {
 }
 
 
+"_Chime_ unit testing."
 since( "0.2.0" ) by( "Lis" )
 native("jvm") async
 module herd.test.schedule.chime "0.2.0" {
