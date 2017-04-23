@@ -164,8 +164,20 @@ class SchedulerManager(
 	"Processes 'delete scheduler' operation."
 	void operationDelete( Message<JSON?> msg ) {
 		if ( exists request = msg.body(), is String name = request[Chime.key.name] ) {
-			// delete scheduler
-			if ( exists sch = schedulers.remove( name ) ) {
+			if ( name.empty || name == address ) {
+				// remove all schedulers
+				for ( scheduler in schedulers.items ) {
+					scheduler.stop();
+				}
+				schedulers.clear();
+				msg.reply (
+					JSON {
+						Chime.key.schedulers -> JSONArray( [ for ( scheduler in schedulers.items ) scheduler.fullInfo ] )
+					}
+				);
+			}
+			else if ( exists sch = schedulers.remove( name ) ) {
+				// delete scheduler
 				sch.stop();
 				// scheduler successfully removed
 				msg.reply( sch.shortInfo );

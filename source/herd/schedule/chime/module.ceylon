@@ -1,7 +1,7 @@
 
 "
  _Chime_ is time scheduler which works on _Vert.x_ event bus and provides:  
- * scheduling with _cron-style_ and _interval_ timers  
+ * scheduling with _cron-style_ or _interval_ timers  
  * applying time zones available on _JVM_  
  * flexible timers management system:  
  	* grouping timers  
@@ -16,8 +16,8 @@
  
  Deploy _Chime_ using `Verticle.deployVerticle` method.  
  
- 		import io.vertx.ceylon.core { vertx }
- 		import herd.schedule.chime { Chime }
+ 		import io.vertx.ceylon.core {vertx}
+ 		import herd.schedule.chime {Chime}
  		Chime c = Chime().deploy(vertx.vertx());
  
  > _Chime_ exchanges events with customers via event bus with `JSON` messages.  
@@ -97,6 +97,7 @@
  
  Sent using `Message.fail` with corresponding code and message, see [[Chime.errors]]. 
  
+ 
  ##### Info on a list of schedulers.  
  
  Send message: 
@@ -114,6 +115,18 @@
  Where returned JSON array contains info on all schedulers the info is requested for.  
  
  
+ ##### Deleting all schedulers / timers
+ 
+ Send delete message to the _Chime_ address with empty name or name equal to _Chime_ address:
+ 		eventBus.send (
+ 			chimeAddress,
+ 			JSON {
+ 				Chime.key.operation -> Chime.operation.delete,
+ 				Chime.key.name -> \"\"
+ 			}
+ 		);
+ 
+ 
  ### _Timer_.
  
  Once _shceduler_ is created _timers_ can be run within.  
@@ -125,7 +138,7 @@
  
  > Timer full name is _scheduler name_ and _timer name_ separated with ':', i.e. \"scheduler name:timer name\".  
  
- > Request on _Chime_ address with _timer full name_ and request on _scheduler_ address with timer full or short name
+ > Requests on _Chime_ address with _timer full name_ and request on _scheduler_ address with timer full or short name
    are equivalent.  
  
  
@@ -354,6 +367,31 @@
  [[Timer]] interface provides a convenient way to exchange messages with particular scheduler.  
  To get an instance of the [[Timer]] call [[Scheduler.createIntervalTimer]]
  or  [[Scheduler.createCronTimer]].  
+ 
+ Example:
+ 
+ 		connectToScheduler (
+ 			(Throwable|Scheduler scheduler) {
+ 				if (is Scheduler scheduler) {
+ 					scheduler.createIntervalTimer (
+ 						(Throwable|Timer timer) {
+ 							if (is Timer timer) {
+ 								timer.handler (
+ 									(TimerEvent event) {...}
+ 								);
+ 							}
+ 							else {
+ 								// error while creating timer
+ 							}
+ 						}
+ 					);
+ 				}
+ 				else {
+ 					// error while creating / connecting to scheduler
+ 				}
+ 			},
+ 			\"chime\", eventBus, \"scheduler name\"
+ 		);
  
  
  ### Error messages.
