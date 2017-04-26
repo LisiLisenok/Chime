@@ -17,7 +17,7 @@ import ceylon.collection {
 	HashMap
 }
 import herd.schedule.chime.timer {
-	TimerFactory
+	TimeRowFactory
 }
 
 
@@ -89,7 +89,7 @@ class SchedulerManager(
 	"Address the _Cime_ listens to." String address,
 	"Vetrx the scheduler is running on." Vertx vertx,
 	"Event bus used to dispatch messages." EventBus eventBus,
-	"Factory to create timers" TimerFactory factory,
+	"Factory to create timers" TimeRowFactory factory,
 	"Tolerance to compare fire time and current time in miliseconds." Integer tolerance 
 )
 		extends Operator( address, eventBus )

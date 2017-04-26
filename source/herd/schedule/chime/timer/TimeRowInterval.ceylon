@@ -10,7 +10,7 @@ import ceylon.time {
  [[intervalMilliseconds]] to be >= 0. 
  "
 since( "0.1.0" ) by( "Lis" )
-class TimerInterval (
+class TimeRowInterval (
 	"Timing delay in miliseconds, to be >= 0." shared Integer intervalMilliseconds
 )
 		satisfies TimeRow

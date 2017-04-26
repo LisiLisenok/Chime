@@ -13,17 +13,15 @@ import herd.schedule.chime {
 
 
 "Standard time factory. Creates:
- * cron-like timer [[herd.schedule.chime.timer::TimerCronStyle]]
- * incremental timer [[herd.schedule.chime.timer::TimerInterval]]
+ * cron-like timer [[herd.schedule.chime.timer::TimeRowCronStyle]]
+ * incremental timer [[herd.schedule.chime.timer::TimeRowInterval]]
  "
 since( "0.1.0" ) by( "Lis" )
-shared class StandardTimerFactory( "max year limitation" Integer maxYearPeriod = 10 ) extends FactoryJSONBase()
-	satisfies TimerFactory
+shared class StandardTimeRowFactory( "max year limitation" Integer maxYearPeriod = 10 ) extends FactoryJSONBase()
  {
 	
-	
 	"Initializes factory - to be called before using (creators adding is performed here)."
-	shared TimerFactory initialize() {
+	shared TimeRowFactory initialize() {
 		addCreator( Chime.type.cron, createCronTimer );
 		addCreator( Chime.type.interval, createIntervalTimer );
 		return this;
@@ -59,7 +57,7 @@ shared class StandardTimerFactory( "max year limitation" Integer maxYearPeriod =
 			}
 
 			if ( exists cronExpr = parseCron( seconds, minutes, hours, daysOfMonth, months, daysOfWeek, years, maxYearPeriod ) ) {
-				return TimerCronStyle( cronExpr );
+				return TimeRowCronStyle( cronExpr );
 			}
 			else {
 				return Chime.errors.codeIncorrectCronTimerDescription->Chime.errors.incorrectCronTimerDescription;
@@ -76,7 +74,7 @@ shared class StandardTimerFactory( "max year limitation" Integer maxYearPeriod =
 	TimeRow|<Integer->String> createIntervalTimer( "Timer description." JSON description ) {
 		if ( is Integer delay = description[Chime.key.delay] ) {
 			if ( delay > 0 ) {
-				return TimerInterval( delay * 1000 );
+				return TimeRowInterval( delay * 1000 );
 			}
 			else {
 				return Chime.errors.codeDelayHasToBeGreaterThanZero->Chime.errors.delayHasToBeGreaterThanZero;

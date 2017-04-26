@@ -14,7 +14,7 @@ import herd.schedule.chime {
 
 "Factory to create timers."
 since( "0.1.0" ) by( "Lis" )
-shared interface TimerFactory
+shared interface TimeRowFactory
 {
 	shared formal TimeRow|<Integer->String> createTimer( "Timer description." JSON description );
 }
@@ -24,7 +24,7 @@ shared interface TimerFactory
  Uses type -> creator function map to create timers.  
  Before create timers add creators using [[addCreator]]"
 by( "Lis" )
-shared class FactoryJSONBase() satisfies TimerFactory
+shared class FactoryJSONBase() satisfies TimeRowFactory
 {
 	
 	"type -> creator function map"

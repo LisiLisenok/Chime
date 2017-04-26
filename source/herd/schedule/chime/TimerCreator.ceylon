@@ -9,7 +9,7 @@ import ceylon.time {
 }
 import herd.schedule.chime.timer {
 
-	TimerFactory,
+	TimeRowFactory,
 	TimeRow
 }
 import herd.schedule.chime.cron {
@@ -19,9 +19,9 @@ import herd.schedule.chime.cron {
 
 
 "Uses [[JSON]] description to creates [[TimerContainer]] with timer [[TimeRow]] created by timer factory."
-see( `interface TimerFactory`, `interface TimeRow`, `class TimerContainer` )
+see( `interface TimeRowFactory`, `interface TimeRow`, `class TimerContainer` )
 since( "0.1.0" ) by( "Lis" )
-class TimerCreator( "Factory to create timers." TimerFactory factory )
+class TimerCreator( "Factory to create timers." TimeRowFactory factory )
 {
 		
 	"Creates timer from creation request."

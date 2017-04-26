@@ -8,8 +8,7 @@ import ceylon.json {
 }
 import herd.schedule.chime.timer {
 
-	TimerFactory,
-	StandardTimerFactory
+	StandardTimeRowFactory
 }
 
 
@@ -267,10 +266,6 @@ shared class Chime extends Verticle
 	
 	"Tolerance to compare fire time and current time in milliseconds."
 	variable Integer actualTolerance = 10; 
-	
-	"Factory to create timers - refine to produce timers of nonstandard types.
-	 Standard factory creates cron-like timer and interval timer."
-	TimerFactory timerFactory = StandardTimerFactory( maxYearPeriod ).initialize();
 
 	"Instantiates _Chime_.  
 	 > Ensure that the _Chime_ verticle is started just a once!"
@@ -303,7 +298,9 @@ shared class Chime extends Verticle
 		}
 		
 		// create scheduler
-		SchedulerManager sch = SchedulerManager( actualAddress, vertx, vertx.eventBus(), timerFactory, actualTolerance );
+		SchedulerManager sch = SchedulerManager (
+			actualAddress, vertx, vertx.eventBus(), StandardTimeRowFactory( maxYearPeriod ).initialize(), actualTolerance
+		);
 		scheduler = sch;
 		sch.connect();
 	}

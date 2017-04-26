@@ -16,7 +16,7 @@ import herd.schedule.chime.cron {
 
 "Ccron-like timer."
 since( "0.1.0" ) by( "Lis" )
-class TimerCronStyle (
+class TimeRowCronStyle (
 	"Cron expression rules the timer." CronExpression expression
 )
 		satisfies TimeRow
