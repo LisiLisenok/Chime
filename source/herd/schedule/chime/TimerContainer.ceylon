@@ -36,7 +36,7 @@ class TimerContainer (
 	"Next fire timer in remote TZ or null if completed."
 	shared DateTime? remoteFireTime => nextRemoteFireTime;
 	
-	"Next fire timer in remote TZ or null if completed."
+	"Next fire timer in machine local TZ or null if completed."
 	shared DateTime? localFireTime => if ( exists d = nextRemoteFireTime ) then converter.toLocal( d ) else null;
 	
 	"Time zone ID."
@@ -97,9 +97,7 @@ class TimerContainer (
 	
 	"Starts the timer."
 	shared void start( DateTime currentLocal ) {
-		
 		DateTime currentRemote = converter.toRemote( currentLocal );
-		
 		// check if max count has been reached before
 		if ( exists c = maxCount ) {
 			if ( count >= c ) {
@@ -107,7 +105,6 @@ class TimerContainer (
 				return;
 			}
 		}
-		
 		// check if start time is after current
 		DateTime beginning;
 		if ( exists st = startTime ) {
@@ -121,7 +118,6 @@ class TimerContainer (
 		else {
 			beginning = currentRemote;
 		}
-		
 		// start timer
 		if ( exists date = timer.start( beginning ) ) {
 			if ( exists ed = endTime ) {
@@ -149,23 +145,19 @@ class TimerContainer (
 		if ( state == State.running ) {
 			count ++;
 			if ( exists date = timer.shiftTime() ) {
-				
 				// check on complete
-				
 				if ( exists ed = endTime ) {
 					if ( date > ed ) {
 						complete();
 						return;
 					}
 				}
-				
 				if ( exists c = maxCount ) {
 					if ( count >= c ) {
 						complete();
 						return;
 					}
 				}
-				
 				nextRemoteFireTime = date;
 			}
 		}

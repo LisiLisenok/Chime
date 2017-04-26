@@ -490,7 +490,7 @@
  * '/' specifies increments, for example, '0/15' in seconds field means '0,15,30,45',
    '0-30/15' means '0,15,30'
  * 'L' has to be used after digit and means _the last xxx day of the month_,
-   for example, '6L' means _the last friday of the month_
+   for example, '6L' means _the last Friday of the month_
  * '#' has to be used with digits before and after: 'x#y' and means _the y'th x day of the month_,
    for example, '6#3' means _the third Friday of the month_ 
  
