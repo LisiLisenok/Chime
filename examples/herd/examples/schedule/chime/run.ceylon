@@ -80,6 +80,7 @@ class Scheduler(Vertx v, String address = Chime.configuration.defaultAddress)
 		}
 		else {
 			print("error: ``msg``");
+			v.close();
 		}
 	}
 	
@@ -95,7 +96,7 @@ class Scheduler(Vertx v, String address = Chime.configuration.defaultAddress)
 				Chime.key.name -> "scheduler:timer",
 				Chime.key.state -> Chime.state.running,
 				Chime.key.publish -> false,
-				Chime.key.maxCount -> 3,
+				Chime.key.maxCount -> 5,
 				Chime.key.timeZone -> "Europe/Paris",
 				Chime.key.description -> JSON {
 					Chime.key.type -> Chime.type.cron,

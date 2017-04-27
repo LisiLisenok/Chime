@@ -1,7 +1,7 @@
 
 "defines some constant used within cron expresion"
 since( "0.1.0" ) by( "Lis" )
-object cron
+shared object cron
 {	
 	
 	// cron special symbols

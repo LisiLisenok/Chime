@@ -18,7 +18,7 @@ shared CronExpression? parseCron (
 ) {
 	
 	// replace month names by numbers
-	variable String monthsToInt = calendar.replaceMonthByNumber( months.trimmed.uppercased );
+	variable String monthsToInt = calendar.replaceMonthByNumber( months );
 	
 	// parse mandatory fields
 	value secondsSet = parseCronStyle( seconds, 0, 59 );
@@ -31,9 +31,9 @@ shared CronExpression? parseCron (
 		
 		// parse days of week, which is nonmandatory, if doesn't exists all days accepted
 		DaysOfWeekList daysOfWeekList;
-		if ( exists strDaysOfWeek = daysOfWeek ) {
+		if ( exists strDaysOfWeek = daysOfWeek, !strDaysOfWeek.empty ) {
 			// replace all weekday names by numbers
-			variable String weekdayToInt = calendar.replaceDayOfWeekByNumber( strDaysOfWeek.trimmed.uppercased );
+			variable String weekdayToInt = calendar.replaceDayOfWeekByNumber( strDaysOfWeek );
 			// do parsing
 			if ( exists parsedDaysOfWeek = parseCronDaysOfWeek( weekdayToInt ) ) {
 				daysOfWeekList = parsedDaysOfWeek;
@@ -48,7 +48,7 @@ shared CronExpression? parseCron (
 		
 		// parse years, which is nonmandatory, if doesn't exists any year accepted
 		Set<Integer> yearsSet;
-		if ( exists strYears = years ) {
+		if ( exists strYears = years, !strYears.empty ) {
 			Integer todayYear = today().year;
 			yearsSet = parseCronStyle( strYears, todayYear, todayYear + maxYearPeriod );
 			if ( yearsSet.empty ) {

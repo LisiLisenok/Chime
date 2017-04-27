@@ -233,11 +233,11 @@
  		{  
  			\"type\" -> \"cron\" // timer type, mandatory  	
  
- 			\"seconds\" -> String // seconds in cron style, mandatory  
- 			\"minutes\" -> String // minutes in cron style, mandatory  
- 			\"hours\" -> String // hours in cron style, mandatory  
- 			\"days of month\" -> String // days of month in cron style, mandatory  
- 			\"months\" -> String // months in cron style, mandatory  
+ 			\"seconds\" -> String // seconds in cron style, mandatory, nonempty  
+ 			\"minutes\" -> String // minutes in cron style, mandatory, nonempty  
+ 			\"hours\" -> String // hours in cron style, mandatory, nonempty  
+ 			\"days of month\" -> String // days of month in cron style, mandatory, nonempty  
+ 			\"months\" -> String // months in cron style, mandatory, nonempty  
  			\"days of week\" -> String // days of week in cron style, L means last, # means nth of month, nonmandatory  
  			\"years\" -> String // year in cron style, nonmandatory   		
  		}  
@@ -249,7 +249,9 @@
      * month can be specified using digits (1 is for January) or using names (like 'jan' or 'january', case insensitive)
      * day of week can be specified using digits (1 is for Sunday) or using names (like 'sun' or 'sunday', case insensitive)  
  
- > Month and day of week are case insensitive.
+ > Month and day of week are case insensitive.  
+ 
+ [[CronBuilder]] may help to build JSON description of a cron timer.  
  
  ------------------------------------------  
    
@@ -454,7 +456,6 @@
  
  ## Cron expressions.
  
- 
  #### Expression fields.
  
  * _seconds_, mandatory
@@ -491,9 +492,23 @@
  * '/' specifies increments, for example, '0/15' in seconds field means '0,15,30,45',
    '0-30/15' means '0,15,30'
  * 'L' has to be used after digit and means _the last xxx day of the month_,
-   for example, '6L' means _the last Friday of the month_
+   where xxx is day of week, for example, '6L' means _the last Friday of the month_
  * '#' has to be used with digits before and after: 'x#y' and means _the y'th x day of the month_,
    for example, '6#3' means _the third Friday of the month_ 
+ 
+ 
+ #### Cron expression builder.  
+ 
+ [[CronBuilder]] may help to build JSON description of a cron timer.
+ The builder has a number of function to add particular cron record to the description.
+ The function may be called in any order and any number of times.  
+ Finally, [[CronBuilder.build]] has to be called to build the timer JSON description.  
+ 
+ Example:  
+ 		JSON cron = CronBuilder().withSeconds(3).withMinutes(0).withHours(1).withAllDays().withAllMonths().build();
+ 
+ > Note that 'seconds', 'minutes', 'hours', 'days of month' and 'month' are required fields.
+   While 'years' and 'days of week' are optional.  
  
  "
 license (

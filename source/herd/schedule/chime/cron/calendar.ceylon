@@ -74,10 +74,10 @@ shared object calendar
 	
 	"Replace all occurancies of month names by corresponding number."
 	shared String replaceMonthByNumber( String expression )
-			=> replaceStringToNumber( replaceStringToNumber( expression, monthFullMap ), monthShortMap );
+			=> replaceStringToNumber( replaceStringToNumber( expression.trimmed.uppercased, monthFullMap ), monthShortMap );
 	
 	"Replace all occurancies of weekday names by corresponding number."
 	shared String replaceDayOfWeekByNumber( String expression )
-			=> replaceStringToNumber( replaceStringToNumber( expression, dayOfWeekFullMap ), dayOfWeekShortMap );
+			=> replaceStringToNumber( replaceStringToNumber( expression.trimmed.uppercased, dayOfWeekFullMap ), dayOfWeekShortMap );
 
 }
