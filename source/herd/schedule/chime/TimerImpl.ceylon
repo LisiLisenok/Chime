@@ -1,7 +1,8 @@
 import io.vertx.ceylon.core.eventbus {
 	EventBus,
 	MessageConsumer,
-	Message
+	Message,
+	deliveryOptions
 }
 import ceylon.json {
 	JSON=Object
@@ -33,8 +34,10 @@ class TimerImpl (
 				h (
 					TimerFire (
 						name, body.getInteger( Chime.key.count ), body.getString( Chime.key.time ),
-						body.getString( Chime.key.timeZone ),
-						dateTimeFromJSON( body )
+						body.getString( Chime.key.timeZone ), dateTimeFromJSON( body ),
+						body.get( Chime.key.message ),
+						if ( exists options = body.getObjectOrNull( Chime.key.deliveryOptions ) )
+						then deliveryOptions.fromJson( options ) else null
 					)
 				);
 			}

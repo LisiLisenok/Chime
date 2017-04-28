@@ -173,7 +173,7 @@
  		\"publish\" -> Boolean // if true message to be published and to be sent otherwise, nonmandatory  
  
  		\"start time\" -> JSON // start time, nonmadatory, if doesn't exist timer will start immediately  
- 		{  
+ 		{
  			\"seconds\" -> Integer // seconds, mandatory  
  			\"minutes\" -> Integer // minutes, mandatory  
  			\"hours\" -> Integer // hours, mandatory  
@@ -190,13 +190,20 @@
  			\"day of month\" -> Integer // days of month, mandatory  
  			\"month\" -> Integer or String // months, mandatory  
  			\"year\" -> Integer // year, mandatory  
- 		}  
+ 		}
  
- 		\"time zone\" -> String // time zone ID, nonmandatory, default server local  
+ 		\"time zone\" -> String // time zone ID, nonmandatory, default server local
+
+ 		\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message which added to timer fire event
+ 		\"delivery options\" -> JSON // delivery options the timer fire event is sent with  
  
  		\"description\" -> JSON // timer desciption, mandatoty for create operation  
  	}  
  
+ > `message` and `delivery options` fields may be put to either the timer `description` field or to the request upper level.  
+   `message` and `delivery options` at description level is prefered to ones given at request level.  
+ 
+ > To get JSON delivery options apply `deliveryOptions.toJSON()`.  
  
  > _Chime_ address could be specified in `verticle` configuration, default is \"chime\".  
  
@@ -228,7 +235,10 @@
  #### Supported timers.
  
  Timer is specified within _description_ field of timer creation request.  
-  
+ 
+ > `message` and `delivery options` fields may be put to either the timer `description` field or to the request upper level.  
+   `message` and `delivery options` at description level is prefered to ones given at request level.  
+ 
  * __Cron style timer__. Timer which is defined like cron:  
  		{  
  			\"type\" -> \"cron\" // timer type, mandatory  	

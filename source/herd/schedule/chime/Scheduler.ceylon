@@ -1,7 +1,14 @@
 import ceylon.time {
 	DateTime
 }
-
+import ceylon.json {
+	
+	JSON = Object,
+	ObjectValue
+}
+import io.vertx.ceylon.core.eventbus {
+	DeliveryOptions
+}
 
 "Wraps event bus to provide exchanging messages with previously created scheduler.  
  The object implementing interface is returned by [[connectToScheduler]]."
@@ -27,7 +34,7 @@ shared interface Scheduler {
 	shared formal void info( "Info handler." Anything(Throwable|SchedulerInfo) info );
 	
 	"Creates interval timer."
-	shared formal void createIntervalTimer (
+	shared default void createIntervalTimer (
 		"Callback when timer created."
 		Anything(Timer|Throwable) handler,
 		"Interval timer delay in seconds."
@@ -45,11 +52,19 @@ shared interface Scheduler {
 		"Timer end date."
 		DateTime? endDate = null,
 		"Time zone."
-		String? timeZone = null
-	);
+		String? timeZone = null,
+		"Message to be attached to the timer fire event."
+		ObjectValue? message = null,
+		"Delivery options message has to be sent with."
+		DeliveryOptions? options = null
+	) =>
+		createTimer( 
+			handler, JSON { Chime.key.type -> Chime.type.interval, Chime.key.delay -> delay },
+			timerName, paused, publish, maxCount, startDate, endDate, timeZone, message, options
+		);
 	
 	"Creates cron timer."
-	shared formal void createCronTimer (
+	shared default void createCronTimer (
 		"Callback when timer created." Anything(Timer|Throwable) handler,
 		"Seconds." String seconds,
 		"Minutes." String minutes,
@@ -71,7 +86,55 @@ shared interface Scheduler {
 		"Timer end date."
 		DateTime? endDate = null,
 		"Time zone."
-		String? timeZone = null
+		String? timeZone = null,
+		"Message to be attached to the timer fire event."
+		ObjectValue? message = null,
+		"Delivery options message has to be sent with."
+		DeliveryOptions? options = null
+	) {
+		JSON descr = JSON {
+			Chime.key.type -> Chime.type.cron,
+			Chime.date.seconds -> seconds,
+			Chime.date.minutes -> minutes,
+			Chime.date.hours -> hours,
+			Chime.date.daysOfMonth -> daysOfMonth,
+			Chime.date.months -> months,
+			Chime.date.daysOfWeek -> "*",
+			Chime.date.years -> "2015-2019"			
+		};
+		if ( exists d = daysOfWeek, !d.empty ) {
+			descr.put( Chime.date.daysOfWeek, d );
+		}
+		if ( exists d = years, !d.empty ) {
+			descr.put( Chime.date.years, d );
+		}
+		createTimer( 
+			handler, descr, timerName, paused, publish, maxCount, startDate, endDate, timeZone, message, options
+		);
+	}
+	
+	"Creates timer with the given description."
+	shared formal void createTimer (
+		"Callback when timer created." Anything(Timer|Throwable) handler,
+		"JSON timer description." JSON description,
+		"Timer name. Timer address is timer full name, i.e. \"scheduler name:timer name\"."
+		String? timerName = null,
+		"`True` if timer is paused at initial and `false` if running."
+		Boolean paused = false,
+		"`True` if timer has to publish event and `false` if sends."
+		Boolean publish = false,
+		"Maximum number of fires or null if unlimited."
+		Integer? maxCount = null,
+		"Timer start date."
+		DateTime? startDate = null,
+		"Timer end date."
+		DateTime? endDate = null,
+		"Time zone."
+		String? timeZone = null,
+		"Message to be attached to the timer fire event."
+		ObjectValue? message = null,
+		"Delivery options message has to be sent with."
+		DeliveryOptions? options = null
 	);
 	
 }

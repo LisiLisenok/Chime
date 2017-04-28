@@ -1,6 +1,12 @@
 import ceylon.time {
 	DateTime
 }
+import ceylon.json {
+	ObjectValue
+}
+import io.vertx.ceylon.core.eventbus {
+	DeliveryOptions
+}
 
 
 "Represents timer event: fire or complete.  
@@ -34,7 +40,11 @@ shared final class TimerFire (
 	"Time zone ID."
 	shared String timeZone,
 	"Date the fire is occured at."
-	shared DateTime date
+	shared DateTime date,
+	"Optional message attached to the timer fire event."
+	shared ObjectValue? message,
+	"Optional delivery options message is sent with."
+	shared DeliveryOptions? options
 )
 		extends TimerEvent( timerName, count )
 {}

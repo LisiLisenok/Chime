@@ -10,6 +10,9 @@ import herd.schedule.chime {
 
 	Chime
 }
+import io.vertx.ceylon.core.eventbus {
+	deliveryOptions
+}
 
 
 "Standard time factory. Creates:
@@ -57,7 +60,11 @@ shared class StandardTimeRowFactory( "max year limitation" Integer maxYearPeriod
 			}
 
 			if ( exists cronExpr = parseCron( seconds, minutes, hours, daysOfMonth, months, daysOfWeek, years, maxYearPeriod ) ) {
-				return TimeRowCronStyle( cronExpr );
+				return TimeRowCronStyle (
+					cronExpr, description.get( Chime.key.message ),
+					if ( exists options = description.getObjectOrNull( Chime.key.deliveryOptions ) )
+					then deliveryOptions.fromJson( options ) else null
+				);
 			}
 			else {
 				return Chime.errors.codeIncorrectCronTimerDescription->Chime.errors.incorrectCronTimerDescription;
@@ -74,7 +81,11 @@ shared class StandardTimeRowFactory( "max year limitation" Integer maxYearPeriod
 	TimeRow|<Integer->String> createIntervalTimer( "Timer description." JSON description ) {
 		if ( is Integer delay = description[Chime.key.delay] ) {
 			if ( delay > 0 ) {
-				return TimeRowInterval( delay * 1000 );
+				return TimeRowInterval (
+					delay * 1000, description.get( Chime.key.message ),
+					if ( exists options = description.getObjectOrNull( Chime.key.deliveryOptions ) )
+					then deliveryOptions.fromJson( options ) else null
+				);
 			}
 			else {
 				return Chime.errors.codeDelayHasToBeGreaterThanZero->Chime.errors.delayHasToBeGreaterThanZero;

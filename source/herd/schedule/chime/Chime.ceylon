@@ -71,6 +71,10 @@ shared class Chime extends Verticle
 		shared String type = "type";
 		"Key for the fieldcontaining timer event."
 		shared String event = "event";
+		"Key for a message to be sent with fire event."
+		shared String message = "message";
+		"Key for a message delivery options to be sent with fire event."
+		shared String deliveryOptions = "delivery options";
 	}
 	
 	"Timer types."

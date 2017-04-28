@@ -16,6 +16,10 @@ import herd.schedule.chime.cron {
 
 	calendar
 }
+import io.vertx.ceylon.core.eventbus {
+
+	deliveryOptions
+}
 
 
 "Uses [[JSON]] description to creates [[TimerContainer]] with timer [[TimeRow]] created by timer factory."
@@ -45,7 +49,7 @@ class TimerCreator( "Factory to create timers." TimeRowFactory factory )
 	"Creates timer container by container and creation request."
 	TimerContainer|<Integer->String> createTimerContainer (
 		"Request on timer creation." JSON request,
-		"Timer desciption." JSON description,
+		"Timer description." JSON description,
 		"Timer name." String name,
 		"Timer." TimeRow timer
 	) {
@@ -87,13 +91,15 @@ class TimerCreator( "Factory to create timers." TimeRowFactory factory )
 		if ( exists converter = dummyConverter.getConverter( request ) ) {
 			return TimerContainer (
 				name, description, extractPublish( request ), timer,
-				converter, extractMaxCount( request ), startDate, endDate
+				converter, extractMaxCount( request ), startDate, endDate,
+				request.get( Chime.key.message ),
+				if ( exists options = request.getObjectOrNull( Chime.key.deliveryOptions ) )
+				then deliveryOptions.fromJson( options ) else null
 			);
 		}
 		else {
 			return Chime.errors.codeUnsupportedTimezone->Chime.errors.unsupportedTimezone;
 		}
-		
 	}
 	
 	"Extracts month from field with key key. The field can be either integer or string (like JAN, FEB etc, see [[calendar]])."

@@ -19,7 +19,9 @@ import herd.schedule.chime {
 	Timer,
 	TimerEvent,
 	TimerInfo,
-	SchedulerInfo
+	SchedulerInfo,
+	TimerFire,
+	TimerCompleted
 }
 import io.vertx.ceylon.core.eventbus {
 	EventBus,
@@ -198,6 +200,61 @@ shared class SchedulerTimer()
 				}
 			},
 			chime, eventBus
+		);
+	}
+	
+	test shared void timerMessage( AsyncTestContext context ) {
+		String schedulerName = "TimerMessage";
+		String timerMessage = "message";
+		connectToScheduler (
+			( Throwable|Scheduler msg ) {
+				if ( is Scheduler msg ) {
+					msg.createIntervalTimer {
+						handler = ( Throwable|Timer timer ) {
+							if ( is Timer timer ) {
+								timer.handler (
+									( TimerEvent event ) {
+										switch ( event )
+										case ( is TimerFire ) {
+											context.assertThat (
+												event.message, PassType<String>( EqualTo( timerMessage ) )
+											);
+										}
+										case ( is TimerCompleted ) {
+											msg.delete();
+											context.complete();
+										}
+										
+										timer.delete();
+										timer.info (
+											( Throwable|TimerInfo info ) {
+												context.assertThat (
+													info, PassType( ExceptionHasMessage( Chime.errors.timerNotExists ) )
+												);
+												msg.delete();
+												context.complete();
+											}
+										);
+									}
+								);
+							}
+							else {
+								msg.delete();
+								context.fail( timer );
+								context.complete();
+							}
+						};
+						delay = 1;
+						maxCount = 1;
+						message = timerMessage;
+					};
+				}
+				else {
+					context.fail( msg );
+					context.complete();
+				}
+			},
+			chime, eventBus, schedulerName
 		);
 	}
 	

@@ -263,12 +263,17 @@ class TimeScheduler(
 			Chime.date.year -> date.year,
 			Chime.key.timeZone -> timer.timeZoneID
 		};
+		if ( exists msg = timer.message ) {
+			message.put( Chime.key.message, msg );
+		}
 		// send message
 		if ( timer.publish ) {
-			eventBus.publish( timer.name, message );
+			if ( exists options = timer.options ) { eventBus.publish( timer.name, message, options ); }
+			else { eventBus.publish( timer.name, message ); }
 		}
 		else {
-			eventBus.send( timer.name, message );
+			if ( exists options = timer.options ) { eventBus.send( timer.name, message, options ); }
+			else { eventBus.send( timer.name, message ); }
 		}
 	}
 	
