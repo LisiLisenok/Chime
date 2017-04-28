@@ -23,10 +23,19 @@ shared interface TimeRow
 	 Returns next fire time if successfull and null if completed."
 	shared formal DateTime? shiftTime();
 	
-	"Message attached to the timer fire event."
+	"Message to be attached to the timer fire event."
 	shared formal ObjectValue? message;
 	
 	"Delivery options message has to be sent with."
 	shared formal DeliveryOptions? options;
 	
+}
+
+
+"`TimeRow` which return `null`."
+object emptyTimeRow satisfies TimeRow {
+	shared actual ObjectValue? message => null;
+	shared actual DeliveryOptions? options => null;
+	shared actual DateTime? shiftTime() => null;
+	shared actual DateTime? start(DateTime current) => null;
 }
