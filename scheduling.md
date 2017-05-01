@@ -7,8 +7,8 @@ author: LisiLisenok
 
 ## Time scheduling.  
 
-Executing periodic or delayed actions in Vert.x is performed with [one-shot and periodic timers]
-(http://vertx.io/docs/vertx-core/java/#_executing_periodic_and_delayed_actions).
+Executing periodic or delayed actions in Vert.x is performed with
+[one-shot and periodic timers](http://vertx.io/docs/vertx-core/java/#_executing_periodic_and_delayed_actions).
 This is the base for time scheduling and reach feature extension must be rather interesting.
 Be notified at certain date / time, take into account holidays,
 repeat notifications until a given date, apply time zone,
@@ -45,7 +45,7 @@ There are a lot of useful features time scheduler may provide.
 ### Ceylon users.  
 
 Deploy _Chime_ using `Verticle.deployVerticle` method.  
- 
+
 ```Ceylon
 import io.vertx.ceylon.core {vertx}
 import herd.schedule.chime {Chime}
@@ -80,7 +80,8 @@ This two level (scheduler-timer) architecture is very flexible and provides broa
 to manage timers.  
 
 When _Chime_ verticle is deployed it starts listen event bus at **chime** address (can be configured).
-In order to create scheduler send to this address a JSON message.
+In order to create scheduler send to this address a JSON message.  
+
 **in Ceylon:**
 ```Ceylon
 JSON request = JSON {
@@ -128,7 +129,10 @@ JSON request = JSON {
 ```Java
 JsonObject request = new JsonObject();
 JsonObject description = new JsonObject();
-request.put("operation", "create").put("name", "scheduler name:timer name").put("description", description);
+request
+	.put("operation", "create")
+	.put("name", "scheduler name:timer name")
+	.put("description", description);
 ```
 This is rather similar to request sent to create scheduler.
 The difference is only **description** field is added.
@@ -144,25 +148,39 @@ Currently three timer types are supported:
 * __Interval timer__. Timer which fires after each given time period (minimum 1 second):  
 ```Ceylon
 JSON {  
-	"type" -> "interval" // timer type, mandatory  
-	"delay" -> Integer // timer delay in seconds, if <= 0 timer fires only once, mandatory  
-	"message" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message which added to timer fire event, optional  
-	"delivery options\" -> JSON // delivery options the timer fire event is sent with, optional  
+	// timer type, mandatory  
+	"type" -> "interval",  
+	// timer delay in seconds, if <= 0 timer fires only once, mandatory  
+	"delay" -> Integer,  
+	// message which added to timer fire event, optional  
+	"message" -> String|Boolean|Integer|Float|JSONObject|JSONArray,  
+	// delivery options the timer fire event is sent with, optional  
+	"delivery options\" -> JSON  
 };
 ``` 
 * __Cron style timer__. Timer which is defined like cron:  
 ```Ceylon
 JSON {  
-	"type" -> "cron" // timer type, mandatory  
-	"seconds" -> String // seconds in cron style, mandatory, nonempty  
-	"minutes" -> String // minutes in cron style, mandatory, nonempty  
-	"hours" -> String // hours in cron style, mandatory, nonempty  
-	"days of month" -> String // days of month in cron style, mandatory, nonempty  
-	"months" -> String // months in cron style, mandatory, nonempty  
-	"days of week" -> String // days of week in cron style, L means last, # means nth of month, optional    
-	"years" -> String // year in cron style, optional  
- 	"message" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message which added to timer fire event, optional  
- 	"delivery options" -> JSON // delivery options the timer fire event is sent with, optional  
+	 // timer type, mandatory  
+	"type" -> "cron",  
+	// seconds in cron style, mandatory, nonempty
+	"seconds" -> String,  
+	// minutes in cron style, mandatory, nonempty  
+	"minutes" -> String,  
+	// hours in cron style, mandatory, nonempty  
+	"hours" -> String,  
+	// days of month in cron style, mandatory, nonempty  
+	"days of month" -> String,  
+	// months in cron style, mandatory, nonempty  
+	"months" -> String,  
+	// days of week in cron style, L means last, # means nth of month, optional  
+	"days of week" -> String,  
+	// year in cron style, optional  
+	"years" -> String,  
+	// message which added to timer fire event, optional  
+ 	"message" -> String|Boolean|Integer|Float|JSONObject|JSONArray,
+ 	// delivery options the timer fire event is sent with, optional  
+ 	"delivery options" -> JSON  
 };
 ```  
 Cron timer is rather powerful and flexible.
@@ -170,10 +188,14 @@ See specification details in [Chime documentation](https://herd.ceylon-lang.org/
 * __Union timer__. Combines a number of timers into a one:  
 ```Ceylon
 JSON {  
-	"type" -> "union" // timer type, mandatory  
-	"timers" -> JSONArray // list of the timers, each item is JSON according to its description, mandatory  
-	"message" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message which added to timer fire event, optional  
-	"delivery options" -> JSON // delivery options the timer fire event is sent with, optional  
+	// timer type, mandatory  
+	"type" -> "union",  
+	// list of the timers, each item is JSON according to its description, mandatory  
+	"timers" -> JSONArray,  
+	// message which added to timer fire event, optional  
+	"message" -> String|Boolean|Integer|Float|JSONObject|JSONArray,  
+	// delivery options the timer fire event is sent with, optional
+	"delivery options" -> JSON  
 };
 ```  
 Union timer may be useful to fire at a list of specific dates / times.
@@ -186,25 +208,37 @@ Two types of events are sent:
 * fire event  
 ```Ceylon
 JSON {  
-	"name" -> String // timer name  
-	"event" -> "fire"  
-	"count" -> Integer // total number of fire times  
-	"time" -> String // ISO formated time / date  
-	"seconds" -> Integer // number of seconds since last minute  
-	"minutes" -> Integer // number of minutes since last hour  
-	"hours" -> Integer // hour of day	"day of month" -> Integer, day of month  
-	"month" -> Integer // month  
-	"year" -> Integer // year  
-	"time zone" -> String // time zone the timer works in  
-	"message" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message given at a timer create request  
+	// timer name  
+	"name" -> String,  
+	"event" -> "fire",  
+	// total number of fire times  
+	"count" -> Integer,  
+	// ISO formated time / date  
+	"time" -> String,  
+	// number of seconds since last minute  
+	"seconds" -> Integer,  
+	// number of minutes since last hour  
+	"minutes" -> Integer,  
+	// hour of day	"day of month" -> Integer, day of month  
+	"hours" -> Integer,  
+	// month  
+	"month" -> Integer,  
+	// year  
+	"year" -> Integer,  
+	// time zone the timer works in
+	"time zone" -> String,  
+	// message given at a timer create request  
+	"message" -> String|Boolean|Integer|Float|JSONObject|JSONArray  
 };
 ```  
 * complete event  
 ```Ceylon
 JSON {  
-	"name" -> String // timer name  
-	"event" -> "complete"  
-	"count" -> Integer // total number of fire times  
+	// timer name  
+	"name" -> String,  
+	"event" -> "complete",  
+	// total number of fire times  
+	"count" -> Integer  
 };
 ```
 
