@@ -92,7 +92,8 @@ JSON request = JSON {
 **in Java:**
 ```Java
 JsonObject request = new JsonObject();
-request.put("operation", "create").put("name", "scheduler name");
+request.put("operation", "create")
+	.put("name", "scheduler name");
 ```
 
 Once scheduler is created it starts listen event bus at **scheduler name** address.
@@ -129,8 +130,7 @@ JSON request = JSON {
 ```Java
 JsonObject request = new JsonObject();
 JsonObject description = new JsonObject();
-request
-	.put("operation", "create")
+request.put("operation", "create")
 	.put("name", "scheduler name:timer name")
 	.put("description", description);
 ```
@@ -254,10 +254,12 @@ eventBus.consumer (
 	(Throwable|Message<JSON?> msg) {
 		if (is Message<JSON?> msg) {
 			assert(exists body = msg.body());
-			print(body); // prints timer message
+			// prints timer message
+			print(body);
 		}
 		else {
-			print(msg); // error occurred!
+			// error occurred!
+			print(msg);
 		}	
 	}
 );
@@ -272,9 +274,12 @@ eventBus.send<JSON>(
 			"seconds" -> "0",
 			"minutes" -> "30",
 			"hours" -> "16",
-			"days of month" -> "*", // any day
-			"months" -> "*", // any month
-			"days of week" -> "SundayL" // means last Sunday of the month
+			// any day
+			"days of month" -> "*",
+			// any month
+			"months" -> "*",
+			// means last Sunday of the month
+			"days of week" -> "SundayL"
 		}
 	}
 );
@@ -298,18 +303,22 @@ consumer.handler (
 // description of timers
 JsonObject mondayTimer = (new JsonObject()).put("type", "cron")
 	.put("seconds", "0").put("minutes", "30").put("hours", "8")
-	.put("days of month", "*").put("months", "*").put("days of week", "Monday");
+	.put("days of month", "*").put("months", "*")
+	.put("days of week", "Monday");
 JsonObject fridayTimer = (new JsonObject()).put("type", "cron")
 	.put("seconds", "0").put("minutes", "30").put("hours", "17")
-	.put("days of month", "*").put("months", "*").put("days of week", "Friday");
+	.put("days of month", "*").put("months", "*")
+	.put("days of week", "Friday");
+// union timer - combines mondayTimer and fridayTimer
+JsonArray combination = (new JsonArray()).add(mondayTimer)
+	.add(fridayTimer)
 JsonObject timer = (new JsonObject()).put("type", "union")
-	.put("timers", (new JsonArray()).add(mondayTimer).add(fridayTimer))
-			
+	.put("timers", combination)
+
 // create timer
 eventBus.send (
 	"chime",
-	(new JsonObject())
-		.put("operation", "create")
+	(new JsonObject()).put("operation", "create")
 		.put("name", "scheduler:timer")
 		.put("description", timer)
 );
@@ -322,4 +331,5 @@ eventBus.send (
 
 Thank's for the reading. This is very quick introduction to the _Chime_ and if you are interested in you may read
 more at [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime) or even [contribute](https://github.com/LisiLisenok/Chime) to.  
+
 Enjoy with coding!  
