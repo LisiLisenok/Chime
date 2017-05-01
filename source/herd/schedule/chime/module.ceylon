@@ -1,15 +1,16 @@
 
 "
  _Chime_ is time scheduler which works on _Vert.x_ event bus and provides:  
- * scheduling with _cron-style_ or _interval_ timers  
+ * scheduling with _cron-style_, _interval_ or _union_ timers  
+ * proxying event bus with conventional interfaces  
  * applying time zones available on _JVM_  
  * flexible timers management system:  
  	* grouping timers  
- 	* defining timer start or end time  
+ 	* defining a timer start or end time  
  	* pausing / resuming  
  	* fire counting  
  * sending messages in _JSON_  
- * _publish_ or _send_ timer fire event to the address of your choice  
+ * _publishing_ or _sending_ timer fire event to the address of your choice  
  
  
  ## Running.
@@ -166,11 +167,11 @@
  	{  
  		\"operation\" -> String // operation code, mandatory  
  		\"name\" -> String // timer short or full name, mandatory  
- 		\"state\" -> String // state, nonmandatory, except if operation = 'sate'  
+ 		\"state\" -> String // state, optional, except if operation = 'sate'  
  		
  		// fields for create operation:
  		\"maximum count\" -> Integer // maximum number of fires, default - unlimited  
- 		\"publish\" -> Boolean // if true message to be published and to be sent otherwise, nonmandatory  
+ 		\"publish\" -> Boolean // if true message to be published and to be sent otherwise, optional  
  
  		\"start time\" -> JSON // start time, nonmadatory, if doesn't exist timer will start immediately  
  		{
@@ -190,12 +191,12 @@
  			\"day of month\" -> Integer // days of month, mandatory  
  			\"month\" -> Integer or String // months, mandatory  
  			\"year\" -> Integer // year, mandatory  
- 		}
+ 		}  
  
- 		\"time zone\" -> String // time zone ID, nonmandatory, default server local
+ 		\"time zone\" -> String // time zone ID, optional, default server local  
 
- 		\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message which added to timer fire event
- 		\"delivery options\" -> JSON // delivery options the timer fire event is sent with  
+ 		\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message which added to timer fire event, optional  
+ 		\"delivery options\" -> JSON // delivery options the timer fire event is sent with, optional  
  
  		\"description\" -> JSON // timer desciption, mandatoty for create operation  
  	}  
@@ -240,7 +241,7 @@
    `message` and `delivery options` at description level is prefered to ones given at request level.  
  
  * __Cron style timer__. Timer which is defined like cron:  
- 		{  
+ 		JSON {  
  			\"type\" -> \"cron\" // timer type, mandatory  	
  
  			\"seconds\" -> String // seconds in cron style, mandatory, nonempty  
@@ -248,8 +249,11 @@
  			\"hours\" -> String // hours in cron style, mandatory, nonempty  
  			\"days of month\" -> String // days of month in cron style, mandatory, nonempty  
  			\"months\" -> String // months in cron style, mandatory, nonempty  
- 			\"days of week\" -> String // days of week in cron style, L means last, # means nth of month, nonmandatory  
- 			\"years\" -> String // year in cron style, nonmandatory   		
+ 			\"days of week\" -> String // days of week in cron style, L means last, # means nth of month, optional    
+ 			\"years\" -> String // year in cron style, optional  
+ 			   		
+ 			\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message which added to timer fire event, optional  
+ 			\"delivery options\" -> JSON // delivery options the timer fire event is sent with, optional  
  		}  
    Following notations are applicable:
      * `FROM`-`TO`/`STEP`
@@ -261,17 +265,64 @@
  
  > Month and day of week are case insensitive.  
  
- [[CronBuilder]] may help to build JSON description of a cron timer.  
+ > Sunday is the first day of week.  
+  
+ > [[CronBuilder]] may help to build JSON description of a cron timer.  
  
  ------------------------------------------  
    
- * __Interval timer__. Timer which fires after each given time period (minimum 1 second):
- 		{  
- 			\"type\" -> \"interval\" // timer type, mandatory  	
- 			\"delay\" -> Integer // timer delay in seconds, if <= 0 timer fires only once, mandatory
- 		}
+ * __Interval timer__. Timer which fires after each given time period (minimum 1 second):  
+ 		JSON {  
+ 			\"type\" -> \"interval\" // timer type, mandatory  
+ 			\"delay\" -> Integer // timer delay in seconds, if <= 0 timer fires only once, mandatory  
+ 			
+ 			\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message which added to timer fire event, optional  
+ 			\"delivery options\" -> JSON // delivery options the timer fire event is sent with, optional  
+ 		}  
  
  > Interval timer delay is in _seconds_
+ 
+ ------------------------------------------  
+   
+ * __Union timer__. Combines a number of timers into a one:  
+ 		JSON {  
+ 			\"type\" -> \"union\" // timer type, mandatory  
+ 			\"timers\" -> JSONArray // list of the timers, each item is JSON according to its description, mandatory  
+ 			
+ 			\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message which added to timer fire event, optional  
+ 			\"delivery options\" -> JSON // delivery options the timer fire event is sent with, optional  
+ 		}  
+ 
+ This may be useful to fire at specific dates / times. For example, following timer fires
+ at 8-00 each Monday and at 17-00 each Friday:  
+ 		JSON {  
+ 			\"type\" -> \"union\",  
+ 			\"timers\" -> JSONArray {
+ 				JSON {
+ 					\"type\" -> \"cron\",
+ 					\"seconds\" -> \"0\",  
+ 					\"minutes\" -> \"0\",  
+ 					\"hours\" -> \"8\",  
+ 					\"days of month\" -> \"*\",  
+ 					\"months\" -> \"*\",  
+ 					\"days of week\" -> \"Monday\"    
+ 				},
+ 				JSON {
+ 					\"type\" -> \"cron\",
+ 					\"seconds\" -> \"0\",  
+ 					\"minutes\" -> \"0\",  
+ 					\"hours\" -> \"17\",  
+ 					\"days of month\" -> \"*\",  
+ 					\"months\" -> \"*\",  
+ 					\"days of week\" -> \"Friday\"  
+ 				}  
+  			}  
+ 		}  
+ 
+ > Each sub-timer may fire with each own message, just put \"message\" field to the sub-timer description.  
+   If \"message\" field is not found at sub-timer description then union timer \"message\" field is used.  
+ 
+ > [[UnionBuilder]] may help to build JSON description of a union timer.  
  
  
  #### Response on a timer request.  
@@ -309,24 +360,25 @@
  Timer sends or publishes to _full timer name_ address two types of events in `JSON`:
  * fire event  
  		{  
- 			\"name\" -> String, timer name
- 			\"event\" -> \"fire\"
- 			\"count\" -> Integer, total number of fire times
- 			\"time\" -> String formated time / date
- 			\"seconds\" -> Integer, number of seconds since last minute
- 			\"minutes\" -> Integer, number of minutes since last hour
- 			\"hours\" -> Integer, hour of day
- 			\"day of month\" -> Integer, day of month
- 			\"month\" -> Integer, month
- 			\"year\" -> Integer, year
- 			\"time zone\" -> String, time zone ID
+ 			\"name\" -> String, timer name  
+ 			\"event\" -> \"fire\"  
+ 			\"count\" -> Integer, total number of fire times  
+ 			\"time\" -> String formated time / date  
+ 			\"seconds\" -> Integer, number of seconds since last minute  
+ 			\"minutes\" -> Integer, number of minutes since last hour  
+ 			\"hours\" -> Integer, hour of day  
+ 			\"day of month\" -> Integer, day of month  
+ 			\"month\" -> Integer, month  
+ 			\"year\" -> Integer, year  
+ 			\"time zone\" -> String, time zone ID  
+ 			\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray, message given at a timer create request  
  		}  
  * complete event  
  		{  
- 			\"name\" -> String, timer name
- 			\"event\" -> \"complete\"
- 			\"count\" -> Integer, total number of fire times
- 		}   
+ 			\"name\" -> String, timer name  
+ 			\"event\" -> \"complete\"  
+ 			\"count\" -> Integer, total number of fire times  
+ 		}  
  
  > Complete event is always published in order every listener receives it.  
    While fire event may be either published or send depending on 'publish' field in timer create request.  
@@ -399,7 +451,7 @@
  		);
  
  
- ### Scheduler and Timer interfaces.
+ ### Scheduler and Timer interfaces.  
  
  [[Scheduler]] interface provides a convenient way to exchange messages with particular scheduler.  
  In order to connect to already existed scheduler or to create new one [[connectToScheduler]]
@@ -407,8 +459,8 @@
  the event bus with implementation of [[Scheduler]] interface.  
  
  [[Timer]] interface provides a convenient way to exchange messages with particular scheduler.  
- To get an instance of the [[Timer]] call [[Scheduler.createIntervalTimer]]
- or  [[Scheduler.createCronTimer]].  
+ To get an instance of the [[Timer]] call [[Scheduler.createIntervalTimer]],
+ [[Scheduler.createCronTimer]], [[Scheduler.createUnionTimer]] or [[Scheduler.createTimer]].  
  
  Example:
  
@@ -462,6 +514,8 @@
  * \"delay has to be specified\"
  * \"delay has to be greater than zero\"
  * \"incorrect cron timer description\"
+ * \"timers list has to be specified\"
+ * \"timer description has to be in JSON\"
  
  
  ## Cron expressions.
@@ -483,15 +537,17 @@
  * _months_, mandatory
  	* allowed values 1-12, Jan-Dec, January-December
  	* allowed special characters: , - * /
- * _days of week_, nonmandatory
+ * _days of week_, optional
  	* allowed values 1-7, Sun-Sat, Sunday-Saturday
  	* allowed special characters: , - * / L #
- * _years_, nonmandatory
+ * _years_, optional
  	* allowed values 1970-2099
  	* allowed special characters: , - * /
  
  
- > Names of months and days of the week are case insensitive.
+ > Names of months and days of the week are case insensitive.  
+ 
+ > Sunday is the first day of week.  
  
  
  #### Special characters.

@@ -5,6 +5,7 @@ import ceylon.json {
 
 "Info on the scheduler."
 see( `interface Scheduler`, `class TimerInfo`, `function schedulerInfo` )
+tagged( "Info" )
 since( "0.2.0" ) by( "Lis" )
 shared final class SchedulerInfo {
 	

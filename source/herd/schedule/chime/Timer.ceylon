@@ -10,6 +10,7 @@
  > Complete event is always published.
  "
 see( `interface Scheduler` )
+tagged( "Proxy" )
 since( "0.2.0" ) by( "Lis" )
 shared interface Timer {
 	
@@ -17,15 +18,15 @@ shared interface Timer {
 	shared formal String name;
 	
 	"Stops and removes this timer."
-	shared formal void delete();
+	shared formal void delete( "Optional reply handler. Replied with timer name." Anything(Throwable|String)? reply = null );
 
 	"Pauses this timer."
 	see( `function resume` )
-	shared formal void pause();
+	shared formal void pause( "Optional reply handler. Replied with timer state." Anything(Throwable|State)? reply = null );
 	
 	"Resumes this timer after pausing."
 	see( `function pause` )
-	shared formal void resume();
+	shared formal void resume( "Optional reply handler. Replied with timer state." Anything(Throwable|State)? reply = null );
 	
 	"Requests timer info."
 	shared formal void info( "Info handler." Anything(Throwable|TimerInfo) info );

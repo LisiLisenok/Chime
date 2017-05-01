@@ -101,42 +101,111 @@ class SchedulerImpl (
 	}
 	
 
-	shared actual void delete() {
+	shared actual void delete( Anything(Throwable|String)? reply ) {
 		if ( alive ) {
 			alive = false;
-			eventBus.send (
-				name,
-				JSON {
-					Chime.key.operation -> Chime.operation.delete,
-					Chime.key.name -> name
-				}
-			);
+			if ( exists reply ) {
+				eventBus.send (
+					name,
+					JSON {
+						Chime.key.operation -> Chime.operation.delete,
+						Chime.key.name -> name
+					},
+					( Throwable|Message<JSON?> msg ) {
+						if ( is Message<JSON?> msg ) {
+							"Reply from scheduler request has not to be null."
+							assert( exists ret = msg.body() );
+							reply( ret.getString( Chime.key.name ) );
+						}
+						else {
+							reply( msg );
+						}
+					}
+				);
+			}
+			else {
+				eventBus.send (
+					name,
+					JSON {
+						Chime.key.operation -> Chime.operation.delete,
+						Chime.key.name -> name
+					}
+				);
+			}
 		}
 	}
 	
-	shared actual void pause() {
+	shared actual void pause( Anything(Throwable|State)? reply ) {
 		if ( alive ) {
-			eventBus.send (
-				name,
-				JSON {
-					Chime.key.operation -> Chime.operation.state,
-					Chime.key.name -> name,
-					Chime.key.state -> Chime.state.paused
-				}
-			);
+			if ( exists reply ) {
+				eventBus.send (
+					name,
+					JSON {
+						Chime.key.operation -> Chime.operation.state,
+						Chime.key.name -> name,
+						Chime.key.state -> Chime.state.paused
+					},
+					( Throwable|Message<JSON?> msg ) {
+						if ( is Message<JSON?> msg ) {
+							"Reply from scheduler request has not to be null."
+							assert( exists ret = msg.body() );
+							"Timer info replied from scheduler has to contain state field."
+							assert( exists state = stateByName( ret.getString( Chime.key.state ) ) );
+							reply( state );
+						}
+						else {
+							reply( msg );
+						}
+					}
+				);
+			}
+			else {
+				eventBus.send (
+					name,
+					JSON {
+						Chime.key.operation -> Chime.operation.state,
+						Chime.key.name -> name,
+						Chime.key.state -> Chime.state.paused
+					}
+				);
+			}
 		}
 	}
 	
-	shared actual void resume() {
+	shared actual void resume( Anything(Throwable|State)? reply ) {
 		if ( alive ) {
-			eventBus.send (
-				name,
-				JSON {
-					Chime.key.operation -> Chime.operation.state,
-					Chime.key.name -> name,
-					Chime.key.state -> Chime.state.running
-				}
-			);
+			if ( exists reply ) {
+				eventBus.send (
+					name,
+					JSON {
+						Chime.key.operation -> Chime.operation.state,
+						Chime.key.name -> name,
+						Chime.key.state -> Chime.state.running
+					},
+					( Throwable|Message<JSON?> msg ) {
+						if ( is Message<JSON?> msg ) {
+							"Reply from scheduler request has not to be null."
+							assert( exists ret = msg.body() );
+							"Timer info replied from scheduler has to contain state field."
+							assert( exists state = stateByName( ret.getString( Chime.key.state ) ) );
+							reply( state );
+						}
+						else {
+							reply( msg );
+						}
+					}
+				);
+			}
+			else {
+				eventBus.send (
+					name,
+					JSON {
+						Chime.key.operation -> Chime.operation.state,
+						Chime.key.name -> name,
+						Chime.key.state -> Chime.state.running
+					}
+				);
+			}
 		}
 	}
 	

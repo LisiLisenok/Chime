@@ -10,6 +10,7 @@ import ceylon.time {
 
 "Info on the timer."
 see( `interface Timer`, `class SchedulerInfo`, `function Scheduler.info` )
+tagged( "Info" )
 since( "0.2.0" ) by( "Lis" )
 shared final class TimerInfo {
 

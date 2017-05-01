@@ -4,15 +4,18 @@ import ceylon.time {
 import ceylon.json {
 	
 	JSON = Object,
+	JSONArray = Array,
 	ObjectValue
 }
 import io.vertx.ceylon.core.eventbus {
 	DeliveryOptions
 }
 
+
 "Wraps event bus to provide exchanging messages with previously created scheduler.  
  The object implementing interface is returned by [[connectToScheduler]]."
 see( `interface Timer`, `function connectToScheduler` )
+tagged( "Proxy" )
 since( "0.2.0" ) by( "Lis" )
 shared interface Scheduler {
 	
@@ -20,15 +23,15 @@ shared interface Scheduler {
 	shared formal String name;
 
 	"Removes this scheduler."
-	shared formal void delete();
+	shared formal void delete( "Optional reply handler. Replied with scheduler name." Anything(Throwable|String)? reply = null );
 	
 	"Pauses this scheduler."
 	see( `function resume` )
-	shared formal void pause();
+	shared formal void pause( "Optional reply handler. Replied with scheduler state." Anything(Throwable|State)? reply = null );
 	
 	"Resumes this scheduler after pausing."
 	see( `function pause` )
-	shared formal void resume();
+	shared formal void resume( "Optional reply handler. Replied with scheduler state." Anything(Throwable|State)? reply = null );
 	
 	"Requests scheduler info."
 	shared formal void info( "Info handler." Anything(Throwable|SchedulerInfo) info );
@@ -57,8 +60,7 @@ shared interface Scheduler {
 		ObjectValue? message = null,
 		"Delivery options message has to be sent with."
 		DeliveryOptions? options = null
-	) =>
-		createTimer( 
+	) => createTimer( 
 			handler, JSON { Chime.key.type -> Chime.type.interval, Chime.key.delay -> delay },
 			timerName, paused, publish, maxCount, startDate, endDate, timeZone, message, options
 		);
@@ -98,9 +100,7 @@ shared interface Scheduler {
 			Chime.date.minutes -> minutes,
 			Chime.date.hours -> hours,
 			Chime.date.daysOfMonth -> daysOfMonth,
-			Chime.date.months -> months,
-			Chime.date.daysOfWeek -> "*",
-			Chime.date.years -> "2015-2019"			
+			Chime.date.months -> months
 		};
 		if ( exists d = daysOfWeek, !d.empty ) {
 			descr.put( Chime.date.daysOfWeek, d );
@@ -112,6 +112,37 @@ shared interface Scheduler {
 			handler, descr, timerName, paused, publish, maxCount, startDate, endDate, timeZone, message, options
 		);
 	}
+	
+	"Creates union timer."
+	shared default void createUnionTimer (
+		"Callback when timer created."
+		Anything(Timer|Throwable) handler,
+		"Nonempty list of the timers to be combined into union."
+		{JSON+} timers,
+		"Timer name. Timer address is timer full name, i.e. \"scheduler name:timer name\"."
+		String? timerName = null,
+		"`True` if timer is paused at initial and `false` if running."
+		Boolean paused = false,
+		"`True` if timer has to publish event and `false` if sends."
+		Boolean publish = false,
+		"Maximum number of fires or null if unlimited."
+		Integer? maxCount = null,
+		"Timer start date."
+		DateTime? startDate = null,
+		"Timer end date."
+		DateTime? endDate = null,
+		"Time zone."
+		String? timeZone = null,
+		"Message to be attached to the timer fire event."
+		ObjectValue? message = null,
+		"Delivery options message has to be sent with."
+		DeliveryOptions? options = null
+	) =>
+		createTimer( 
+			handler, JSON { Chime.key.type -> Chime.type.union, Chime.key.timers -> JSONArray( timers ) },
+			timerName, paused, publish, maxCount, startDate, endDate, timeZone, message, options
+		);
+
 	
 	"Creates timer with the given description."
 	shared formal void createTimer (

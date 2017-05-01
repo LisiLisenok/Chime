@@ -23,6 +23,7 @@ State? stateByName( String name ) {
 
 
 "Timer or scheduler state - running, paused or completed."
+tagged( "Info" )
 since( "0.2.0" ) by( "Lis" )
 shared class State of running | paused | completed
 {

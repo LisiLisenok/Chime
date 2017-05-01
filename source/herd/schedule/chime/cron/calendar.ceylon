@@ -1,3 +1,7 @@
+import ceylon.time.base {
+	DayOfWeek,
+	Month
+}
 
 
 "Defines calendar constants."
@@ -80,4 +84,55 @@ shared object calendar
 	shared String replaceDayOfWeekByNumber( String expression )
 			=> replaceStringToNumber( replaceStringToNumber( expression.trimmed.uppercased, dayOfWeekFullMap ), dayOfWeekShortMap );
 
+	
+	"Integer representation of a day of week."
+	shared Integer digitalDayOfWeek( Integer|DayOfWeek|String dayOfWeek ) {
+		switch ( dayOfWeek )
+		case ( is Integer ) {
+			"Has to be a valid day of week. Actually is ``dayOfWeek``."
+			assert ( dayOfWeek > 0 && dayOfWeek < 8 );
+			return dayOfWeek;
+		}
+		case ( is DayOfWeek ) {
+			return dayOfWeek.successor.integer;
+		}
+		case ( is String ) {
+			"Has to be a valid day of week. Actually is ``dayOfWeek``."
+			assert ( is Integer ret = Integer.parse( calendar.replaceDayOfWeekByNumber( dayOfWeek ) ) );
+			return ret;
+		}
+	}
+	
+	"Integer representation of a list of day of week."
+	shared {Integer+} digitalDaysOfWeekList( {Integer|DayOfWeek|String+} daysOfWeek ) {
+		return { for ( item in daysOfWeek ) digitalDayOfWeek( item ) };
+	}
+	
+	shared String cronDaysOfWeek( {Integer|DayOfWeek|String+} daysOfWeek ) {
+		StringBuilder builder = StringBuilder();
+		for ( item in daysOfWeek.exceptLast ) {
+			builder.append( digitalDayOfWeek( item ).string + "," );
+		}
+		builder.append( digitalDayOfWeek( daysOfWeek.last ).string );
+		return builder.string;
+	}
+	
+	"Integer representation of a month."
+	shared Integer digitalMonth( Integer|Month|String month ) {
+		switch ( month )
+		case ( is Integer ) {
+			"Has to be a valid month. Actually is ``month``."
+			assert ( month > 0 && month < 13 );
+			return month;
+		}
+		case ( is Month ) {
+			return month.integer;
+		}
+		case ( is String ) {
+			"Has to be a valid month. Actually is ``month``."
+			assert ( is Integer ret = Integer.parse( calendar.replaceMonthByNumber( month ) ) );
+			return ret;
+		}
+	}
+	
 }

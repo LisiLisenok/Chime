@@ -21,7 +21,8 @@ import ceylon.test {
 }
 import ceylon.json {
 
-	JSON=Object
+	JSON=Object,
+	JSONArray=Array
 }
 import herd.asynctest.match {
 
@@ -43,6 +44,7 @@ shared class SimpleTimers()
 	
 	String interval = "scheduler:interval";
 	String cron = "scheduler:cron";
+	String union = "scheduler:union";
 
 	
 	Vertx v = vertx.vertx();
@@ -230,6 +232,67 @@ shared class SimpleTimers()
 				else {
 					if ( !msg.body() exists ) {
 						context.fail( Exception( "Chime rejects to setup cron timer" ), "Cron timer setup" );
+						context.complete();
+					}
+				}
+			}
+		);		
+		
+	}
+
+	test shared void unionTimer( AsyncTestContext context ) {
+		
+		eventBus.consumer (
+			union,
+			timerValidation( union, 1, 3, context )
+		);
+		
+		eventBus.send<JSON>(
+			chime,
+			JSON {
+				Chime.key.operation -> Chime.operation.create,
+				Chime.key.name -> union,
+				Chime.key.state -> Chime.state.running,
+				Chime.key.publish -> false,
+				Chime.key.maxCount -> 3,
+				Chime.key.description -> JSON {
+					Chime.key.type -> Chime.type.union,
+					Chime.key.timers -> JSONArray {
+						JSON {
+							Chime.key.type -> Chime.type.cron,
+							Chime.date.seconds -> "1-59/3",
+							Chime.date.minutes -> "*",
+							Chime.date.hours -> "*",
+							Chime.date.daysOfMonth -> "*",
+							Chime.date.months -> "*"
+						},
+						JSON {
+							Chime.key.type -> Chime.type.cron,
+							Chime.date.seconds -> "2-59/3",
+							Chime.date.minutes -> "*",
+							Chime.date.hours -> "*",
+							Chime.date.daysOfMonth -> "*",
+							Chime.date.months -> "*"
+						},
+						JSON {
+							Chime.key.type -> Chime.type.cron,
+							Chime.date.seconds -> "3-59/3",
+							Chime.date.minutes -> "*",
+							Chime.date.hours -> "*",
+							Chime.date.daysOfMonth -> "*",
+							Chime.date.months -> "*"
+						}
+					}
+				}
+			},
+			( Throwable | Message<JSON?> msg ) {
+				if ( is Throwable msg ) {
+					context.fail( msg, "Union timer setup" );
+					context.complete();
+				}
+				else {
+					if ( !msg.body() exists ) {
+						context.fail( Exception( "Chime rejects to setup union timer" ), "Union timer setup" );
 						context.complete();
 					}
 				}

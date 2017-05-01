@@ -85,6 +85,8 @@ shared class Chime extends Verticle
 		shared String cron = "cron";
 		"Interval timer type."
 		shared String interval = "interval";
+		"Union timer type."
+		shared String union = "union";
 	}	
 	
 	
@@ -163,98 +165,108 @@ shared class Chime extends Verticle
 		
 		"Code of 'operation has to be specified' error."
 		shared Integer codeOperationIsNotSpecified = 2;
-		"Message of ''operation has to be specified' error."
+		"Message of 'operation has to be specified' error."
 		shared String operationIsNotSpecified = "operation has to be specified";
 		
 		"Code of 'scheduler doesn't exist' error."
 		shared Integer codeSchedulerNotExists = 3;
-		"Message of ''scheduler doesn't exist' error."
+		"Message of 'scheduler doesn't exist' error."
 		shared String schedulerNotExists = "scheduler doesn't exist";
 		
 		"Code of 'scheduler name has to be specified' error."
 		shared Integer codeSchedulerNameHasToBeSpecified = 4;
-		"Message of ''scheduler name has to be specified' error."
+		"Message of 'scheduler name has to be specified' error."
 		shared String schedulerNameHasToBeSpecified = "scheduler name has to be specified";
 		
 		"Code of 'scheduler state has to be one of - 'get', 'paused', 'running'' error."
 		shared Integer codeIncorrectSchedulerState = 5;
-		"Message of ''scheduler state has to be one of - 'get', 'paused', 'running'' error."
+		"Message of 'scheduler state has to be one of - 'get', 'paused', 'running'' error."
 		shared String incorrectSchedulerState = "scheduler state has to be one of - 'get', 'paused', 'running'";
 		
 		"Code of 'state has to be specified' error."
 		shared Integer codeStateToBeSpecified = 6;
-		"Message of ''state has to be specified' error."
+		"Message of 'state has to be specified' error."
 		shared String stateToBeSpecified = "state has to be specified";
 		
 		"Code of 'timer already exists' error."
 		shared Integer codeTimerAlreadyExists = 7;
-		"Message of ''timer already exists' error."
+		"Message of 'timer already exists' error."
 		shared String timerAlreadyExists = "timer already exists";
 		
 		"Code of 'timer doesn't exist' error."
 		shared Integer codeTimerNotExists = 8;
-		"Message of ''timer doesn't exist' error."
+		"Message of 'timer doesn't exist' error."
 		shared String timerNotExists = "timer doesn't exist";
 		
 		"Code of 'timer name has to be specified' error."
 		shared Integer codeTimerNameHasToBeSpecified = 9;
-		"Message of ''timer name has to be specified' error."
+		"Message of 'timer name has to be specified' error."
 		shared String timerNameHasToBeSpecified = "timer name has to be specified";
 		
 		"Code of 'timer type has to be specified' error."
 		shared Integer codeTimerTypeHasToBeSpecified = 10;
-		"Message of ''timer type has to be specified' error."
+		"Message of 'timer type has to be specified' error."
 		shared String timerTypeHasToBeSpecified = "timer type has to be specified";
 		
 		"Code of 'unsupported timer type' error."
 		shared Integer codeUnsupportedTimerType = 11;
-		"Message of ''unsupported timer type' error."
+		"Message of 'unsupported timer type' error."
 		shared String unsupportedTimerType = "unsupported timer type";
 		
 		"Code of 'incorrect start date' error."
 		shared Integer codeIncorrectStartDate = 12;
-		"Message of ''incorrect start date' error."
+		"Message of 'incorrect start date' error."
 		shared String incorrectStartDate = "incorrect start date";
 		
 		"Code of 'incorrect end date' error."
 		shared Integer codeIncorrectEndDate = 13;
-		"Message of ''incorrect end date' error."
+		"Message of 'incorrect end date' error."
 		shared String incorrectEndDate = "incorrect end date";
 		
 		"Code of 'end date has to be after start date' error."
 		shared Integer codeEndDateToBeAfterStartDate = 14;
-		"Message of ''end date has to be after start date' error."
+		"Message of 'end date has to be after start date' error."
 		shared String endDateToBeAfterStartDate = "end date has to be after start date";
 		
 		"Code of 'unsupported time zone' error."
 		shared Integer codeUnsupportedTimezone = 15;
-		"Message of ''unsupported time zone' error."
+		"Message of 'unsupported time zone' error."
 		shared String unsupportedTimezone = "unsupported time zone";
 		
 		"Code of 'timer description has to be specified' error."
 		shared Integer codeTimerDescriptionHasToBeSpecified = 16;
-		"Message of ''timer description has to be specified' error."
+		"Message of 'timer description has to be specified' error."
 		shared String timerDescriptionHasToBeSpecified = "timer description has to be specified";
 		
 		"Code of 'timer state has to be one of - 'get', 'paused', 'running'' error."
 		shared Integer codeIncorrectTimerState = 17;
-		"Message of ''timer state has to be one of - 'get', 'paused', 'running'' error."
+		"Message of 'timer state has to be one of - 'get', 'paused', 'running'' error."
 		shared String incorrectTimerState = "timer state has to be one of - 'get', 'paused', 'running'";
 		
 		"Code of 'delay has to be specified' error."
 		shared Integer codeDelayHasToBeSpecified = 18;
-		"Message of ''delay has to be specified' error."
+		"Message of 'delay has to be specified' error."
 		shared String delayHasToBeSpecified = "delay has to be specified";
 		
 		"Code of 'delay has to be greater than zero' error."
 		shared Integer codeDelayHasToBeGreaterThanZero = 19;
-		"Message of ''delay has to be greater than zero' error."
+		"Message of 'delay has to be greater than zero' error."
 		shared String delayHasToBeGreaterThanZero = "delay has to be greater than zero";
 		
 		"Code of 'incorrect cron timer description' error."
 		shared Integer codeIncorrectCronTimerDescription = 20;
-		"Message of ''incorrect cron timer description' error."
+		"Message of 'incorrect cron timer description' error."
 		shared String incorrectCronTimerDescription = "incorrect cron timer description";
+		
+		"Code of 'timers list has to be specified' error."
+		shared Integer codeTimersListHasToBeSpecified = 21;
+		"Message of 'timers list has to be specified' error."
+		shared String timersListHasToBeSpecified = "timers list has to be specified";
+		
+		"Code of 'timer description has to be in JSON' error."
+		shared Integer codeNotJSONTimerDescription = 22;
+		"Message of 'timer description has to be in JSON' error."
+		shared String notJSONTimerDescription = "timer description has to be in JSON";
 		
 	}
 

@@ -39,6 +39,7 @@ import io.vertx.ceylon.core.eventbus {
  		}  
  
  "
+tagged( "Builder" )
 since( "0.2.1" ) by( "Lis" )
 shared class CronBuilder {
 	
@@ -83,7 +84,7 @@ shared class CronBuilder {
 		`class AssertionError`,
 		"Invalid cron expression, generally when one of seconds, minutes, hours, days of month or months are not defined."
 	)
-	shared JSON build(
+	shared JSON build (
 		"Optional message to be added to timer fire event." ObjectValue? message = null,
 		"Optional delivery options the timer fire event is sent with." DeliveryOptions? options = null
 	) {
@@ -304,28 +305,15 @@ shared class CronBuilder {
 		return this;
 	}
 	
-	Integer digitalDayOfWeek( Integer|DayOfWeek|String dayOfWeek ) {
-		switch ( dayOfWeek )
-		case ( is Integer ) {
-			"Has to be a valid day of week. Actually is ``dayOfWeek``."
-			assert ( dayOfWeek > 0 && dayOfWeek < 8 );
-			return dayOfWeek;
-		}
-		case ( is DayOfWeek ) {
-			return dayOfWeek.integer;
-		}
-		case ( is String ) {
-			"Has to be a valid day of week. Actually is ``dayOfWeek``."
-			assert ( is Integer ret = Integer.parse( calendar.replaceDayOfWeekByNumber( dayOfWeek ) ) );
-			return ret;
-		}
-	}
-	
 	"Adds a list of days of week to the cron expression."
 	throws( `class AssertionError`, "each given item has to be a valid day of week" )
-	shared CronBuilder withDaysOfWeek( "List of the days of week to be added." <Integer|DayOfWeek|String>+ daysOfWeek ) {
+	shared CronBuilder withDaysOfWeek (
+		"List of the days of week to be added.  
+		 > Sunday is the first day of week."
+		<Integer|DayOfWeek|String>+ daysOfWeek
+	) {
 		for ( item in daysOfWeek ) {
-			appendString( this.daysOfWeek, digitalDayOfWeek( item ).string );
+			appendString( this.daysOfWeek, calendar.digitalDayOfWeek( item ).string );
 		}
 		return this;
 	}
@@ -333,15 +321,19 @@ shared class CronBuilder {
 	"Adds range of days of week to the cron expression."
 	throws( `class AssertionError`, "From, to or step is < 1 || > 7." )
 	shared CronBuilder withDaysOfWeekRange (
-		"Start day of week." Integer|DayOfWeek|String from,
-		"Optional end day of week." Integer|DayOfWeek|String? to = null,
+		"Start day of week.  
+		 > Sunday is the first day of week."
+		Integer|DayOfWeek|String from,
+		"Optional end day of week.  
+		 > Sunday is the first day of week."
+		Integer|DayOfWeek|String? to = null,
 		"Step, default is 1 day." Integer step = 1
 	) {
-		Integer from_ = digitalDayOfWeek( from );
+		Integer from_ = calendar.digitalDayOfWeek( from );
 		"Step day of week has to be > 0 && < 8."
 		assert( step > 0 && step < 8 );
 		if ( exists to ) {
-			Integer to_ = digitalDayOfWeek( to );
+			Integer to_ = calendar.digitalDayOfWeek( to );
 			if ( step == 1 ) {
 				appendString( this.daysOfWeek, from_.string + cron.range.string + to_.string );
 			}
@@ -360,10 +352,12 @@ shared class CronBuilder {
 	 For example, if 6 is passed then _the last Friday of the month_ is to be added."
 	throws( `class AssertionError`, "each given item has to be a valid day of week" )
 	shared CronBuilder withLastDayOfWeek (
-		"List of the days of week to be added with last mark." <Integer|DayOfWeek|String>+ daysOfWeek
+		"List of the days of week to be added with last mark.  
+		 > Sunday is the first day of week."
+		<Integer|DayOfWeek|String>+ daysOfWeek
 	) {
 		for ( item in daysOfWeek ) {
-			appendString( this.daysOfWeek, digitalDayOfWeek( item ).string + cron.last.string );
+			appendString( this.daysOfWeek, calendar.digitalDayOfWeek( item ).string + cron.last.string );
 		}
 		return this;
 	}
@@ -373,33 +367,17 @@ shared class CronBuilder {
 	 is to be added to the cron expression."
 	throws( `class AssertionError`, "dayOfWeek has to be a valid day of week" )
 	shared CronBuilder withGivenDayOfWeek (
-		"Day of week to be added." Integer|DayOfWeek|String dayOfWeek,
+		"Day of week to be added.  
+		 > Sunday is the first day of week."
+		Integer|DayOfWeek|String dayOfWeek,
 		"The order of the added day." Integer order
 	) {
 		"Valid order is > 0 and < 6 while given is ``order``."
 		assert( order > 0 && order < 6 );
-		appendString( this.daysOfWeek, digitalDayOfWeek( dayOfWeek ).string + cron.nth.string + order.string );
+		appendString( this.daysOfWeek, calendar.digitalDayOfWeek( dayOfWeek ).string + cron.nth.string + order.string );
 		return this;
 	}
-	
-	
-	Integer digitalMonth( Integer|Month|String month ) {
-		switch ( month )
-		case ( is Integer ) {
-			"Has to be a valid month. Actually is ``month``."
-			assert ( month > 0 && month < 13 );
-			return month;
-		}
-		case ( is Month ) {
-			return month.integer;
-		}
-		case ( is String ) {
-			"Has to be a valid month. Actually is ``month``."
-			assert ( is Integer ret = Integer.parse( calendar.replaceMonthByNumber( month ) ) );
-			return ret;
-		}
-	}
-	
+		
 	"Adds all possible months."
 	shared CronBuilder withAllMonths() {
 		appendString( months, cron.allValues.string );
@@ -410,7 +388,7 @@ shared class CronBuilder {
 	throws( `class AssertionError`, "each given item has to be a valid month" )
 	shared CronBuilder withMonths( "List of the days of week to be added." <Integer|Month|String>+ months ) {
 		for ( item in months ) {
-			appendString( this.months, digitalMonth( item ).string );
+			appendString( this.months, calendar.digitalMonth( item ).string );
 		}
 		return this;
 	}
@@ -422,11 +400,11 @@ shared class CronBuilder {
 		"Optional end month." Integer|Month|String? to = null,
 		"Step, default is 1 month." Integer step = 1
 	) {
-		Integer from_ = digitalMonth( from );
+		Integer from_ = calendar.digitalMonth( from );
 		"Step month has to be > 0 && < 8."
 		assert( step > 0 && step < 8 );
 		if ( exists to ) {
-			Integer to_ = digitalMonth( to );
+			Integer to_ = calendar.digitalMonth( to );
 			if ( step == 1 ) {
 				appendString( this.months, from_.string + cron.range.string + to_.string );
 			}

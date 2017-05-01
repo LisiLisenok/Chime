@@ -1,6 +1,7 @@
 import ceylon.json {
 
-	JSON=Object
+	JSON=Object,
+	JSONArray=Array
 }
 import herd.schedule.chime.cron {
 
@@ -13,11 +14,15 @@ import herd.schedule.chime {
 import io.vertx.ceylon.core.eventbus {
 	deliveryOptions
 }
+import ceylon.collection {
+	ArrayList
+}
 
 
 "Standard time factory. Creates:
  * cron-like timer [[herd.schedule.chime.timer::TimeRowCronStyle]]
  * incremental timer [[herd.schedule.chime.timer::TimeRowInterval]]
+ * union timer [[herd.schedule.chime.timer::TimeRowUnion]]
  "
 since( "0.1.0" ) by( "Lis" )
 shared class StandardTimeRowFactory( "max year limitation" Integer maxYearPeriod = 10 ) extends FactoryJSONBase()
@@ -27,6 +32,7 @@ shared class StandardTimeRowFactory( "max year limitation" Integer maxYearPeriod
 	shared TimeRowFactory initialize() {
 		addCreator( Chime.type.cron, createCronTimer );
 		addCreator( Chime.type.interval, createIntervalTimer );
+		addCreator( Chime.type.union, createUnionTimer );
 		return this;
 	}
 	
@@ -92,6 +98,41 @@ shared class StandardTimeRowFactory( "max year limitation" Integer maxYearPeriod
 			}
 		}
 		return Chime.errors.codeDelayHasToBeSpecified->Chime.errors.delayHasToBeSpecified;
+	}
+	
+	
+	"Creates union timer."
+	TimeRow|<Integer->String> createUnionTimer( "Timer description." JSON description ) {
+		if ( is JSONArray timers = description[Chime.key.timers] ) {
+			ArrayList<TimeRow> timeRows = ArrayList<TimeRow>();
+			for ( timer in timers ) {
+				if ( is JSON timer ) {
+					 value ret = createTimer( timer );
+					 if ( is TimeRow ret ) {
+					 	timeRows.add( ret );
+					 }
+					 else {
+					 	return ret;
+					 }
+				}
+				else {
+					return Chime.errors.codeNotJSONTimerDescription->Chime.errors.notJSONTimerDescription;
+				}
+			}
+			if ( nonempty unionRows = timeRows.sequence() ) {
+				return TimeRowUnion (
+					unionRows, description.get( Chime.key.message ),
+					if ( exists options = description.getObjectOrNull( Chime.key.deliveryOptions ) )
+					then deliveryOptions.fromJson( options ) else null
+				);
+			}
+			else {
+				return Chime.errors.codeTimersListHasToBeSpecified->Chime.errors.timersListHasToBeSpecified;
+			}
+		}
+		else {
+			return Chime.errors.codeTimersListHasToBeSpecified->Chime.errors.timersListHasToBeSpecified;
+		}
 	}
 	
 }

@@ -11,6 +11,7 @@ import ceylon.json {
 "Connects to scheduler. If scheduler has not been created yet then new one is created."
 see( `interface Scheduler` )
 throws( `class AssertionError`, "scheduler name contains ':'" )
+tagged( "Proxy" )
 since( "0.2.0" ) by( "Lis" )
 shared void connectToScheduler (
 	"Handler to receive created scheduler or error if occured."
@@ -49,6 +50,7 @@ shared void connectToScheduler (
 
 
 "Returns info on the given schedulers."
+tagged( "Proxy" )
 since( "0.2.0" ) by( "Lis" )
 shared void schedulerInfo (
 	"Handler to receive scheduler infos or error if occured."

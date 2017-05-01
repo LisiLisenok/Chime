@@ -36,7 +36,7 @@ object dummyConverter satisfies TimeConverter {
 	shared JavaTimeZone local = JavaTimeZone.default;
 	
 	"Returns converter by time zone name."
-	shared TimeConverter? getConverter( JSON description ) {
+	shared TimeConverter? getConverter( JSON description, TimeConverter defaultConverter = dummyConverter ) {
 		if ( is String timeZoneID = description[Chime.key.timeZone] ) {
 			JavaTimeZone tz = JavaTimeZone.getTimeZone( timeZoneID );
 			if ( tz.id == timeZoneID ) {
@@ -47,7 +47,7 @@ object dummyConverter satisfies TimeConverter {
 			}
 		}
 		else {
-			return dummyConverter;
+			return defaultConverter;
 		}
 	}
 	

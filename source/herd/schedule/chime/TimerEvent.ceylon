@@ -9,13 +9,14 @@ import io.vertx.ceylon.core.eventbus {
 }
 
 
-"Represents timer event: fire or complete.  
+"Represents a timer event: fire or complete.  
  Timer publishes or sends the event in JSON format to timer address when the timer fires or completes.
  [[Timer]] interface converts JSON event to `TimerEvent`.  
  
  > Complete event is always published.
  "
 see( `interface Timer`, `function Timer.handler` )
+tagged( "Event" )
 since( "0.2.0" ) by( "Lis" )
 shared abstract class TimerEvent (
 	"Name of the timer which sent the message."
@@ -29,6 +30,7 @@ shared abstract class TimerEvent (
 
 "Timer fire event."
 see( `interface Timer`, `function Timer.handler` )
+tagged( "Event" )
 since( "0.2.0" ) by( "Lis" )
 shared final class TimerFire (
 	"Nameof the timer which fires the message."
@@ -50,8 +52,9 @@ shared final class TimerFire (
 {}
 
 
-"Represents timer complete event."
+"Timer complete event."
 see( `interface Timer`, `function Timer.handler` )
+tagged( "Event" )
 since( "0.2.0" ) by( "Lis" )
 shared final class TimerCompleted (
 	"Name of the timer which fires the message."
