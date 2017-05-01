@@ -153,7 +153,7 @@ JSON {
 	// timer delay in seconds, if <= 0 timer fires only once, mandatory  
 	"delay" -> Integer,  
 	// message which added to timer fire event, optional  
-	"message" -> String|Boolean|Integer|Float|JSONObject|JSONArray,  
+	"message" -> String|Boolean|Integer|Float|JSON|JSONArray,  
 	// delivery options the timer fire event is sent with, optional  
 	"delivery options\" -> JSON  
 };
@@ -178,7 +178,7 @@ JSON {
 	// year in cron style, optional  
 	"years" -> String,  
 	// message which added to timer fire event, optional  
- 	"message" -> String|Boolean|Integer|Float|JSONObject|JSONArray,
+ 	"message" -> String|Boolean|Integer|Float|JSON|JSONArray,
  	// delivery options the timer fire event is sent with, optional  
  	"delivery options" -> JSON  
 };
@@ -193,7 +193,7 @@ JSON {
 	// list of the timers, each item is JSON according to its description, mandatory  
 	"timers" -> JSONArray,  
 	// message which added to timer fire event, optional  
-	"message" -> String|Boolean|Integer|Float|JSONObject|JSONArray,  
+	"message" -> String|Boolean|Integer|Float|JSON|JSONArray,  
 	// delivery options the timer fire event is sent with, optional
 	"delivery options" -> JSON  
 };
@@ -228,7 +228,7 @@ JSON {
 	// time zone the timer works in
 	"time zone" -> String,  
 	// message given at a timer create request  
-	"message" -> String|Boolean|Integer|Float|JSONObject|JSONArray  
+	"message" -> String|Boolean|Integer|Float|JSON|JSONArray  
 };
 ```  
 * complete event  
@@ -311,9 +311,9 @@ JsonObject fridayTimer = (new JsonObject()).put("type", "cron")
 	.put("days of week", "Friday");
 // union timer - combines mondayTimer and fridayTimer
 JsonArray combination = (new JsonArray()).add(mondayTimer)
-	.add(fridayTimer)
+	.add(fridayTimer);
 JsonObject timer = (new JsonObject()).put("type", "union")
-	.put("timers", combination)
+	.put("timers", combination);
 
 // create timer
 eventBus.send (
