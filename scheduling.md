@@ -204,7 +204,7 @@ Union timer may be useful to fire at a list of specific dates / times.
 ## Timer events.  
 
 Once timer is started it sends or publishes messages to **scheduler name:timer name** address in JSON format.
-Two types of events are sent:
+Two types of events are sent:  
 * fire event  
 ```Ceylon
 JSON {  
@@ -245,26 +245,19 @@ JSON {
 
 ## Ceylon example.  
 
-Lets consider timer has fire every month at 16-30 last Sunday.  
+Lets consider a timer which has to fire every month at 16-30 last Sunday.  
 
 ```Ceylon
 // listen the timer events
 eventBus.consumer (
 	"scheduler:timer",
 	(Throwable|Message<JSON?> msg) {
-		if (is Message<JSON?> msg) {
-			assert(exists body = msg.body());
-			// prints timer message
-			print(body);
-		}
-		else {
-			// error occurred!
-			print(msg);
-		}	
+		if (is Message<JSON?> msg) { print(msg.body()); }
+		else { print(msg); }	
 	}
 );
 // create timer
-eventBus.send<JSON>(
+eventBus.send<JSON> (
 	"chime",
 	JSON {
 		"operation" -> "create",
@@ -274,11 +267,8 @@ eventBus.send<JSON>(
 			"seconds" -> "0",
 			"minutes" -> "30",
 			"hours" -> "16",
-			// any day
 			"days of month" -> "*",
-			// any month
 			"months" -> "*",
-			// means last Sunday of the month
 			"days of week" -> "SundayL"
 		}
 	}
@@ -289,7 +279,7 @@ eventBus.send<JSON>(
 
 ## Java example.  
 
-Lets consider a timer which has to fire at 8-30 every Monday and at 17-30 every Friday.  
+Lets consider a timer which has to fire every Monday at 8-30 and every Friday at 17-30.  
 
 ```Java
 // listen the timer events
@@ -299,7 +289,6 @@ consumer.handler (
 		System.out.println(message.body());
   	}
 );
-
 // description of timers
 JsonObject mondayTimer = (new JsonObject()).put("type", "cron")
 	.put("seconds", "0").put("minutes", "30").put("hours", "8")
@@ -314,7 +303,6 @@ JsonArray combination = (new JsonArray()).add(mondayTimer)
 	.add(fridayTimer);
 JsonObject timer = (new JsonObject()).put("type", "union")
 	.put("timers", combination);
-
 // create timer
 eventBus.send (
 	"chime",
