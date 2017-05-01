@@ -84,8 +84,9 @@ shared class TimeRowUnion satisfies TimeRow {
 				currentRow = item;
 			}
 		}
+		value ret = currentRow.currentDate;
 		removeCompleted();
-		return currentRow.currentDate;
+		return ret;
 	}
 	
 	shared actual DateTime? start( DateTime current ) {
@@ -102,8 +103,9 @@ shared class TimeRowUnion satisfies TimeRow {
 				}
 			}
 		}
+		value ret = currentRow.currentDate;
 		removeCompleted();
-		return currentRow.currentDate;
+		return ret;
 	}
 	
 }

@@ -29,11 +29,15 @@ class TimerCreator( "Factory to create timers." TimeRowFactory factory )
 {
 		
 	"Creates timer from creation request."
-	shared TimerContainer|<Integer->String> createTimer( "Timer name." String name, "Request with timer description." JSON request ) {
+	shared TimerContainer|<Integer->String> createTimer (
+			"Timer name." String name,
+			"Request with timer description." JSON request,
+			"Default converter applied if no time zone given." TimeConverter defaultConverter
+		) {
 		if ( is JSON description = request[Chime.key.description] ) {
 			value timer = factory.createTimer( description );
 			if ( is TimeRow timer ) {
-				return createTimerContainer( request, description, name, timer );
+				return createTimerContainer( request, description, name, timer, defaultConverter );
 			}
 			else {
 				return timer;
@@ -51,7 +55,8 @@ class TimerCreator( "Factory to create timers." TimeRowFactory factory )
 		"Request on timer creation." JSON request,
 		"Timer description." JSON description,
 		"Timer name." String name,
-		"Timer." TimeRow timer
+		"Timer." TimeRow timer,
+		"Default converter applied if no time zone given." TimeConverter defaultConverter
 	) {
 		// extract start date if exists
 		DateTime? startDate;
@@ -88,7 +93,7 @@ class TimerCreator( "Factory to create timers." TimeRowFactory factory )
 			}
 		}
 		
-		if ( exists converter = dummyConverter.getConverter( request ) ) {
+		if ( exists converter = dummyConverter.getConverter( request, defaultConverter ) ) {
 			return TimerContainer (
 				name, description, extractPublish( request ), timer,
 				converter, extractMaxCount( request ), startDate, endDate,

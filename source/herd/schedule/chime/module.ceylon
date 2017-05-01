@@ -1,15 +1,22 @@
 
 "
- _Chime_ is time scheduler which works on _Vert.x_ event bus and provides:  
- * scheduling with _cron-style_, _interval_ or _union_ timers  
+ _Chime_ is time scheduler verticle which works on _Vert.x_ event bus and provides:  
+ * scheduling with _cron-style_, _interval_ or _union_ timers:
+ 	* at a certain time of day (to the second)  
+ 	* on certain days of the week, month or year  
+ 	* with a given time interval  
+ 	* with nearly any combination of all of above  
+ 	* repeating a given number of times  
+ 	* repeating until a given time / date  
+ 	* repeating infinitely  
  * proxying event bus with conventional interfaces  
  * applying time zones available on _JVM_  
  * flexible timers management system:  
  	* grouping timers  
- 	* defining a timer start or end time  
+ 	* defining a timer start or end times  
  	* pausing / resuming  
  	* fire counting  
- * sending messages in _JSON_  
+ * listening and sending messages via event bus with _JSON_  
  * _publishing_ or _sending_ timer fire event to the address of your choice  
  
  
@@ -44,14 +51,23 @@
  
  ### _Scheduler_.
  
+ Scheduler is a set of timers and provides:  
+ * creating and deleting timers  
+ * pausing / resuming all timers working within the scheduler  
+ * info on the running timers  
+ * default time zone  
+ * listenning event bus at the given scheduler address  
+ 
+ 
  #### Scheduler messages.
  
  In order to maintain schedulers send `JSON` message to _Chime_ address (specified in configuration, \"chime\" is default)
  in the following format:
- 		{
+ 		JSON {
  			\"operation\" -> String // operation code, mandatory  
  			\"name\" -> String // scheduler name, mandatory   
- 			\"state\" -> String // state, mandatory only if operation = 'state'   
+ 			\"state\" -> String // state, mandatory only if operation = 'state'  
+ 			\"time zone\" -> String // default time zone ID, overriden by timer time zone, optional  
  		}
  
  > _Chime_ listens event bus at \"scheduler name\" address with messages for the given scheduler.  
@@ -89,18 +105,18 @@
  #### Scheduler response.
  
  _Chime_ responds on messages in `JSON` format:  
- 		{
+ 		JSON {
  			\"name\" -> String // scheduler name  
  			\"state\" -> String // scheduler state  
  		}
  		
  or on **\"info\"** request with no or empty **\"name\"** field
  
- 		{
+ 		JSON {
  			\"schedulers\" -> JSONArray // Schedulers info. Each item contains name, state and a list of timers.  
  		}
  where each item of the array is in format:
- 		{
+ 		JSON {
  			\"name\" -> String // scheduler name  
  			\"state\" -> String // scheduler state  
  			\"timers\" -> JSONArray // list of scheduler timers
@@ -164,7 +180,7 @@
  Request has to be sent in `JSON` format to _scheduler name_ address with _timer short name_
  or to _Chime_ address with _timer full name_.  
  Request format:  
- 	{  
+ 	JSON {  
  		\"operation\" -> String // operation code, mandatory  
  		\"name\" -> String // timer short or full name, mandatory  
  		\"state\" -> String // state, optional, except if operation = 'sate'  
@@ -193,7 +209,7 @@
  			\"year\" -> Integer // year, mandatory  
  		}  
  
- 		\"time zone\" -> String // time zone ID, optional, default server local  
+ 		\"time zone\" -> String // time zone, optional, default is scheduler time zone or server local if not given at both scheduler and timer  
 
  		\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message which added to timer fire event, optional  
  		\"delivery options\" -> JSON // delivery options the timer fire event is sent with, optional  
@@ -331,7 +347,7 @@
  or to _Chime_ address with _timer full name_.  
 
  _Chime_ responds on each request to a scheduler in `JSON` format:  
- 	{  
+ 	JSON {  
  		\"name\" -> String //  timer name  
  		\"state\" -> String // state  
  		
@@ -340,7 +356,7 @@
 
  or as response on 'info' request with no or empty 'name' field specified - info for all timers is returned
  
- 	{
+ 	JSON {
  		\"timers\" -> JSONArray // list of timer infos currently scheduled
  	}
  
@@ -359,7 +375,7 @@
  
  Timer sends or publishes to _full timer name_ address two types of events in `JSON`:
  * fire event  
- 		{  
+ 		JSON {  
  			\"name\" -> String, timer name  
  			\"event\" -> \"fire\"  
  			\"count\" -> Integer, total number of fire times  
@@ -370,11 +386,11 @@
  			\"day of month\" -> Integer, day of month  
  			\"month\" -> Integer, month  
  			\"year\" -> Integer, year  
- 			\"time zone\" -> String, time zone ID  
+ 			\"time zone\" -> String, time zone the timer works in  
  			\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray, message given at a timer create request  
  		}  
  * complete event  
- 		{  
+ 		JSON {  
  			\"name\" -> String, timer name  
  			\"event\" -> \"complete\"  
  			\"count\" -> Integer, total number of fire times  

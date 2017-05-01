@@ -129,7 +129,8 @@ class TimeScheduler(
 	"Vertx the scheduler operates on." Vertx vertx,
 	"EventBus to pass messages." EventBus eventBus,
 	"Factory to create timers." TimerCreator factory,
-	"Tolerance to compare fire time and current time in miliseconds." Integer tolerance 
+	"Tolerance to compare fire time and current time in miliseconds." Integer tolerance,
+	"Default time converter or time zone if not specified at timer level." TimeConverter defaultConverter
 	)
 		extends Operator( address, eventBus )
 {
@@ -170,6 +171,7 @@ class TimeScheduler(
 	shared JSON fullInfo => JSON {
 		Chime.key.name -> address,
 		Chime.key.state -> state.string,
+		Chime.key.timeZone -> defaultConverter.timeZoneID,
 		Chime.key.timers -> JSONArray( [ for ( timer in timers.items ) timer.fullDescription() ] )
 	};
 	
@@ -393,7 +395,7 @@ class TimeScheduler(
 				msg.fail( Chime.errors.codeTimerAlreadyExists, Chime.errors.timerAlreadyExists );
 			}
 			else {
-				value timer = factory.createTimer( timerName, request );
+				value timer = factory.createTimer( timerName, request, defaultConverter );
 				if ( is TimerContainer timer ) {
 					addTimer( timer, extractState( request ) else State.running );
 					// timer successfully added

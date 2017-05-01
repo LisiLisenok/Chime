@@ -69,7 +69,8 @@ class TimerContainer (
 			Chime.key.state -> state.string,
 			Chime.key.count -> count,
 			Chime.key.description -> description,
-			Chime.key.publish -> publish
+			Chime.key.publish -> publish,
+			Chime.key.timeZone -> timeZoneID
 		};
 		
 		if ( exists d = maxCount ) {

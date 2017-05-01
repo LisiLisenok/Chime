@@ -99,18 +99,20 @@ class SchedulerManager(
 	HashMap<String, TimeScheduler> schedulers = HashMap<String, TimeScheduler>();
 	
 	TimerCreator creator = TimerCreator( factory );
-	
-	"Returns scheduler by its name or `null` if doesn't exist."
-	shared TimeScheduler? getScheduler( "Name of the scheduler looked for." String name ) => schedulers.get( name );
+
 	
 	"Adds new scheduler.  
 	 Retruns new or already existed shceduler with name `name`."
-	shared TimeScheduler addScheduler( "Scheduler name." String name, "Scheduler state." State state ) {
-		if ( exists sch = getScheduler( name ) ) {
+	TimeScheduler addScheduler (
+		"Scheduler name." String name,
+		"Scheduler state." State state,
+		"Default converter applied if no time zone given." TimeConverter defaultConverter
+	) {
+		if ( exists sch = schedulers.get( name ) ) {
 			return sch;
 		}
 		else {
-			TimeScheduler sch = TimeScheduler( name, schedulers.remove, vertx, eventBus, creator, tolerance );
+			TimeScheduler sch = TimeScheduler( name, schedulers.remove, vertx, eventBus, creator, tolerance, defaultConverter );
 			schedulers.put( name, sch );
 			sch.connect();
 			if ( state == State.running ) {
@@ -145,14 +147,20 @@ class SchedulerManager(
 				schedulerName = name;
 				timerName = "";
 			}
-			value scheduler = addScheduler( schedulerName, extractState( request ) else State.running );
-			if ( request.defines( Chime.key.description ) ) {
-				// add timer to scheduler
-				scheduler.operationCreate( msg );
+			if ( exists converter = dummyConverter.getConverter( request, dummyConverter ) ) {
+				value scheduler = addScheduler( schedulerName, extractState( request ) else State.running, converter );
+				if ( request.defines( Chime.key.description ) ) {
+					// add timer to scheduler
+					scheduler.operationCreate( msg );
+				}
+				else {
+					// timer description is not specified - reply with info on scheduler
+					msg.reply( scheduler.shortInfo );
+				}
 			}
 			else {
-				// timer description is not specified - reply with info on scheduler
-				msg.reply( scheduler.shortInfo );
+				// incorrect time zone
+				msg.fail( Chime.errors.codeUnsupportedTimezone, Chime.errors.unsupportedTimezone );
 			}
 		}
 		else {

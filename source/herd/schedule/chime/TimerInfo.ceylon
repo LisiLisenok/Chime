@@ -21,6 +21,7 @@ shared final class TimerInfo {
 	"`True` if messages have to be published and `false` if messages have to be send." shared Boolean publish;
 	"Time the timer has to be started, or `null` if immediately." shared DateTime? startTime;
 	"Optional time the timer has to be completed." shared DateTime? endTime;
+	"Time zone the timer works in." shared String timeZone;
 	"Timer description." shared JSON description;
 	
 	
@@ -33,6 +34,7 @@ shared final class TimerInfo {
 		"`True` if messages have to be published and `false` if messages have to be send." Boolean publish,
 		"Time the timer has to be started, or `null` if immediately." DateTime? startTime,
 		"Optional time the timer has to be completed." DateTime? endTime,
+		"Time zone the timer works in." String timeZone,
 		"Timer description." JSON description
 	) {
 		this.name = name;
@@ -42,6 +44,7 @@ shared final class TimerInfo {
 		this.publish = publish;
 		this.startTime = startTime;
 		this.endTime = endTime;
+		this.timeZone = timeZone;
 		this.description = description;
 	}
 	
@@ -62,6 +65,7 @@ shared final class TimerInfo {
 			if ( exists endTimeDescr = timerInfo.getObjectOrNull( Chime.key.endTime ) )
 			then dateTimeFromJSON( endTimeDescr )
 			else null;
+		this.timeZone = timerInfo.getString( Chime.key.timeZone );
 		this.description = timerInfo.getObject( Chime.key.description );
 	}
 	

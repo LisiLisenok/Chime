@@ -95,7 +95,7 @@ shared class SimpleTimers()
 	Anything( Throwable | Message<JSON?> ) timerValidation (
 		String timerName, Integer delay, Integer max, AsyncTestContext context
 	) {
-		variable Integer fireCount = 1;
+		variable Integer fireCount = 0;
 		variable Integer? previousTime = null;
 		variable Integer totalDelay = 0;
 		return ( Throwable | Message<JSON?> msg ) {
@@ -103,7 +103,7 @@ shared class SimpleTimers()
 				if ( exists body = msg.body() ) {
 					if ( is String event = body[Chime.key.event] ) {
 						if ( event == Chime.event.complete ) {
-							context.assertThat( fireCount, EqualTo( max + 1 ), "Total number of fires for ``timerName``" );
+							context.assertThat( fireCount, EqualTo( max ), "Total number of fires for ``timerName``" );
 							context.assertThat( totalDelay, EqualTo( delay * ( max - 1 ) ), "Total delay seconds for ``timerName``" );
 							context.complete();
 						}
@@ -260,6 +260,14 @@ shared class SimpleTimers()
 					Chime.key.timers -> JSONArray {
 						JSON {
 							Chime.key.type -> Chime.type.cron,
+							Chime.date.seconds -> "0-59/3",
+							Chime.date.minutes -> "*",
+							Chime.date.hours -> "*",
+							Chime.date.daysOfMonth -> "*",
+							Chime.date.months -> "*"
+						},
+						JSON {
+							Chime.key.type -> Chime.type.cron,
 							Chime.date.seconds -> "1-59/3",
 							Chime.date.minutes -> "*",
 							Chime.date.hours -> "*",
@@ -269,14 +277,6 @@ shared class SimpleTimers()
 						JSON {
 							Chime.key.type -> Chime.type.cron,
 							Chime.date.seconds -> "2-59/3",
-							Chime.date.minutes -> "*",
-							Chime.date.hours -> "*",
-							Chime.date.daysOfMonth -> "*",
-							Chime.date.months -> "*"
-						},
-						JSON {
-							Chime.key.type -> Chime.type.cron,
-							Chime.date.seconds -> "3-59/3",
 							Chime.date.minutes -> "*",
 							Chime.date.hours -> "*",
 							Chime.date.daysOfMonth -> "*",

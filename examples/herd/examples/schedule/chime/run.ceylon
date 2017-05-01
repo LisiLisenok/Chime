@@ -50,7 +50,8 @@ class Scheduler(Vertx v, String address = Chime.configuration.defaultAddress)
 			JSON {
 				Chime.key.operation -> Chime.operation.create,
 				Chime.key.name -> "scheduler",
-				Chime.key.state -> Chime.state.running
+				Chime.key.state -> Chime.state.running,
+				Chime.key.timeZone -> "Europe/Paris"
 			},
 			(Throwable | Message<JSON?> msg) {
 				if (is Message<JSON?> msg) {
@@ -97,7 +98,7 @@ class Scheduler(Vertx v, String address = Chime.configuration.defaultAddress)
 				Chime.key.state -> Chime.state.running,
 				Chime.key.publish -> false,
 				Chime.key.maxCount -> 5,
-				Chime.key.timeZone -> "Europe/Paris",
+				//Chime.key.timeZone -> "Europe/Paris",
 				Chime.key.description -> JSON {
 					Chime.key.type -> Chime.type.cron,
 					Chime.date.seconds -> "20/15",
