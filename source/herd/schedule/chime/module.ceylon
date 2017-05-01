@@ -56,7 +56,7 @@
  * pausing / resuming all timers working within the scheduler  
  * info on the running timers  
  * default time zone  
- * listenning event bus at the given scheduler address  
+ * listening event bus at the given scheduler address  
  
  
  #### Scheduler messages.
@@ -68,7 +68,7 @@
  			\"name\" -> String // scheduler name, mandatory   
  			\"state\" -> String // state, mandatory only if operation = 'state'  
  			\"time zone\" -> String // default time zone ID, overriden by timer time zone, optional  
- 		}
+ 		};
  
  > _Chime_ listens event bus at \"scheduler name\" address with messages for the given scheduler.  
  
@@ -92,14 +92,14 @@
  	JSON message = JSON { 
  		\"operation\" -> \"create\", 
  		\"name\" -> \"scheduler name\" 
- 	} 
+ 	} ;
   	
   	// change state of scheduler with \"scheduler name\" to paused
  	JSON message = JSON { 
  		\"operation\" -> \"state\", 
  		\"name\" -> \"scheduler name\",  
  		\"state\" -> \"paused\"
- 	} 
+ 	}; 
  	
  
  #### Scheduler response.
@@ -108,19 +108,19 @@
  		JSON {
  			\"name\" -> String // scheduler name  
  			\"state\" -> String // scheduler state  
- 		}
+ 		};
  		
  or on **\"info\"** request with no or empty **\"name\"** field
  
  		JSON {
  			\"schedulers\" -> JSONArray // Schedulers info. Each item contains name, state and a list of timers.  
- 		}
+ 		};
  where each item of the array is in format:
  		JSON {
  			\"name\" -> String // scheduler name  
  			\"state\" -> String // scheduler state  
  			\"timers\" -> JSONArray // list of scheduler timers
- 		} 
+ 		}; 
  Where each item of the 'timers' array contains the same fields as provided with timer 'create' request (see below).
  Except:
  * 'state' which contains current state
@@ -138,13 +138,13 @@
  		JSON message = JSON { 
  			\"operation\" -> \"info\", 
  			\"name\" -> JSONArray{\"name1\", ...} 
- 		} 
+ 		}; 
  
  I.e. name field contains JSON array with list of schedulers name.
  _Chime_ responds with:
  		JSON {
  			\"schedulers\" -> JSONArray{...} 
- 		}
+ 		};
  
  Where returned JSON array contains info for all schedulers the info is requested for.  
  
@@ -163,11 +163,11 @@
  
  ### _Timer_.
  
- Once shceduler is created timers can be run within.  
+ Once scheduler is created timers can be run within.  
  
- There are two ways to access a given timer:
- * sending message to \"scheduler name\" address using timer short name \"timer name\"
- * sending message to _Chime_ address using full timer name which is \"scheduler name:timer name\"
+ There are two ways to access a given timer:  
+ * sending message to \"scheduler name\" address using timer short name \"timer name\"  
+ * sending message to _Chime_ address using full timer name which is \"scheduler name:timer name\"  
  
  
  > Timer full name is _scheduler name_ and _timer name_ separated with ':', i.e. \"scheduler name:timer name\".  
@@ -215,7 +215,7 @@
  		\"delivery options\" -> JSON // delivery options the timer fire event is sent with, optional  
  
  		\"description\" -> JSON // timer desciption, mandatoty for create operation  
- 	}  
+ 	};  
  
  > `message` and `delivery options` fields may be put to either the timer `description` field or to the request upper level.  
    `message` and `delivery options` at description level is prefered to ones given at request level.  
@@ -270,7 +270,7 @@
  			   		
  			\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message which added to timer fire event, optional  
  			\"delivery options\" -> JSON // delivery options the timer fire event is sent with, optional  
- 		}  
+ 		};  
    Following notations are applicable:
      * `FROM`-`TO`/`STEP`
      * `FROM`/`STEP`
@@ -294,7 +294,7 @@
  			
  			\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message which added to timer fire event, optional  
  			\"delivery options\" -> JSON // delivery options the timer fire event is sent with, optional  
- 		}  
+ 		};  
  
  > Interval timer delay is in _seconds_
  
@@ -307,7 +307,7 @@
  			
  			\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message which added to timer fire event, optional  
  			\"delivery options\" -> JSON // delivery options the timer fire event is sent with, optional  
- 		}  
+ 		};  
  
  This may be useful to fire at specific dates / times. For example, following timer fires
  at 8-00 each Monday and at 17-00 each Friday:  
@@ -333,7 +333,7 @@
  					\"days of week\" -> \"Friday\"  
  				}  
   			}  
- 		}  
+ 		};  
  
  > Each sub-timer may fire with each own message, just put \"message\" field to the sub-timer description.  
    If \"message\" field is not found at sub-timer description then union timer \"message\" field is used.  
@@ -352,13 +352,13 @@
  		\"state\" -> String // state  
  		
  		// 'Info' request also returns fields from timer 'create' request
- 	}  
+ 	};  
 
  or as response on 'info' request with no or empty 'name' field specified - info for all timers is returned
  
  	JSON {
  		\"timers\" -> JSONArray // list of timer infos currently scheduled
- 	}
+ 	};
  
  Where each item of the array contains the same fields as provided with timer 'create' request.
  Except:
@@ -388,13 +388,13 @@
  			\"year\" -> Integer, year  
  			\"time zone\" -> String, time zone the timer works in  
  			\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray, message given at a timer create request  
- 		}  
+ 		};  
  * complete event  
  		JSON {  
  			\"name\" -> String, timer name  
  			\"event\" -> \"complete\"  
  			\"count\" -> Integer, total number of fire times  
- 		}  
+ 		};  
  
  > Complete event is always published in order every listener receives it.  
    While fire event may be either published or send depending on 'publish' field in timer create request.  
