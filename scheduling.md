@@ -36,7 +36,7 @@ There are a lot of useful features time scheduler may introduce to Vert.x stack.
  	* pausing / resuming;  
  	* fire counting;  
  * listening and sending messages via event bus with _JSON_;  
- * _publishing_ or _sending_ timer fire event to the address of your choice;  
+ * _publishing_ or _sending_ timer fire event to the address of your choice.  
 
 [INFO _Chime_ is written in [Ceylon](https://ceylon-lang.org).]  
 
@@ -103,9 +103,9 @@ provides services for this particular scheduler only.
 The request sent to the _Chime_ has to contain **operation** and **name** keys.
 Name key provides scheduler or timer name. While operation key shows an action _Chime_ has to perform.
 There are only four possible operations:  
-* create - create new scheduler or timer.  
-* delete - delete scheduler with all its timers.  
-* info - request info on _Chime_ or on a particular scheduler or timer.  
+* create - create new scheduler or timer;  
+* delete - delete scheduler with all its timers;  
+* info - request info on _Chime_ or on a particular scheduler or timer;  
 * state - set or get scheduler or timer state (running, paused or completed).  
 
 
@@ -130,25 +130,23 @@ JsonObject request = JsonObject {
 ```
 **in Java:**  
 ```Java
-JsonObject request = new JsonObject();
 JsonObject description = new JsonObject();
 ...
-request.put("operation", "create")
+JsonObject request = (new JsonObject())
+	.put("operation", "create")
 	.put("name", "scheduler name:timer name")
 	.put("description", description);
 ```
-
-[INFO if create request is sent to Chime address with full timer name and corresponding scheduler hasn't been created before then Chime creates new scheduler.]
 
 This is rather similar to request sent to create a scheduler.
 The difference is only **description** field is added.
 This description identifies particular timer type and details.  
 The other fields not shown here are optional and includes:  
-* initial timer state (paused or running)  
-* start or end date-time  
-* number of repeating times  
-* is timer message to be published or sent  
-* time zone  
+* initial timer state (paused or running);  
+* start or end date-time;  
+* number of repeating times;  
+* is timer message to be published or sent;  
+* time zone.  
 
 Currently three timer types are supported:  
 * __Interval timer__. Timer which fires after each given time period (minimum 1 second):  
@@ -287,6 +285,9 @@ eventBus.send<JsonObject> (
 
 ```
 
+[NOTE If 'create' request is sent to Chime address with full timer name and corresponding scheduler hasn't been created before then Chime creates both new scheduler and new timer.]  
+
+
 ### Java example.  
 
 Let's consider a timer which has to fire every Monday at 8-30 and every Friday at 17-30.  
@@ -340,6 +341,8 @@ There are also some ideas for the future:
   for example, limiting it to working days only;  
 * extracting timer fire message from external source,
   which helps the message to be dependent on some conditions.  
+
+-----------------------------
 
 This is very quick introduction to the _Chime_ and if you are interested in you may read
 more at [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime) or even [contribute](https://github.com/LisiLisenok/Chime) to.  
