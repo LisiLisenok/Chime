@@ -28,9 +28,9 @@
 
 ## Scheduler request.  
 
-Sent to _Chime_ address and to _scheduler_ address.  
-
 ### Create scheduler.  
+
+Sent to _Chime_ address.  
 
 ##### Request.
 ```json
@@ -52,6 +52,8 @@ Sent to _Chime_ address and to _scheduler_ address.
 
 ### Delete scheduler.  
 
+Sent to _Chime_ address or to _scheduler_ address.  
+
 ##### Request.  
 ```json
 {
@@ -71,6 +73,8 @@ Sent to _Chime_ address and to _scheduler_ address.
 -------------
 
 ### Get info on all schedulers.  
+
+Sent to _Chime_ address.  
 
 ##### Request.  
 ```json
@@ -93,6 +97,8 @@ Where "schedulers" array contains `JsonObject`'s of [scheduler info](#get-schedu
 
 ### Get info on a given list of schedulers.  
 
+Sent to _Chime_ address.  
+
 ##### Request.  
 ```json
 {
@@ -114,6 +120,8 @@ Where "schedulers" array contains `JsonObject`'s of [scheduler info](#get-schedu
 -------------
 
 ### Get scheduler info.  
+
+Sent to _Chime_ address or to _scheduler_ address.  
 
 ##### Request.  
 ```json
@@ -138,6 +146,8 @@ Where "timers" array contains `JsonObject`'s of [timer info](#get-timer-info).
 
 ### Get scheduler state.  
 
+Sent to _Chime_ address or to _scheduler_ address.  
+
 ##### Request.  
 ```json
 {
@@ -159,6 +169,8 @@ Where "timers" array contains `JsonObject`'s of [timer info](#get-timer-info).
 
 ### Set scheduler to paused state.  
 
+Sent to _Chime_ address or to _scheduler_ address.  
+
 ##### Request.  
 ```json
 {
@@ -179,6 +191,8 @@ Where "timers" array contains `JsonObject`'s of [timer info](#get-timer-info).
 -------------
 
 ### Set scheduler to running state.  
+
+Sent to _Chime_ address or to _scheduler_ address.  
 
 ##### Request.  
 ```json
@@ -202,10 +216,10 @@ Where "timers" array contains `JsonObject`'s of [timer info](#get-timer-info).
 
 ## Timer request.  
 
-Sent to _Chime_ address with full timer name
-or to _scheduler_ address with either full or short timer name.  
-
 ### Create timer.  
+
+Sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
+or to _scheduler_ address with either full or short timer name.  
 
 ##### Request.  
 ```json
@@ -261,6 +275,9 @@ Other fields are optional, default values are:
 
 ### Delete timer.  
 
+Sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
+or to _scheduler_ address with either full or short timer name.  
+
 ##### Request.  
 ```json
 {
@@ -280,6 +297,9 @@ Other fields are optional, default values are:
 -------------
 
 ### Get timer info.  
+
+Sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
+or to _scheduler_ address with either full or short timer name.  
 
 ##### Request.  
 ```json
@@ -305,6 +325,9 @@ Response contains all fields set at [timer create request](#create-timer).
 
 ### Get timer state.  
 
+Sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
+or to _scheduler_ address with either full or short timer name.  
+
 ##### Request.  
 ```json
 {
@@ -325,6 +348,9 @@ Response contains all fields set at [timer create request](#create-timer).
 -------------
 
 ### Set timer to running state.  
+
+Sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
+or to _scheduler_ address with either full or short timer name.  
 
 ##### Request.  
 ```json
@@ -347,6 +373,9 @@ Response contains all fields set at [timer create request](#create-timer).
 
 ### Set timer to paused state.  
 
+Sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
+or to _scheduler_ address with either full or short timer name.  
+
 ##### Request.  
 ```json
 {
@@ -368,6 +397,8 @@ Response contains all fields set at [timer create request](#create-timer).
 
 
 ## Timer descriptions.  
+
+Used in [timer create request](#create-timer).  
 
 ### Cron-style timer.  
 ```json
@@ -460,7 +491,7 @@ Where "timers" array contains `JsonObject`'s of [timer descriptions](#timer-desc
 
 ## Timer events.  
 
-Timer event is sent or published in `JSON` to timer full name ("scheduler name:timer name") address.  
+Timer event is sent or published by _Chime_ in `JSON` to timer full name ("scheduler name:timer name") address.  
 
 ### Fire event.  
 ```json
