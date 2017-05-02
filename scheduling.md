@@ -129,63 +129,40 @@ The other fields not shown here are optional and includes:
 * start or end date-time;  
 * number of repeating times;  
 * is timer message to be published or sent;  
+* timer fire message and delivery options;  
 * time zone.  
 
 Currently three timer types are supported:  
 
 * __Interval timer__ which fires after each given time period (minimum 1 second):  
-```
-{  
-	// timer type, mandatory  
+```json
+{
 	"type": "interval",
-	// timer delay in seconds, if <= 0 timer fires only once, mandatory
-	"delay": Integer,
-	// message which added to timer fire event, optional
-	"message": String|Boolean|Integer|Float|JsonObject|JsonArray,
-	// delivery options the timer fire event is sent with, optional
-	"delivery options": JsonObject
+	"delay": "timer delay in seconds, Integer"
 };
 ```  
 
 * __Cron style timer__ which is defined with cron-style:  
-```
+```json
 {  
-	 // timer type, mandatory  
 	"type": "cron",  
-	// seconds in cron style, mandatory, nonempty
-	"seconds": String,  
-	// minutes in cron style, mandatory, nonempty  
-	"minutes": String,  
-	// hours in cron style, mandatory, nonempty  
-	"hours": String,  
-	// days of month in cron style, mandatory, nonempty  
-	"days of month": String,  
-	// months in cron style, mandatory, nonempty  
-	"months": String,  
-	// days of week in cron style, L means last, # means nth of month, optional  
-	"days of week": String,  
-	// year in cron style, optional  
-	"years": String,  
-	// message which added to timer fire event, optional  
- 	"message": String|Boolean|Integer|Float|JsonObject|JsonArray,
- 	// delivery options the timer fire event is sent with, optional  
- 	"delivery options": JsonObject  
+	"seconds": "seconds in cron style, String",  
+	"minutes": "minutes in cron style, String",  
+	"hours": "hours in cron style, String",  
+	"days of month": "days of month in cron style, String",  
+	"months": "months in cron style, String",  
+	"days of week": "days of week in cron style, String",  
+	"years": "years in cron style, String"  
 };
 ```  
 Cron timer is rather powerful and flexible.
 See specification details in [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime).  
 
 * __Union timer__ which combines a number of timers into a one:  
-```
+```json
 {  
-	// timer type, mandatory  
 	"type": "union",  
-	// list of the timers, each item is JSON according to its description, mandatory  
-	"timers": JsonArray,  
-	// message which added to timer fire event, optional  
-	"message": String|Boolean|Integer|Float|JsonObject|JsonArray,  
-	// delivery options the timer fire event is sent with, optional
-	"delivery options": JsonObject  
+	"timers": ["list of the timer descriptions, JsonArray"]  
 };
 ```  
 Union timer may be useful to fire at a list of specific dates / times.
@@ -196,39 +173,27 @@ Union timer may be useful to fire at a list of specific dates / times.
 Once timer is started it sends or publishes messages to **scheduler name:timer name** address in JSON format.
 Two types of events are sent:  
 * fire event which occurs when time reaches next timer value:  
-```
+```json
 {  
-	// timer name  
-	"name": String,  
+	"name": "timer name",  
 	"event": "fire",  
-	// total number of fire times  
-	"count": Integer,  
-	// ISO formated time / date  
-	"time": String,  
-	// number of seconds since last minute  
-	"seconds": Integer,  
-	// number of minutes since last hour  
-	"minutes": Integer,  
-	// hour of day	"day of month" -> Integer, day of month  
-	"hours": Integer,  
-	// month  
-	"month": Integer,  
-	// year  
-	"year": Integer,  
-	// time zone the timer works in
-	"time zone": String,  
-	// message given at a timer create request  
-	"message": String|Boolean|Integer|Float|JsonObject|JsonArray  
+	"count": "total number of fire times, Integer",  
+	"time": "ISO formated time / date, String",  
+	"seconds": "number of seconds since last minute, Integer",  
+	"minutes": "number of minutes since last hour, Integer",  
+	"hours": "hour of day, Integer",  
+	"day of month": "day of month, Integer"  
+	"month": "month, Integer",  
+	"year": "year, Integer",  
+	"time zone": "time zone the timer works in, String",  
 };
 ```  
 * complete event which occurs when timer is exhausted by some criteria given at timer create request:  
-```
+```json
 {  
-	// timer name  
-	"name": String,  
+	"name": "timer name",  
 	"event": "complete",  
-	// total number of fire times  
-	"count": Integer  
+	"count": "total number of fire times, Integer"  
 };
 ```
 
