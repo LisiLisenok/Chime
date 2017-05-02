@@ -175,23 +175,23 @@ Two types of events are sent:
 * fire event which occurs when time reaches next timer value:  
 ```json
 {  
-	"name": "timer name",  
+	"name": "scheduler name:timer name, String",  
 	"event": "fire",  
 	"count": "total number of fire times, Integer",  
 	"time": "ISO formated time / date, String",  
 	"seconds": "number of seconds since last minute, Integer",  
 	"minutes": "number of minutes since last hour, Integer",  
 	"hours": "hour of day, Integer",  
-	"day of month": "day of month, Integer"  
+	"day of month": "day of month, Integer",  
 	"month": "month, Integer",  
 	"year": "year, Integer",  
-	"time zone": "time zone the timer works in, String",  
+	"time zone": "time zone the timer works in, String"
 };
 ```  
 * complete event which occurs when timer is exhausted by some criteria given at timer create request:  
 ```json
 {  
-	"name": "timer name",  
+	"name": "scheduler name:timer name, String",  
 	"event": "complete",  
 	"count": "total number of fire times, Integer"  
 };
@@ -210,7 +210,7 @@ Let's consider a timer which has to fire every month at 16-30 last Sunday.
 ```Ceylon
 // listen the timer events
 eventBus.consumer (
-	"scheduler:timer",
+	"my scheduler:my timer",
 	(Throwable|Message<JsonObject?> msg) {
 		if (is Message<JsonObject?> msg) { print(msg.body()); }
 		else { print(msg); }	
@@ -221,7 +221,7 @@ eventBus.send<JsonObject> (
 	"chime",
 	JsonObject {
 		"operation" -> "create",
-		"name" -> "scheduler:timer",
+		"name" -> "my scheduler:my timer",
 		"description" -> JsonObject {
 			"type" -> "cron",
 			"seconds" -> "0",
@@ -245,7 +245,7 @@ Let's consider a timer which has to fire every Monday at 8-30 and every Friday a
 
 ```Java
 // listen the timer events
-MessageConsumer<JsonObject> consumer = eventBus.consumer("scheduler:timer");
+MessageConsumer<JsonObject> consumer = eventBus.consumer("my scheduler:my timer");
 consumer.handler (
 	message -> {
 		System.out.println(message.body());
@@ -269,7 +269,7 @@ JsonObject timer = (new JsonObject()).put("type", "union")
 eventBus.send (
 	"chime",
 	(new JsonObject()).put("operation", "create")
-		.put("name", "scheduler:timer")
+		.put("name", "my scheduler:my timer")
 		.put("description", timer)
 );
 ```  
