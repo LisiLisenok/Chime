@@ -63,7 +63,7 @@
  
  In order to maintain schedulers send `JSON` message to _Chime_ address (specified in configuration, \"chime\" is default)
  in the following format:
- 		JSON {
+ 		JsonObject {
  			\"operation\" -> String // operation code, mandatory  
  			\"name\" -> String // scheduler name, mandatory   
  			\"state\" -> String // state, mandatory only if operation = 'state'  
@@ -89,13 +89,13 @@
  #### Scheduler request examples.
  
  	// create new scheduler with name \"scheduler name\"
- 	JSON message = JSON { 
+ 	JsonObject message = JsonObject { 
  		\"operation\" -> \"create\", 
  		\"name\" -> \"scheduler name\" 
  	} ;
   	
   	// change state of scheduler with \"scheduler name\" to paused
- 	JSON message = JSON { 
+ 	JsonObject message = JsonObject { 
  		\"operation\" -> \"state\", 
  		\"name\" -> \"scheduler name\",  
  		\"state\" -> \"paused\"
@@ -105,21 +105,21 @@
  #### Scheduler response.
  
  _Chime_ responds on messages in `JSON` format:  
- 		JSON {
+ 		JsonObject {
  			\"name\" -> String // scheduler name  
  			\"state\" -> String // scheduler state  
  		};
  		
  or on **\"info\"** request with no or empty **\"name\"** field
  
- 		JSON {
+ 		JsonObject {
  			\"schedulers\" -> JSONArray // Schedulers info. Each item contains name, state and a list of timers.  
  		};
  where each item of the array is in format:
- 		JSON {
+ 		JsonObject {
  			\"name\" -> String // scheduler name  
  			\"state\" -> String // scheduler state  
- 			\"timers\" -> JSONArray // list of scheduler timers
+ 			\"timers\" -> JsonArray // list of scheduler timers
  		}; 
  Where each item of the 'timers' array contains the same fields as provided with timer 'create' request (see below).
  Except:
@@ -135,15 +135,15 @@
  #### Requesting info for a number of schedulers.  
  
  Send message: 
- 		JSON message = JSON { 
+ 		JsonObject message = JsonObject { 
  			\"operation\" -> \"info\", 
- 			\"name\" -> JSONArray{\"name1\", ...} 
+ 			\"name\" -> JsonArray{\"name1\", ...} 
  		}; 
  
  I.e. name field contains JSON array with list of schedulers name.
  _Chime_ responds with:
- 		JSON {
- 			\"schedulers\" -> JSONArray{...} 
+ 		JsonObject {
+ 			\"schedulers\" -> JsonArray{...} 
  		};
  
  Where returned JSON array contains info for all schedulers the info is requested for.  
@@ -154,7 +154,7 @@
  Send delete message to the _Chime_ address with empty name or name equal to _Chime_ address:
  		eventBus.send (
  			chimeAddress,
- 			JSON {
+ 			JsonObject {
  				Chime.key.operation -> Chime.operation.delete,
  				Chime.key.name -> \"\"
  			}
@@ -180,7 +180,7 @@
  Request has to be sent in `JSON` format to _scheduler name_ address with _timer short name_
  or to _Chime_ address with _timer full name_.  
  Request format:  
- 	JSON {  
+ 	JsonObject {  
  		\"operation\" -> String // operation code, mandatory  
  		\"name\" -> String // timer short or full name, mandatory  
  		\"state\" -> String // state, optional, except if operation = 'sate'  
@@ -189,7 +189,7 @@
  		\"maximum count\" -> Integer // maximum number of fires, default - unlimited  
  		\"publish\" -> Boolean // if true message to be published and to be sent otherwise, optional  
  
- 		\"start time\" -> JSON // start time, nonmadatory, if doesn't exist timer will start immediately  
+ 		\"start time\" -> JsonObject // start time, nonmadatory, if doesn't exist timer will start immediately  
  		{
  			\"seconds\" -> Integer // seconds, mandatory  
  			\"minutes\" -> Integer // minutes, mandatory  
@@ -199,7 +199,7 @@
  			\"year\" -> Integer // year, mandatory  
  		}  
  
- 		\"end time\" -> `JSON` // end time, nonmadatory, default no end time  
+ 		\"end time\" -> JsonObject // end time, nonmadatory, default no end time  
  		{  
  			\"seconds\" -> Integer // seconds, mandatory  
  			\"minutes\" -> Integer // minutes, mandatory  
@@ -211,10 +211,10 @@
  
  		\"time zone\" -> String // time zone, optional, default is scheduler time zone or server local if not given at both scheduler and timer  
 
- 		\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message which added to timer fire event, optional  
- 		\"delivery options\" -> JSON // delivery options the timer fire event is sent with, optional  
+ 		\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray // message which added to timer fire event, optional  
+ 		\"delivery options\" -> JsonObject // delivery options the timer fire event is sent with, optional  
  
- 		\"description\" -> JSON // timer desciption, mandatoty for create operation  
+ 		\"description\" -> JsonObject // timer desciption, mandatoty for create operation  
  	};  
  
  > `message` and `delivery options` fields may be put to either the timer `description` field or to the request upper level.  
@@ -257,7 +257,7 @@
    `message` and `delivery options` at description level is prefered to ones given at request level.  
  
  * __Cron style timer__. Timer which is defined like cron:  
- 		JSON {  
+ 		JsonObject {  
  			\"type\" -> \"cron\" // timer type, mandatory  	
  
  			\"seconds\" -> String // seconds in cron style, mandatory, nonempty  
@@ -268,8 +268,8 @@
  			\"days of week\" -> String // days of week in cron style, L means last, # means nth of month, optional    
  			\"years\" -> String // year in cron style, optional  
  			   		
- 			\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message which added to timer fire event, optional  
- 			\"delivery options\" -> JSON // delivery options the timer fire event is sent with, optional  
+ 			\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray // message which added to timer fire event, optional  
+ 			\"delivery options\" -> JsonObject // delivery options the timer fire event is sent with, optional  
  		};  
    Following notations are applicable:
      * `FROM`-`TO`/`STEP`
@@ -288,12 +288,12 @@
  ------------------------------------------  
    
  * __Interval timer__. Timer which fires after each given time period (minimum 1 second):  
- 		JSON {  
+ 		JsonObject {  
  			\"type\" -> \"interval\" // timer type, mandatory  
  			\"delay\" -> Integer // timer delay in seconds, if <= 0 timer fires only once, mandatory  
  			
- 			\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message which added to timer fire event, optional  
- 			\"delivery options\" -> JSON // delivery options the timer fire event is sent with, optional  
+ 			\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray // message which added to timer fire event, optional  
+ 			\"delivery options\" -> JsonObject // delivery options the timer fire event is sent with, optional  
  		};  
  
  > Interval timer delay is in _seconds_
@@ -301,20 +301,20 @@
  ------------------------------------------  
    
  * __Union timer__. Combines a number of timers into a one:  
- 		JSON {  
+ 		JsonObject {  
  			\"type\" -> \"union\" // timer type, mandatory  
- 			\"timers\" -> JSONArray // list of the timers, each item is JSON according to its description, mandatory  
+ 			\"timers\" -> JsonArray // list of the timers, each item is JSON according to its description, mandatory  
  			
- 			\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray // message which added to timer fire event, optional  
- 			\"delivery options\" -> JSON // delivery options the timer fire event is sent with, optional  
+ 			\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray // message which added to timer fire event, optional  
+ 			\"delivery options\" -> JsonObject // delivery options the timer fire event is sent with, optional  
  		};  
  
  This may be useful to fire at specific dates / times. For example, following timer fires
  at 8-00 each Monday and at 17-00 each Friday:  
- 		JSON {  
+ 		JsonObject {  
  			\"type\" -> \"union\",  
- 			\"timers\" -> JSONArray {
- 				JSON {
+ 			\"timers\" -> JsonArray {
+ 				JsonObject {
  					\"type\" -> \"cron\",
  					\"seconds\" -> \"0\",  
  					\"minutes\" -> \"0\",  
@@ -323,7 +323,7 @@
  					\"months\" -> \"*\",  
  					\"days of week\" -> \"Monday\"    
  				},
- 				JSON {
+ 				JsonObject {
  					\"type\" -> \"cron\",
  					\"seconds\" -> \"0\",  
  					\"minutes\" -> \"0\",  
@@ -347,7 +347,7 @@
  or to _Chime_ address with _timer full name_.  
 
  _Chime_ responds on each request to a scheduler in `JSON` format:  
- 	JSON {  
+ 	JsonObject {  
  		\"name\" -> String //  timer name  
  		\"state\" -> String // state  
  		
@@ -356,8 +356,8 @@
 
  or as response on 'info' request with no or empty 'name' field specified - info for all timers is returned
  
- 	JSON {
- 		\"timers\" -> JSONArray // list of timer infos currently scheduled
+ 	JsonObject {
+ 		\"timers\" -> JsonArray // list of timer infos currently scheduled
  	};
  
  Where each item of the array contains the same fields as provided with timer 'create' request.
@@ -375,7 +375,7 @@
  
  Timer sends or publishes to _full timer name_ address two types of events in `JSON`:
  * fire event  
- 		JSON {  
+ 		JsonObject {  
  			\"name\" -> String, timer name  
  			\"event\" -> \"fire\"  
  			\"count\" -> Integer, total number of fire times  
@@ -387,10 +387,10 @@
  			\"month\" -> Integer, month  
  			\"year\" -> Integer, year  
  			\"time zone\" -> String, time zone the timer works in  
- 			\"message\" -> String|Boolean|Integer|Float|JSONObject|JSONArray, message given at a timer create request  
+ 			\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray, message given at a timer create request  
  		};  
  * complete event  
- 		JSON {  
+ 		JsonObject {  
  			\"name\" -> String, timer name  
  			\"event\" -> \"complete\"  
  			\"count\" -> Integer, total number of fire times  
@@ -417,26 +417,26 @@
  #### Timer example.
  
  		// creat new Scheduler with name \"schedule manager\" at first and then the timer
- 		eventBus.send<JSON> (
+ 		eventBus.send<JsonObject> (
  			\"chime\",
- 			JSON {
+ 			JsonObject {
  				\"operation\" -> \"create\",
  				\"name\" -> \"schedule manager\",
  				\"state\" -> \"running\"
  			},
- 			(Throwable|Message<JSON> msg) {
- 				if (is Message<JSON> msg) {
+ 			(Throwable|Message<JsonObject> msg) {
+ 				if (is Message<JsonObject> msg) {
  					// create timer
- 					eventBus.send<JSON>(
+ 					eventBus.send<JsonObject>(
  						\"chime\",
- 						JSON {
+ 						JsonObject {
  							\"operation\" -> \"create\",
  							\"name\" -> \"schedule manager:scheduled timer\", // full timer name == address to listen timer
  							\"state\" -> \"running\",
  							\"publish\" -> false, // timer will send messages
  							\"max count\" -> 3,
  							\"time zone\" -> \"Europe/Paris\",
- 							\"descirption\" -> JSON {
+ 							\"descirption\" -> JsonObject {
  								\"type\" -> \"cron\", // timer type is 'cron'
  								\"seconds\" -> \"27/30\", // 27 with step 30 leads to fire at 27 and 57 seconds
  								\"minutes\" -> \"*\", // every minute
@@ -447,7 +447,7 @@
  								\"years\" -> \"2015-2019\"
  							}
  						},
- 						(Throwable|Message<JSON?> msg) {
+ 						(Throwable|Message<JsonObject?> msg) {
  							print(msg); // Chime replies if timer successfully created or some error occured
  						}
  					);
@@ -461,7 +461,7 @@
  		// listen timer
  		eventBus.consumer (
  			\"schedule manager:scheduled timer\",
- 			(Throwable | Message<JSON?> msg) {
+ 			(Throwable | Message<JsonObject?> msg) {
  				...
  			}
  		);
@@ -587,7 +587,7 @@
  Finally, [[CronBuilder.build]] has to be called to build the timer JSON description.  
  
  Example:  
- 		JSON cron = CronBuilder().withSeconds(3).withMinutes(0).withHours(1).withAllDays().withAllMonths().build();
+ 		JsonObject cron = CronBuilder().withSeconds(3).withMinutes(0).withHours(1).withAllDays().withAllMonths().build();
  
  > Note that 'seconds', 'minutes', 'hours', 'days of month' and 'month' are required fields.
    While 'years' and 'days of week' are optional.  
