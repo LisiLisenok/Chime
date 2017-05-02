@@ -491,9 +491,12 @@ Where `timers` array contains `JsonObject`'s of [timer descriptions](#timer-desc
 
 ## Timer events.  
 
-Timer event is sent or published by _Chime_ in `JSON` to timer full name ("scheduler name:timer name") address.  
 
 ### Fire event.  
+
+Sent or published (depending on `publish` option in [timer create request](#create-timer))
+by _Chime_ to timer full name ("scheduler name:timer name") address.  
+
 ```json
 {  
 	"name": "String, timer name",  
@@ -515,6 +518,9 @@ Timer event is sent or published by _Chime_ in `JSON` to timer full name ("sched
 -------------
 
 ### Complete event.  
+
+Published by _Chime_ to timer full name ("scheduler name:timer name") address.  
+
 ```json
 {
 	"name": "scheduler name:timer name",
@@ -522,3 +528,5 @@ Timer event is sent or published by _Chime_ in `JSON` to timer full name ("sched
 	"count": "Integer, total number of fires"
 }
 ```  
+
+> Complete event is always published in order all consumers may receive this.  
