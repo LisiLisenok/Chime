@@ -150,7 +150,7 @@ The other fields not shown here are optional and includes:
 
 Currently three timer types are supported:  
 
-* __Interval timer__ which fires after each given time period (minimum 1 second).  
+* __Interval timer__ which fires after each given time period (minimum 1 second):  
 ```Ceylon
 JsonObject description = JsonObject {  
 	// timer type, mandatory  
@@ -164,7 +164,7 @@ JsonObject description = JsonObject {
 };
 ```  
 
-* __Cron style timer__ which is defined with cron-style.  
+* __Cron style timer__ which is defined with cron-style:  
 ```Ceylon
 JsonObject description = JsonObject {  
 	 // timer type, mandatory  
@@ -192,7 +192,7 @@ JsonObject description = JsonObject {
 Cron timer is rather powerful and flexible.
 See specification details in [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime).  
 
-* __Union timer__ which combines a number of timers into a one.  
+* __Union timer__ which combines a number of timers into a one:  
 ```Ceylon
 JsonObject description = JsonObject {  
 	// timer type, mandatory  
@@ -212,7 +212,7 @@ Union timer may be useful to fire at a list of specific dates / times.
 
 Once timer is started it sends or publishes messages to **scheduler name:timer name** address in JSON format.
 Two types of events are sent:  
-* fire event, which occurs when time reaches next timer value:  
+* fire event which occurs when time reaches next timer value:  
 ```Ceylon
 JsonObject {  
 	// timer name  
@@ -238,7 +238,7 @@ JsonObject {
 	"message" -> String|Boolean|Integer|Float|JsonObject|JsonArray  
 };
 ```  
-* complete event, which occurs when timer is exhausted by some criteria given at timer create request:  
+* complete event which occurs when timer is exhausted by some criteria given at timer create request:  
 ```Ceylon
 JsonObject {  
 	// timer name  
@@ -340,10 +340,8 @@ eventBus.send (
 
 There are also some ideas for the future:  
 * custom or user-defined timers;  
-* calendar, which bounds the timer fire time / date,
-  for example, limiting it to working days only;  
-* extracting timer fire message from external source,
-  which helps the message to be dependent on some conditions.  
+* limiting the timer fire time / date with calendar;  
+* extracting timer fire message from external source.  
 
 -----------------------------
 
