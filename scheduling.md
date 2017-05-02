@@ -151,8 +151,8 @@ Currently three timer types are supported:
 	"hours": "hours in cron style, String",  
 	"days of month": "days of month in cron style, String",  
 	"months": "months in cron style, String",  
-	"days of week": "days of week in cron style, String",  
-	"years": "years in cron style, String"  
+	"days of week": "days of week in cron style, String, optional",  
+	"years": "years in cron style, String, optional"  
 };
 ```  
 Cron timer is rather powerful and flexible.
@@ -235,6 +235,8 @@ eventBus.send<JsonObject> (
 );
 
 ```
+
+[INFO '*' means any, 'SundayL' means last Sunday.]  
 
 [NOTE If 'create' request is sent to Chime address with full timer name and corresponding scheduler hasn't been created before then Chime creates both new scheduler and new timer.]  
 
