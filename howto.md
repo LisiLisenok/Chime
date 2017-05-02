@@ -91,7 +91,7 @@ Sent to _Chime_ address.
 	"schedulers": []
 }
 ```  
-Where "schedulers" array contains `JsonObject`'s of [scheduler info](#get-scheduler-info).  
+Where `schedulers` array contains `JsonObject`'s of [scheduler info](#get-scheduler-info).  
 
 -------------
 
@@ -106,7 +106,7 @@ Sent to _Chime_ address.
 	"name": ["name of first scheduler", "name of second scheduler"]
 }
 ```  
-Where "names" is array of Strings with names of schedulers info is requested for.  
+Where `names` is array of `Strings` with names of schedulers info is requested for.  
 
 ##### Response.
 ```json
@@ -115,7 +115,7 @@ Where "names" is array of Strings with names of schedulers info is requested for
 	"schedulers": []
 }
 ```  
-Where "schedulers" array contains `JsonObject`'s of [scheduler info](#get-scheduler-info).  
+Where `schedulers` array contains `JsonObject`'s of [scheduler info](#get-scheduler-info).  
 
 -------------
 
@@ -140,7 +140,7 @@ Sent to _Chime_ address or to _scheduler_ address.
 	"timers": []
 }
 ```  
-Where "timers" array contains `JsonObject`'s of [timer info](#get-timer-info).
+Where `timers` array contains `JsonObject`'s of [timer info](#get-timer-info).
 
 -------------
 
@@ -251,17 +251,17 @@ or to _scheduler_ address with either full or short timer name.
 	"delivery options": {}
 }
 ```  
-Where "description" contains JsonObject with [timer descriptions](#timer-descriptions).  
-"operation", "name", and "description" are mandatory fields.  
+Where `description` contains `JsonObject` with [timer descriptions](#timer-descriptions).  
+`operation`, `name`, and `description` are mandatory fields.  
 Other fields are optional, default values are:  
-* "state" = "running"  
-* "maximum count" = unlimited  
-* "publish" = false  
-* "start time" = right now  
-* "end time" = never  
-* "time zone" = local  
-* "message" = null  
-* "delivery options" = null  
+* `state` = "running"  
+* `maximum count` = unlimited  
+* `publish` = false  
+* `start time` = right now  
+* `end time` = never  
+* `time zone` = local  
+* `message` = unused  
+* `delivery options` = unused  
 
 #### Response.  
 ```json
@@ -319,7 +319,7 @@ or to _scheduler_ address with either full or short timer name.
 }
 ```  
 Response contains all fields set at [timer create request](#create-timer).  
-"description" field contains JsonObject with [timer descriptions](#timer-descriptions).  
+`description` field contains `JsonObject` with [timer descriptions](#timer-descriptions).  
 
 -------------
 
@@ -415,9 +415,9 @@ Used in [timer create request](#create-timer).
 	"delivery options": {}
 }
 ```  
-"type", "seconds", "minutes", "hours", "days of month" and "months" are mandatory.  
-"days of week" and "years" are optional.  
-"message" and "delivery options" are optional.  
+`type`, `seconds`, `minutes`, `hours`, `days of month` and `months` are mandatory.  
+`days of week` and `years` are optional.  
+`message` and `delivery options` are optional.  
 
 ##### Cron specification.  
 
@@ -470,7 +470,7 @@ Used in [timer create request](#create-timer).
 	"delivery options": {}
 }
 ```  
-"message" and "delivery options" are optional.  
+`message` and `delivery options` are optional.  
 
 -------------
 
@@ -483,8 +483,8 @@ Used in [timer create request](#create-timer).
 	"delivery options": {}
 }
 ```  
-Where "timers" array contains `JsonObject`'s of [timer descriptions](#timer-descriptions).  
-"message" and "delivery options" are optional.  
+Where `timers` array contains `JsonObject`'s of [timer descriptions](#timer-descriptions).  
+`message` and `delivery options` are optional.  
 
 -------------
 
@@ -510,7 +510,7 @@ Timer event is sent or published by _Chime_ in `JSON` to timer full name ("sched
 	"message": "message given at a timer create request, optional"  
 }
 ```  
-"message" is given at [create timer request](#create-timer) in any Json supported type.  
+`message` is given at [create timer request](#create-timer) in any Json supported type.  
 
 -------------
 
