@@ -14,7 +14,7 @@ This is the base for time scheduling and reach feature extension must be rather 
 Be notified at certain date / time, take into account holidays,
 repeat notifications until a given date, apply time zone,
 take into account daylight saving time etc.
-There are a lot of useful features time scheduler may introduce to Vert.x stack.  
+There are a lot of useful features time scheduler may introduce to the Vert.x stack.  
 
 
 ## Chime.  
@@ -57,10 +57,10 @@ Chime().deploy(vertx.vertx());
 
 1. Ensure that Ceylon verticle factory is available at class path.  
 2. Put Ceylon versions to consistency. For instance, Vert.x 3.4.1 depends on Ceylon 1.3.0
-   while Chime 0.2.0 depends on Ceylon 1.3.2. 
+   while Chime 0.2.1 depends on Ceylon 1.3.2. 
 3. [Deploy verticle](http://vertx.io/docs/vertx-core/java/#_deploying_verticles_programmatically), like:  
 ```Java
-vertx.deployVerticle("ceylon:herd.schedule.chime/0.2.0")
+vertx.deployVerticle("ceylon:herd.schedule.chime/0.2.1")
 ```
 
 [INFO example with Maven is available at [Github](https://github.com/LisiLisenok/ChimeJavaExample).]  
@@ -82,19 +82,13 @@ Any timer operates within some scheduler. And one or several schedulers have to 
 When _Chime_ verticle is deployed it starts listen event bus at **chime** address (can be configured).
 In order to create scheduler send to this address a JSON message.  
 
-**in Ceylon:**
-```Ceylon
-JsonObject request = JsonObject {
-	"operation" -> "create",
-	"name" -> "scheduler name"
-};
+```json
+{
+	"operation": "create",
+	"name": "scheduler name"
+}
 ```
-**in Java:**
-```Java
-JsonObject request = new JsonObject();
-request.put("operation", "create")
-	.put("name", "scheduler name");
-```
+
 
 Once scheduler is created it starts listen event bus at **scheduler name** address.
 Sending messages to **chime** address or to **scheduler name** address are rather equivalent,
@@ -119,28 +113,17 @@ Timer request is rather complicated and contains a lot of features.
 Investigate [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime) for the details.
 In this article only basic features are considered:  
 
-**in Ceylon:**  
-```Ceylon
-JsonObject description = JsonObject {...};
-JsonObject request = JsonObject {
-	"operation" -> "create",
-	"name" -> "scheduler name:timer name",
-	"description"-> description // timer description
+```json
+{
+	"operation": "create",
+	"name": "scheduler name:timer name",
+	"description": {...}
 };
-```
-**in Java:**  
-```Java
-JsonObject description = new JsonObject();
-...
-JsonObject request = (new JsonObject())
-	.put("operation", "create")
-	.put("name", "scheduler name:timer name")
-	.put("description", description);
 ```
 
 This is rather similar to request sent to create a scheduler.
 The difference is only **description** field is added.
-This description identifies particular timer type and details.  
+This description is an JSON object which identifies particular timer type and its details.  
 The other fields not shown here are optional and includes:  
 * initial timer state (paused or running);  
 * start or end date-time;  
@@ -151,58 +134,58 @@ The other fields not shown here are optional and includes:
 Currently three timer types are supported:  
 
 * __Interval timer__ which fires after each given time period (minimum 1 second):  
-```Ceylon
-JsonObject description = JsonObject {  
+```json
+{  
 	// timer type, mandatory  
-	"type" -> "interval",  
-	// timer delay in seconds, if <= 0 timer fires only once, mandatory  
-	"delay" -> Integer,  
-	// message which added to timer fire event, optional  
-	"message" -> String|Boolean|Integer|Float|JsonObject|JsonArray,  
-	// delivery options the timer fire event is sent with, optional  
-	"delivery options\" -> JsonObject  
+	"type": "interval",
+	// timer delay in seconds, if <= 0 timer fires only once, mandatory
+	"delay": Integer,
+	// message which added to timer fire event, optional
+	"message": String|Boolean|Integer|Float|JsonObject|JsonArray,
+	// delivery options the timer fire event is sent with, optional
+	"delivery options": JsonObject
 };
 ```  
 
 * __Cron style timer__ which is defined with cron-style:  
-```Ceylon
-JsonObject description = JsonObject {  
+```json
+{  
 	 // timer type, mandatory  
-	"type" -> "cron",  
+	"type": "cron",  
 	// seconds in cron style, mandatory, nonempty
-	"seconds" -> String,  
+	"seconds": String,  
 	// minutes in cron style, mandatory, nonempty  
-	"minutes" -> String,  
+	"minutes": String,  
 	// hours in cron style, mandatory, nonempty  
-	"hours" -> String,  
+	"hours": String,  
 	// days of month in cron style, mandatory, nonempty  
-	"days of month" -> String,  
+	"days of month": String,  
 	// months in cron style, mandatory, nonempty  
-	"months" -> String,  
+	"months": String,  
 	// days of week in cron style, L means last, # means nth of month, optional  
-	"days of week" -> String,  
+	"days of week": String,  
 	// year in cron style, optional  
-	"years" -> String,  
+	"years": String,  
 	// message which added to timer fire event, optional  
- 	"message" -> String|Boolean|Integer|Float|JsonObject|JsonArray,
+ 	"message": String|Boolean|Integer|Float|JsonObject|JsonArray,
  	// delivery options the timer fire event is sent with, optional  
- 	"delivery options" -> JsonObject  
+ 	"delivery options": JsonObject  
 };
 ```  
 Cron timer is rather powerful and flexible.
 See specification details in [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime).  
 
 * __Union timer__ which combines a number of timers into a one:  
-```Ceylon
-JsonObject description = JsonObject {  
+```json
+{  
 	// timer type, mandatory  
-	"type" -> "union",  
+	"type": "union",  
 	// list of the timers, each item is JSON according to its description, mandatory  
-	"timers" -> JsonArray,  
+	"timers": JsonArray,  
 	// message which added to timer fire event, optional  
-	"message" -> String|Boolean|Integer|Float|JsonObject|JsonArray,  
+	"message": String|Boolean|Integer|Float|JsonObject|JsonArray,  
 	// delivery options the timer fire event is sent with, optional
-	"delivery options" -> JsonObject  
+	"delivery options": JsonObject  
 };
 ```  
 Union timer may be useful to fire at a list of specific dates / times.
@@ -213,39 +196,39 @@ Union timer may be useful to fire at a list of specific dates / times.
 Once timer is started it sends or publishes messages to **scheduler name:timer name** address in JSON format.
 Two types of events are sent:  
 * fire event which occurs when time reaches next timer value:  
-```Ceylon
-JsonObject {  
+```json
+{  
 	// timer name  
-	"name" -> String,  
-	"event" -> "fire",  
+	"name": String,  
+	"event": "fire",  
 	// total number of fire times  
-	"count" -> Integer,  
+	"count": Integer,  
 	// ISO formated time / date  
-	"time" -> String,  
+	"time": String,  
 	// number of seconds since last minute  
-	"seconds" -> Integer,  
+	"seconds": Integer,  
 	// number of minutes since last hour  
-	"minutes" -> Integer,  
+	"minutes": Integer,  
 	// hour of day	"day of month" -> Integer, day of month  
-	"hours" -> Integer,  
+	"hours": Integer,  
 	// month  
-	"month" -> Integer,  
+	"month": Integer,  
 	// year  
-	"year" -> Integer,  
+	"year": Integer,  
 	// time zone the timer works in
-	"time zone" -> String,  
+	"time zone": String,  
 	// message given at a timer create request  
-	"message" -> String|Boolean|Integer|Float|JsonObject|JsonArray  
+	"message": String|Boolean|Integer|Float|JsonObject|JsonArray  
 };
 ```  
 * complete event which occurs when timer is exhausted by some criteria given at timer create request:  
-```Ceylon
-JsonObject {  
+```json
+{  
 	// timer name  
-	"name" -> String,  
-	"event" -> "complete",  
+	"name": String,  
+	"event": "complete",  
 	// total number of fire times  
-	"count" -> Integer  
+	"count": Integer  
 };
 ```
 
