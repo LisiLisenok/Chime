@@ -33,3 +33,5 @@ Available on [Ceylon Herd](https://herd.ceylon-lang.org/modules/herd.schedule.ch
 Examples:  
 * [with Ceylon](examples/herd/examples/schedule/chime)  
 * [with Java and Maven](https://github.com/LisiLisenok/ChimeJavaExample)  
+
+> _Chime_ communicates over event bus with `Json` messages and complete list of messages is available [here](howto)  

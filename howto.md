@@ -48,6 +48,7 @@ Sent to _Chime_ address and to _scheduler_ address.
 }
 ```  
 
+-------------
 
 ### Delete scheduler.  
 
@@ -67,6 +68,8 @@ Sent to _Chime_ address and to _scheduler_ address.
 }
 ```  
 
+-------------
+
 ### Get info on all schedulers.  
 
 ##### Request.  
@@ -85,6 +88,8 @@ Sent to _Chime_ address and to _scheduler_ address.
 }
 ```  
 Where "schedulers" array contains `JsonObject`'s of [scheduler info](#get-scheduler-info).  
+
+-------------
 
 ### Get info on a given list of schedulers.  
 
@@ -106,6 +111,8 @@ Where "names" is array of Strings with names of schedulers info is requested for
 ```  
 Where "schedulers" array contains `JsonObject`'s of [scheduler info](#get-scheduler-info).  
 
+-------------
+
 ### Get scheduler info.  
 
 ##### Request.  
@@ -120,12 +127,14 @@ Where "schedulers" array contains `JsonObject`'s of [scheduler info](#get-schedu
 ```json
 {
 	"name": "scheduler name",
-	"state": "running, paused or completed"
+	"state": "running, paused or completed",
 	"time zone": "time zone ID",
 	"timers": []
 }
 ```  
 Where "timers" array contains `JsonObject`'s of [timer info](#get-timer-info).
+
+-------------
 
 ### Get scheduler state.  
 
@@ -146,6 +155,7 @@ Where "timers" array contains `JsonObject`'s of [timer info](#get-timer-info).
 }
 ```  
 
+-------------
 
 ### Set scheduler to paused state.  
 
@@ -166,6 +176,8 @@ Where "timers" array contains `JsonObject`'s of [timer info](#get-timer-info).
 }
 ```  
 
+-------------
+
 ### Set scheduler to running state.  
 
 ##### Request.  
@@ -185,6 +197,8 @@ Where "timers" array contains `JsonObject`'s of [timer info](#get-timer-info).
 }
 ```  
 
+-------------
+
 
 ## Timer request.  
 
@@ -203,20 +217,20 @@ or to _scheduler_ address with either full or short timer name.
 	"maximum count": "Integer, maximum number of fires",
 	"publish": "Boolean, if true message to be published and to be sent otherwise",
 	"start time": {
- 		"seconds": "Integer"  
- 		"minutes": "Integer"  
- 		"hours": "Integer"  
- 		"day of month": "Integer"  
- 		"month": "Integer or String"  
- 		"year": "Integer"  
+ 		"seconds": "Integer",
+ 		"minutes": "Integer",
+ 		"hours": "Integer",
+ 		"day of month": "Integer",
+ 		"month": "Integer or String",
+ 		"year": "Integer"
 	},
 	"end time": {
- 		"seconds": "Integer"  
- 		"minutes": "Integer"  
- 		"hours": "Integer"  
- 		"day of month": "Integer"  
- 		"month": "Integer or String"  
- 		"year": "Integer"  
+ 		"seconds": "Integer",
+ 		"minutes": "Integer",
+ 		"hours": "Integer",
+ 		"day of month": "Integer",
+ 		"month": "Integer or String",
+ 		"year": "Integer"
 	},
 	"time zone": "String",
 	"message": "any Json supports",
@@ -243,6 +257,8 @@ Other fields are optional, default values are:
 }
 ```  
 
+-------------
+
 ### Delete timer.  
 
 ##### Request.  
@@ -261,6 +277,8 @@ Other fields are optional, default values are:
 }
 ```  
 
+-------------
+
 ### Get timer info.  
 
 ##### Request.  
@@ -269,8 +287,7 @@ Other fields are optional, default values are:
 	"operation": "info",
 	"name": "scheduler name:timer name"
 }
-```
-```
+```  
 
 ##### Response.
 ```json
@@ -283,6 +300,8 @@ Other fields are optional, default values are:
 ```  
 Response contains all fields set at [timer create request](#create-timer).  
 "description" field contains JsonObject with [timer descriptions](#timer-descriptions).  
+
+-------------
 
 ### Get timer state.  
 
@@ -303,6 +322,8 @@ Response contains all fields set at [timer create request](#create-timer).
 }
 ```  
 
+-------------
+
 ### Set timer to running state.  
 
 ##### Request.  
@@ -322,6 +343,8 @@ Response contains all fields set at [timer create request](#create-timer).
 }
 ```  
 
+-------------
+
 ### Set timer to paused state.  
 
 ##### Request.  
@@ -340,6 +363,8 @@ Response contains all fields set at [timer create request](#create-timer).
 	"state": "paused"
 }
 ```  
+
+-------------
 
 
 ## Timer descriptions.  
@@ -403,6 +428,8 @@ Response contains all fields set at [timer create request](#create-timer).
 * '#' has to be used with digits before and after: 'x#y' and means _the y'th x day of the month_,
   for example, '6#3' means _the third Friday of the month_  
 
+-------------
+
 ### Interval timer.  
 ```json
 {
@@ -413,6 +440,8 @@ Response contains all fields set at [timer create request](#create-timer).
 }
 ```  
 "message" and "delivery options" are optional.  
+
+-------------
 
 ### Union timer.  
 ```json
@@ -425,6 +454,8 @@ Response contains all fields set at [timer create request](#create-timer).
 ```  
 Where "timers" array contains `JsonObject`'s of [timer descriptions](#timer-descriptions).  
 "message" and "delivery options" are optional.  
+
+-------------
 
 
 ## Timer events.  
@@ -442,13 +473,15 @@ Timer event is sent or published in `JSON` to timer full name ("scheduler name:t
 	"minutes": "Integer, number of minutes since last hour",
 	"hours": "Integer, hour of day",
 	"day of month": "Integer, day of month",
-	"month": Integer, month",
+	"month": "Integer, month",
 	"year": "Integer, year",
 	"time zone": "String, time zone the timer works in",
 	"message": "message given at a timer create request, optional"  
 }
 ```  
 "message" is given at [create timer request](#create-timer) in any Json supported type.  
+
+-------------
 
 ### Complete event.  
 ```json

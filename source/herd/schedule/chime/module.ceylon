@@ -19,6 +19,9 @@
  * listening and sending messages via event bus with _JSON_;  
  * _publishing_ or _sending_ timer fire event to the address of your choice.  
  
+ > _Chime_ communicates over event bus with \`Json\` messages and complete list of messages is available
+   at [Github](https://github.com/LisiLisenok/Chime/blob/master/howto.md).  
+ 
  
  ## Running.
  
