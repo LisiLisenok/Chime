@@ -175,7 +175,7 @@ Two types of events are sent:
 * fire event which occurs when time reaches next timer value:  
 ```json
 {  
-	"name": 'scheduler name:timer name, String',  
+	"name": "scheduler name:timer name, String",  
 	"event": "fire",  
 	"count": "total number of fire times, Integer",  
 	"time": "ISO formated time / date, String",  
