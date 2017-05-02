@@ -2,22 +2,22 @@
 "
  _Chime_ is time scheduler verticle which works on _Vert.x_ event bus and provides:  
  * scheduling with _cron-style_, _interval_ or _union_ timers:
- 	* at a certain time of day (to the second)  
- 	* on certain days of the week, month or year  
- 	* with a given time interval  
- 	* with nearly any combination of all of above  
- 	* repeating a given number of times  
+ 	* at a certain time of day (to the second);  
+ 	* on certain days of the week, month or year;  
+ 	* with a given time interval;  
+ 	* with nearly any combination of all of above;  
+ 	* repeating a given number of times;  
  	* repeating until a given time / date  
- 	* repeating infinitely  
+ 	* repeating infinitely;  
  * proxying event bus with conventional interfaces  
- * applying time zones available on _JVM_  
+ * applying time zones available on _JVM_;  
  * flexible timers management system:  
- 	* grouping timers  
- 	* defining a timer start or end times  
- 	* pausing / resuming  
- 	* fire counting  
- * listening and sending messages via event bus with _JSON_  
- * _publishing_ or _sending_ timer fire event to the address of your choice  
+ 	* grouping timers;  
+ 	* defining a timer start or end times;  
+ 	* pausing / resuming;  
+ 	* fire counting;  
+ * listening and sending messages via event bus with _JSON_;  
+ * _publishing_ or _sending_ timer fire event to the address of your choice.  
  
  
  ## Running.
@@ -33,31 +33,33 @@
  
  ## Configuration.
  
- Following parameters could be specified in `JSON` verticle configuration:
- 
- * **\"address\"** - address _Chime_ is listen to, `String`, default is **\"chime\"**
- * **\"max year period limit\"** - limiting scheduling period in years, `Integer`, default is 10 years
- * **\"tolerance\"** - tolerance in milliseconds used to compare actual and requested times,
-   `Integer`, default is 10 milliseconds
- 
+ Following parameters could be specified in `JSON` verticle configuration:  
+ 		JsonObject {
+ 			// address _Chime_ is listen to
+ 			\"address\" -> `String`, default is \"chime\"
+ 			// limiting scheduling period in years
+ 			\"max year period limit\" -> `Integer`, default is 10 years
+ 			// tolerance in milliseconds used to compare actual and requested times
+ 			\"tolerance\" -> `Integer`, default is 10 milliseconds
+ 		}
  
  ## Scheduling.
  
  _Chime_ operates by two structures: _timer_ and _scheduler_.  
- Scheduler is a set or group of timers. At least one scheduler has to be created before creating timers.  
- Each timer operates within some particular scheduler.  
- All messages _Chime_ listens are to be sent to _Chime_ address or to scheduler address.
+ Timer is a unit which fires at a given time.
+ While scheduler is a set or group of timers and provides following:    
+ * creating and deleting timers;  
+ * pausing / resuming all timers working within the scheduler;  
+ * info on the running timers;  
+ * default time zone;  
+ * listening event bus at the given scheduler address for the requests to.  
  
  
  ### _Scheduler_.
  
- Scheduler is a set of timers and provides:  
- * creating and deleting timers  
- * pausing / resuming all timers working within the scheduler  
- * info on the running timers  
- * default time zone  
- * listening event bus at the given scheduler address  
- 
+ At least one scheduler has to be created before creating timers.  
+ Each timer operates within some particular scheduler.  
+ All messages _Chime_ listens are to be sent to _Chime_ address or to scheduler address.  
  
  #### Scheduler messages.
  
@@ -78,12 +80,12 @@
  * **\"create\"** - create new scheduler with specified name, state and description,
    if state is not specified, scheduler is put to running state.
  * **\"delete\"** - delete scheduler with name `name`. All timers belong to the scheduler are deleted.
- * **\"info\"** - request info on _Chime_ or on a particular scheduler (scheduler name to be provided)
+ * **\"info\"** - request info on _Chime_ or on a particular scheduler (scheduler name to be provided).
  * **\"state\"**:
- 	* if set to **\"get\"** then state has to be returned
- 	* if set to **\"running\"** then scheduler is to be set to _running_, which leads all non paused timers are _running_
- 	* if set to **\"paused\"** then scheduler is to be set to _paused_, which leads all timers are _paused_
- 	* otherwise error is returned
+ 	* if set to **\"get\"** then state has to be returned;
+ 	* if set to **\"running\"** then scheduler is to be set to _running_, which leads all non paused timers are _running_;
+ 	* if set to **\"paused\"** then scheduler is to be set to _paused_, which leads all timers are _paused_;
+ 	* otherwise error is returned.
  
  
  #### Scheduler request examples.
@@ -102,9 +104,10 @@
  	}; 
  	
  
- #### Scheduler response.
+ #### Scheduler response.  
  
  _Chime_ responds on messages in `JSON` format:  
+
  		JsonObject {
  			\"name\" -> String // scheduler name  
  			\"state\" -> String // scheduler state  
@@ -149,7 +152,7 @@
  Where returned JSON array contains info for all schedulers the info is requested for.  
  
  
- #### Deleting all schedulers / timers
+ #### Deleting all schedulers / timers.  
  
  Send delete message to the _Chime_ address with empty name or name equal to _Chime_ address:
  		eventBus.send (
@@ -159,6 +162,27 @@
  				Chime.key.name -> \"\"
  			}
  		);
+ 
+ #### Pausing the given scheduler.    
+ 
+ Pausing scheduler leads to all timers operated within the given scheduler are paused.  
+ 
+  	JsonObject message = JsonObject { 
+ 		\"operation\" -> \"state\", 
+ 		\"name\" -> \"scheduler name\",  
+ 		\"state\" -> \"paused\"
+ 	}; 
+ 
+ #### Resuming the given scheduler.    
+ 
+ Resuming scheduler leads to all timers with running state are resumed.
+ While timers which havepaused state are remain paused.  
+ 
+  	JsonObject message = JsonObject { 
+ 		\"operation\" -> \"state\", 
+ 		\"name\" -> \"scheduler name\",  
+ 		\"state\" -> \"running\"
+ 	};
  
  
  ### _Timer_.
@@ -227,15 +251,19 @@
  
  #### Timer operation codes.
    
- * **\"create\"** - create new timer with specified name, state and description
- * **\"delete\"** - delete timer with name `name`
- * **\"info\"** - get information for timer (if timer name is specified) or scheduler (if timer name is not specified)
+ * **\"create\"** - create new timer with specified name, state and description.
+ * **\"delete\"** - delete timer with name `name`.
+ * **\"info\"** - get information for timer (if timer name is specified) or scheduler (if timer name is not specified).
  * **\"state\"**:
- 	* if set to **\"get\"** timer state has to be returned
- 	* if set to **\"running\"** timer state is to be set to _running_
- 	* if set to **\"paused\"** timer state is to be set to _paused_
- 	* otherwise error is returned
- 
+ 	* if set to **\"get\"** timer state has to be returned;
+ 	* if set to **\"running\"** timer state is to be set to _running_;
+ 	* if set to **\"paused\"** timer state is to be set to _paused_;
+ 	* otherwise error is returned.
+
+  
+ > If 'create' request is sent to Chime address with full timer name and corresponding scheduler
+   hasn't been created before then Chime creates both new scheduler and new timer.  
+  
  > Timer fires only if both timer and scheduler states are _running_.   
  
  
@@ -256,7 +284,7 @@
  > `message` and `delivery options` fields may be put to either the timer `description` field or to the request upper level.  
    `message` and `delivery options` at description level is prefered to ones given at request level.  
  
- * __Cron style timer__. Timer which is defined like cron:  
+ * __Cron style timer__ is defined with cron-style:  
  		JsonObject {  
  			\"type\" -> \"cron\" // timer type, mandatory  	
  
@@ -287,7 +315,7 @@
  
  ------------------------------------------  
    
- * __Interval timer__. Timer which fires after each given time period (minimum 1 second):  
+ * __Interval timer__ fires after each given time period (minimum 1 second):  
  		JsonObject {  
  			\"type\" -> \"interval\" // timer type, mandatory  
  			\"delay\" -> Integer // timer delay in seconds, if <= 0 timer fires only once, mandatory  
@@ -300,7 +328,7 @@
  
  ------------------------------------------  
    
- * __Union timer__. Combines a number of timers into a one:  
+ * __Union timer__ combines a number of timers into a one:  
  		JsonObject {  
  			\"type\" -> \"union\" // timer type, mandatory  
  			\"timers\" -> JsonArray // list of the timers, each item is JSON according to its description, mandatory  
@@ -505,60 +533,60 @@
  		);
  
  
- ### Error messages.
+ ### Error messages.  
  
- The error is sent using `Message.fail` with corresponding code and message, see [[Chime.errors]].
+ The error is sent using `Message.fail` with corresponding code and message, see [[Chime.errors]].  
  
- possible errors (see [[Chime.errors]]):
- * \"unsupported operation\"
- * \"operation has to be specified\"
- * \"scheduler doesn't exist\"
- * \"scheduler name has to be specified\"
- * \"scheduler state has to be one of - 'get', 'paused', 'running'\"
- * \"state has to be specified\"
- * \"timer already exists\"
- * \"timer doesn't exist\"
- * \"timer name has to be specified\"
- * \"timer type has to be specified\"
- * \"unsupported timer type\"
- * \"incorrect start date\"
- * \"incorrect end date\"
- * \"end date has to be after start date\"
- * \"unsupported time zone\"
- * \"timer description has to be specified\"
- * \"timer state has to be one of - 'get', 'paused', 'running'\"
- * \"delay has to be specified\"
- * \"delay has to be greater than zero\"
- * \"incorrect cron timer description\"
- * \"timers list has to be specified\"
- * \"timer description has to be in JSON\"
+ possible errors (see [[Chime.errors]]):  
+ * \"unsupported operation\"  
+ * \"operation has to be specified\"  
+ * \"scheduler doesn't exist\"  
+ * \"scheduler name has to be specified\"  
+ * \"scheduler state has to be one of - 'get', 'paused', 'running'\"  
+ * \"state has to be specified\"  
+ * \"timer already exists\"  
+ * \"timer doesn't exist\"  
+ * \"timer name has to be specified\"  
+ * \"timer type has to be specified\"  
+ * \"unsupported timer type\"  
+ * \"incorrect start date\"  
+ * \"incorrect end date\"  
+ * \"end date has to be after start date\"  
+ * \"unsupported time zone\"  
+ * \"timer description has to be specified\"  
+ * \"timer state has to be one of - 'get', 'paused', 'running'\"  
+ * \"delay has to be specified\"  
+ * \"delay has to be greater than zero\"  
+ * \"incorrect cron timer description\"  
+ * \"timers list has to be specified\"  
+ * \"timer description has to be in JSON\"  
  
  
- ## Cron expressions.
+ ## Cron expressions.  
  
- #### Expression fields.
+ #### Expression fields.  
  
- * _seconds_, mandatory
- 	* allowed values: 0-59
- 	* allowed special characters: , - * /
- * _minutes_, mandatory
- 	* allowed values: 0-59
- 	* allowed special characters: , - * /
- * _hours_, mandatory
- 	* allowed values: 0-23
- 	* allowed special characters: , - * /
- * _days of month_, mandatory
- 	* allowed values 1-31
- 	* allowed special characters: , - * /
- * _months_, mandatory
- 	* allowed values 1-12, Jan-Dec, January-December
- 	* allowed special characters: , - * /
- * _days of week_, optional
- 	* allowed values 1-7, Sun-Sat, Sunday-Saturday
- 	* allowed special characters: , - * / L #
- * _years_, optional
- 	* allowed values 1970-2099
- 	* allowed special characters: , - * /
+ * _seconds_, mandatory  
+ 	* allowed values: 0-59  
+ 	* allowed special characters: , - * /  
+ * _minutes_, mandatory  
+ 	* allowed values: 0-59  
+ 	* allowed special characters: , - * /  
+ * _hours_, mandatory  
+ 	* allowed values: 0-23  
+ 	* allowed special characters: , - * /  
+ * _days of month_, mandatory  
+ 	* allowed values 1-31  
+ 	* allowed special characters: , - * /  
+ * _months_, mandatory  
+ 	* allowed values 1-12, Jan-Dec, January-December  
+ 	* allowed special characters: , - * /  
+ * _days of week_, optional  
+ 	* allowed values 1-7, Sun-Sat, Sunday-Saturday  
+ 	* allowed special characters: , - * / L #  
+ * _years_, optional  
+ 	* allowed values 1970-2099  
+ 	* allowed special characters: , - * /  
  
  
  > Names of months and days of the week are case insensitive.  
@@ -568,15 +596,15 @@
  
  #### Special characters.
  
- * '*' means all values
- * ',' separates list items
- * '-' specifies range, for example, '10-12' means '10, 11, 12'
+ * '*' means all values  
+ * ',' separates list items  
+ * '-' specifies range, for example, '10-12' means '10, 11, 12'  
  * '/' specifies increments, for example, '0/15' in seconds field means '0,15,30,45',
-   '0-30/15' means '0,15,30'
+   '0-30/15' means '0,15,30'  
  * 'L' has to be used after digit and means _the last xxx day of the month_,
-   where xxx is day of week, for example, '6L' means _the last Friday of the month_
+   where xxx is day of week, for example, '6L' means _the last Friday of the month_  
  * '#' has to be used with digits before and after: 'x#y' and means _the y'th x day of the month_,
-   for example, '6#3' means _the third Friday of the month_ 
+   for example, '6#3' means _the third Friday of the month_   
  
  
  #### Cron expression builder.  

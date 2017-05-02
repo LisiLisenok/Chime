@@ -160,12 +160,7 @@ class TimeScheduler(
 				Chime.key.state -> schedulerState.string
 			};
 	
-	"Scheduler full info in `JSON`:
-	 	\"response\" -> ok,
-	 	\"name\" -> scheduler name,
-	 	\"state\" -> scheduler state
-	 	\"timers\" -> array of timer names
-	 "
+	"Scheduler full info in `JSON`"
 	shared JSON fullInfo => JSON {
 		Chime.key.name -> address,
 		Chime.key.state -> state.string,
