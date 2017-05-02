@@ -10,6 +10,9 @@ import herd.schedule.chime.timer {
 
 	StandardTimeRowFactory
 }
+import java.util {
+	JavaTimeZone=TimeZone
+}
 
 
 "Chime scheduler verticle. Starts scheduling.  
@@ -270,6 +273,20 @@ shared class Chime extends Verticle
 		
 	}
 
+	
+	"Applies JVM time zones for the converters."
+	static object jvmConverterFactory satisfies TimeConverterFactory {
+		shared actual TimeConverter? getConverter( String timeZone ) {
+			JavaTimeZone tz = JavaTimeZone.getTimeZone( timeZone );
+			if ( tz.id == timeZone ) {
+				return ConverterWithTimezone( tz );
+			}
+			else {
+				return null;
+			}
+		}
+	}
+	
 
 	"Scheduler manager."
 	variable SchedulerManager? scheduler = null;
@@ -315,7 +332,9 @@ shared class Chime extends Verticle
 		
 		// create scheduler
 		SchedulerManager sch = SchedulerManager (
-			actualAddress, vertx, vertx.eventBus(), StandardTimeRowFactory( maxYearPeriod ).initialize(), actualTolerance
+			actualAddress, vertx, vertx.eventBus(),
+			StandardTimeRowFactory( maxYearPeriod ).initialize(), jvmConverterFactory,
+			actualTolerance
 		);
 		scheduler = sch;
 		sch.connect();

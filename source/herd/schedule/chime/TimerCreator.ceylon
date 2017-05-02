@@ -25,9 +25,11 @@ import io.vertx.ceylon.core.eventbus {
 "Uses [[JSON]] description to creates [[TimerContainer]] with timer [[TimeRow]] created by timer factory."
 see( `interface TimeRowFactory`, `interface TimeRow`, `class TimerContainer` )
 since( "0.1.0" ) by( "Lis" )
-class TimerCreator( "Factory to create timers." TimeRowFactory factory )
-{
-		
+class TimerCreator (
+	"Factory to create timers." TimeRowFactory factory,
+	"Factory to instantiates time converters." TimeConverterFactory converterFactory
+) {
+	
 	"Creates timer from creation request."
 	shared TimerContainer|<Integer->String> createTimer (
 			"Timer name." String name,
@@ -93,7 +95,7 @@ class TimerCreator( "Factory to create timers." TimeRowFactory factory )
 			}
 		}
 		
-		if ( exists converter = dummyConverter.getConverter( request, defaultConverter ) ) {
+		if ( exists converter = converterFromRequest( request, converterFactory, defaultConverter ) ) {
 			return TimerContainer (
 				name, description, extractPublish( request ), timer,
 				converter, extractMaxCount( request ), startDate, endDate,

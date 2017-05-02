@@ -7,10 +7,6 @@ import java.util {
 	
 	JavaTimeZone=TimeZone
 }
-import ceylon.json {
-
-	JSON=Object
-}
 
 
 "Converting date-time according to rule (timezone)."
@@ -30,28 +26,10 @@ interface TimeConverter {
 
 "Defines time converter which does no convertion."
 since( "0.1.0" ) by( "Lis" )
-object dummyConverter satisfies TimeConverter {
+object emptyConverter satisfies TimeConverter {
 	
 	"Local time zone."
 	shared JavaTimeZone local = JavaTimeZone.default;
-	
-	"Returns converter by time zone name."
-	shared TimeConverter? getConverter (
-		"Timer description to get time zone name." JSON description,
-		"Default converter applied if no time zone given." TimeConverter defaultConverter ) {
-		if ( is String timeZoneID = description[Chime.key.timeZone] ) {
-			JavaTimeZone tz = JavaTimeZone.getTimeZone( timeZoneID );
-			if ( tz.id == timeZoneID ) {
-				return ConverterWithTimezone( tz );
-			}
-			else {
-				return null;
-			}
-		}
-		else {
-			return defaultConverter;
-		}
-	}
 	
 	"Returns `remote`."
 	shared actual DateTime toLocal( DateTime remote ) => remote;
@@ -68,17 +46,16 @@ object dummyConverter satisfies TimeConverter {
 since( "0.1.0" ) by( "Lis" )
 class ConverterWithTimezone( JavaTimeZone remoteTimeZone ) satisfies TimeConverter {
 	
-	
 	shared actual DateTime toLocal( DateTime remote ) {
 		Integer remoteTime = remote.instant().millisecondsOfEpoch;
 		Integer utcTime = remoteTime - remoteTimeZone.getOffset( remoteTime );
-		Integer localUTCOffset = dummyConverter.local.getOffset( utcTime + dummyConverter.local.getOffset( utcTime ) );
+		Integer localUTCOffset = emptyConverter.local.getOffset( utcTime + emptyConverter.local.getOffset( utcTime ) );
 		return Instant( utcTime + localUTCOffset ).dateTime();
 	}
 	
 	shared actual DateTime toRemote( DateTime local ) {
 		Integer localTime = local.instant().millisecondsOfEpoch;
-		Integer utcTime = localTime - dummyConverter.local.getOffset( localTime );
+		Integer utcTime = localTime - emptyConverter.local.getOffset( localTime );
 		Integer remoteUTCOffset = remoteTimeZone.getOffset( utcTime + remoteTimeZone.getOffset( utcTime ) );
 		return Instant( utcTime + remoteUTCOffset ).dateTime();
 	}

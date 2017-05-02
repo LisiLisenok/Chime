@@ -90,6 +90,7 @@ class SchedulerManager(
 	"Vetrx the scheduler is running on." Vertx vertx,
 	"Event bus used to dispatch messages." EventBus eventBus,
 	"Factory to create timers" TimeRowFactory factory,
+	"Factory to instantiates time converters." TimeConverterFactory converterFactory,
 	"Tolerance to compare fire time and current time in miliseconds." Integer tolerance 
 )
 		extends Operator( address, eventBus )
@@ -98,7 +99,7 @@ class SchedulerManager(
 	"Time schedulers."
 	HashMap<String, TimeScheduler> schedulers = HashMap<String, TimeScheduler>();
 	
-	TimerCreator creator = TimerCreator( factory );
+	TimerCreator creator = TimerCreator( factory, converterFactory );
 
 	
 	"Adds new scheduler.  
@@ -147,7 +148,8 @@ class SchedulerManager(
 				schedulerName = name;
 				timerName = "";
 			}
-			if ( exists converter = dummyConverter.getConverter( request, dummyConverter ) ) {
+			// instantiate scheduler
+			if ( exists converter = converterFromRequest( request, converterFactory, emptyConverter ) ) {
 				value scheduler = addScheduler( schedulerName, extractState( request ) else State.running, converter );
 				if ( request.defines( Chime.key.description ) ) {
 					// add timer to scheduler
