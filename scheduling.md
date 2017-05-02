@@ -117,7 +117,7 @@ In this article only basic features are considered:
 {
 	"operation": "create",
 	"name": "scheduler name:timer name",
-	"description": {...}
+	"description": {}
 };
 ```
 
@@ -134,7 +134,7 @@ The other fields not shown here are optional and includes:
 Currently three timer types are supported:  
 
 * __Interval timer__ which fires after each given time period (minimum 1 second):  
-```json
+```
 {  
 	// timer type, mandatory  
 	"type": "interval",
@@ -148,7 +148,7 @@ Currently three timer types are supported:
 ```  
 
 * __Cron style timer__ which is defined with cron-style:  
-```json
+```
 {  
 	 // timer type, mandatory  
 	"type": "cron",  
@@ -176,7 +176,7 @@ Cron timer is rather powerful and flexible.
 See specification details in [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime).  
 
 * __Union timer__ which combines a number of timers into a one:  
-```json
+```
 {  
 	// timer type, mandatory  
 	"type": "union",  
@@ -196,7 +196,7 @@ Union timer may be useful to fire at a list of specific dates / times.
 Once timer is started it sends or publishes messages to **scheduler name:timer name** address in JSON format.
 Two types of events are sent:  
 * fire event which occurs when time reaches next timer value:  
-```json
+```
 {  
 	// timer name  
 	"name": String,  
@@ -222,7 +222,7 @@ Two types of events are sent:
 };
 ```  
 * complete event which occurs when timer is exhausted by some criteria given at timer create request:  
-```json
+```
 {  
 	// timer name  
 	"name": String,  
