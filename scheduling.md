@@ -10,7 +10,7 @@ draft: true
 
 Executing periodic or delayed actions in Vert.x is performed with
 [one-shot and periodic timers](http://vertx.io/docs/vertx-core/java/#_executing_periodic_and_delayed_actions).
-This is the base for time scheduling and reach feature extension must be rather interesting.  
+This is the base for time scheduling and reach feature extension must be rather interesting.
 Be notified at certain date / time, take into account holidays,
 repeat notifications until a given date, apply time zone,
 take into account daylight saving time etc.
@@ -116,7 +116,7 @@ Now we have scheduler created and timers can be run within. There are two ways t
 2. Sending message to **chime** address using full timer name which is **scheduler name:timer name**.  
 
 Timer request is rather complicated and contains a lot of features.
-Look [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime) for the details.
+Investigate [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime) for the details.
 In this article only basic features are considered:  
 **in Ceylon:**  
 ```Ceylon
@@ -137,7 +137,7 @@ request.put("operation", "create")
 
 [INFO if create request is sent to Chime address with full timer name and corresponding scheduler hasn't been created before then Chime creates new scheduler.]
 
-This is rather similar to request sent to create scheduler.
+This is rather similar to request sent to create a scheduler.
 The difference is only **description** field is added.
 This description identifies particular timer type and details.  
 The other fields not shown here are optional and includes:  
@@ -161,7 +161,7 @@ JsonObject {
 	"delivery options\" -> JsonObject  
 };
 ``` 
-* __Cron style timer__. Timer which is defined in cron-style:  
+* __Cron style timer__. Timer which is defined with cron-style:  
 ```Ceylon
 JsonObject {  
 	 // timer type, mandatory  
