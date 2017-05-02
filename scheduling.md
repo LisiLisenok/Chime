@@ -118,18 +118,21 @@ Now we have scheduler created and timers can be run within. There are two ways t
 Timer request is rather complicated and contains a lot of features.
 Investigate [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime) for the details.
 In this article only basic features are considered:  
+
 **in Ceylon:**  
 ```Ceylon
+JsonObject description = JsonObject {...};
 JsonObject request = JsonObject {
 	"operation" -> "create",
 	"name" -> "scheduler name:timer name",
-	"description"-> JsonObject {...} // timer description
+	"description"-> description // timer description
 };
 ```
 **in Java:**  
 ```Java
 JsonObject request = new JsonObject();
 JsonObject description = new JsonObject();
+...
 request.put("operation", "create")
 	.put("name", "scheduler name:timer name")
 	.put("description", description);
@@ -150,7 +153,7 @@ The other fields not shown here are optional and includes:
 Currently three timer types are supported:  
 * __Interval timer__. Timer which fires after each given time period (minimum 1 second):  
 ```Ceylon
-JsonObject {  
+JsonObject description = JsonObject {  
 	// timer type, mandatory  
 	"type" -> "interval",  
 	// timer delay in seconds, if <= 0 timer fires only once, mandatory  
@@ -163,7 +166,7 @@ JsonObject {
 ``` 
 * __Cron style timer__. Timer which is defined with cron-style:  
 ```Ceylon
-JsonObject {  
+JsonObject description = JsonObject {  
 	 // timer type, mandatory  
 	"type" -> "cron",  
 	// seconds in cron style, mandatory, nonempty
@@ -190,7 +193,7 @@ Cron timer is rather powerful and flexible.
 See specification details in [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime).  
 * __Union timer__. Combines a number of timers into a one:  
 ```Ceylon
-JsonObject {  
+JsonObject description = JsonObject {  
 	// timer type, mandatory  
 	"type" -> "union",  
 	// list of the timers, each item is JSON according to its description, mandatory  
