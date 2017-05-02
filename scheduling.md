@@ -336,7 +336,7 @@ There are also some ideas for the future:
 * calendar, which bounds the timer fire time / date,
   for example, limiting it to working days only;  
 * extracting timer fire message from external source,
-  which provides the message to be modified at runtime.  
+  which helps the message to be dependent on some conditions.  
 
 This is very quick introduction to the _Chime_ and if you are interested in you may read
 more at [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime) or even [contribute](https://github.com/LisiLisenok/Chime) to.  
