@@ -4,8 +4,7 @@ import io.vertx.ceylon.core {
 }
 import io.vertx.ceylon.core.eventbus {
 
-	Message,
-	EventBus
+	Message
 }
 import ceylon.json {
 	
@@ -88,12 +87,11 @@ see(`class TimeScheduler`)
 class SchedulerManager(
 	"Address the _Cime_ listens to." String address,
 	"Vetrx the scheduler is running on." Vertx vertx,
-	"Event bus used to dispatch messages." EventBus eventBus,
 	"Factory to create timers" TimeRowFactory factory,
 	"Factory to instantiates time converters." TimeConverterFactory converterFactory,
 	"Tolerance to compare fire time and current time in miliseconds." Integer tolerance 
 )
-		extends Operator( address, eventBus )
+		extends Operator( address, vertx.eventBus() )
 {
 	
 	"Time schedulers."
@@ -113,7 +111,7 @@ class SchedulerManager(
 			return sch;
 		}
 		else {
-			TimeScheduler sch = TimeScheduler( name, schedulers.remove, vertx, eventBus, creator, tolerance, defaultConverter );
+			TimeScheduler sch = TimeScheduler( name, schedulers.remove, vertx, creator, tolerance, defaultConverter );
 			schedulers.put( name, sch );
 			sch.connect();
 			if ( state == State.running ) {

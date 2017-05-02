@@ -4,8 +4,7 @@ import io.vertx.ceylon.core {
 }
 import io.vertx.ceylon.core.eventbus {
 
-	Message,
-	EventBus
+	Message
 }
 import ceylon.json {
 
@@ -127,12 +126,11 @@ class TimeScheduler(
 	"Scheduler name." String address,
 	"Removes schedulerwhen delete operation requested." TimeScheduler?(String) removeScheduler,
 	"Vertx the scheduler operates on." Vertx vertx,
-	"EventBus to pass messages." EventBus eventBus,
 	"Factory to create timers." TimerCreator factory,
 	"Tolerance to compare fire time and current time in miliseconds." Integer tolerance,
 	"Default time converter or time zone if not specified at timer level." TimeConverter defaultConverter
 	)
-		extends Operator( address, eventBus )
+		extends Operator( address, vertx.eventBus() )
 {
 	
 	"Next ID used when no timer name specified."

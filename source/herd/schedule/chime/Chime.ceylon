@@ -332,8 +332,9 @@ shared class Chime extends Verticle
 		
 		// create scheduler
 		SchedulerManager sch = SchedulerManager (
-			actualAddress, vertx, vertx.eventBus(),
-			StandardTimeRowFactory( maxYearPeriod ).initialize(), jvmConverterFactory,
+			actualAddress, vertx,
+			StandardTimeRowFactory( maxYearPeriod ).initialize(),
+			jvmConverterFactory,
 			actualTolerance
 		);
 		scheduler = sch;
