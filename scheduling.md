@@ -117,7 +117,7 @@ In this article only basic features are considered:
 {
 	"operation": "create",
 	"name": "scheduler name:timer name",
-	"description": {"timer description, see below"}
+	"description": {"timer description, see [below](#timer-descriptions)"}
 };
 ```
 
@@ -132,9 +132,12 @@ The other fields not shown here are optional and includes:
 * timer fire message and delivery options;  
 * time zone.  
 
+
+## Timer descriptions.  
+
 Currently three timer types are supported:  
 
-* __Interval timer__ which fires after each given time period (minimum 1 second):  
+* __Interval timer__ fires after each given time period (minimum 1 second):  
 ```json
 {
 	"type": "interval",
@@ -142,7 +145,7 @@ Currently three timer types are supported:
 };
 ```  
 
-* __Cron style timer__ which is defined with cron-style:  
+* __Cron style timer__ is defined with cron-style:  
 ```json
 {  
 	"type": "cron",  
@@ -158,7 +161,7 @@ Currently three timer types are supported:
 Cron timer is rather powerful and flexible.
 See specification details in [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime).  
 
-* __Union timer__ which combines a number of timers into a one:  
+* __Union timer__ combines a number of timers into a one:  
 ```json
 {  
 	"type": "union",  
