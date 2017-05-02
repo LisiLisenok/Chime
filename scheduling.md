@@ -117,7 +117,7 @@ In this article only basic features are considered:
 {
 	"operation": "create",
 	"name": "scheduler name:timer name",
-	"description": {}
+	"description": {"timer description, see below"}
 };
 ```
 
@@ -162,7 +162,7 @@ See specification details in [Chime documentation](https://herd.ceylon-lang.org/
 ```json
 {  
 	"type": "union",  
-	"timers": ["list of the timer descriptions, JsonArray"]  
+	"timers": ["list of the timer descriptions"]  
 };
 ```  
 Union timer may be useful to fire at a list of specific dates / times.
@@ -216,7 +216,7 @@ eventBus.consumer (
 		else { print(msg); }	
 	}
 );
-// create timer
+// create scheduler and timer
 eventBus.send<JsonObject> (
 	"chime",
 	JsonObject {
@@ -267,7 +267,7 @@ JsonArray combination = (new JsonArray()).add(mondayTimer)
 	.add(fridayTimer);
 JsonObject timer = (new JsonObject()).put("type", "union")
 	.put("timers", combination);
-// create timer
+// create scheduler and timer
 eventBus.send (
 	"chime",
 	(new JsonObject()).put("operation", "create")
