@@ -149,7 +149,8 @@ The other fields not shown here are optional and includes:
 * time zone.  
 
 Currently three timer types are supported:  
-* __Interval timer__. Timer which fires after each given time period (minimum 1 second):  
+
+* __Interval timer__ which fires after each given time period (minimum 1 second).  
 ```Ceylon
 JsonObject description = JsonObject {  
 	// timer type, mandatory  
@@ -161,8 +162,9 @@ JsonObject description = JsonObject {
 	// delivery options the timer fire event is sent with, optional  
 	"delivery options\" -> JsonObject  
 };
-``` 
-* __Cron style timer__. Timer which is defined with cron-style:  
+```  
+
+* __Cron style timer__ which is defined with cron-style.  
 ```Ceylon
 JsonObject description = JsonObject {  
 	 // timer type, mandatory  
@@ -189,7 +191,8 @@ JsonObject description = JsonObject {
 ```  
 Cron timer is rather powerful and flexible.
 See specification details in [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime).  
-* __Union timer__. Combines a number of timers into a one:  
+
+* __Union timer__ which combines a number of timers into a one.  
 ```Ceylon
 JsonObject description = JsonObject {  
 	// timer type, mandatory  
