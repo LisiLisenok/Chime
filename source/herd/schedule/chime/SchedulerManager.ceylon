@@ -284,13 +284,22 @@ class SchedulerManager(
 			}
 		}
 		else if ( is JSONArray arr = nn, nonempty names = arr.narrow<String>().sequence() ) {
-			msg.reply (
-				JSON {
-					Chime.key.schedulers -> JSONArray (
-						[ for ( scheduler in schedulers.items ) if ( scheduler.address in names ) scheduler.fullInfo ]
-					)
+			JSONArray retSchedulers = JSONArray();
+			JSONArray retTimers = JSONArray();
+			for ( item in names ) {
+				if ( exists sch = schedulers[item] ) {
+					retSchedulers.add( sch.fullInfo );
 				}
-			);
+				else {
+					value schedulerName = schedulerNameFromFullName( item );
+					if ( !schedulerName.empty, exists sch = schedulers[schedulerName] ) {
+						if ( exists t = sch.timerInfo( item ) ) {
+							retTimers.add( t );
+						}
+					}
+				}
+			}
+			msg.reply( JSON{ Chime.key.schedulers -> retSchedulers, Chime.key.timers -> retTimers } );
 		}
 		else {
 			msg.reply (

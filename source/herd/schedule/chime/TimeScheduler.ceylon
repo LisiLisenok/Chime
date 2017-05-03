@@ -530,22 +530,37 @@ class TimeScheduler(
 			msg.fail( Chime.errors.codeTimerNameHasToBeSpecified, Chime.errors.timerNameHasToBeSpecified );
 		}
 	}
-		
+
+
+	"Return info on a given timer."
+	shared JSON? timerInfo( String name ) => timers[timerFullName( name )]?.fullDescription();
+
+	
 	"Replies with scheduler info - array of timer names."
 	shared void operationInfo( Message<JSON?> msg ) {
-		if ( is String tName = msg.body()?.get( Chime.key.name ) ) {
+		value nn = msg.body()?.get( Chime.key.name );
+		if ( is String tName = nn ) {
 			if ( tName.empty || tName == address ) {
 				// reply with info on this scheduler
 				msg.reply( fullInfo );
 			}
-			else if ( exists t = timers[timerFullName( tName )] ) {
+			else if ( exists t = timerInfo( tName ) ) {
 				// reply with timer info
-				msg.reply( t.fullDescription() );
+				msg.reply( t );
 			}
 			else {
 				// timer doesn't exist
 				msg.fail( Chime.errors.codeTimerNotExists, Chime.errors.timerNotExists );
 			}
+		}
+		else if ( is JSONArray arr = nn, nonempty names = arr.narrow<String>().sequence() ) {
+			JSONArray ret = JSONArray();
+			for ( item in names ) {
+				if ( exists t = timerInfo( item ) ) {
+					ret.add( t );
+				}
+			}
+			msg.reply( JSON{ Chime.key.timers -> ret } );
 		}
 		else {
 			// reply with info on this scheduler

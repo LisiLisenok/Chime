@@ -7,9 +7,9 @@
 	* [delete scheduler](#delete-scheduler)  
 	* [delete all schedulers](#delete-all-schedulers)  
 	* [delete a list of schedulers](#delete-a-list-of-schedulers)  
-	* [get info on all schedulers](#get-info-on-all-schedulers)  
-	* [get info on a given list of schedulers](#get-info-on-a-given-list-of-schedulers)  
 	* [get scheduler info](#get-scheduler-info)  
+	* [get info on all schedulers](#get-info-on-all-schedulers)  
+	* [get info on a list of schedulers](#get-info-on-a-list-of-schedulers)  
 	* [get scheduler state](#get-scheduler-state)  
 	* [set scheduler to paused state](#set-scheduler-to-paused-state)  
 	* [set scheduler to running state](#set-scheduler-to-running-state)  
@@ -18,6 +18,7 @@
 	* [delete timer](#delete-timer)  
 	* [delete a list of timers](#delete-a-list-of-timers)  
 	* [get timer info](#get-timer-info)  
+	* [get info on a list of timers](#get-info-on-a-list-of-timers)  
 	* [get timer state](#get-timer-state)  
 	* [set timer to paused state](#set-timer-to-paused-state)  
 	* [set timer to running state](#set-timer-to-running-state)  
@@ -104,7 +105,7 @@ To be sent to _Chime_ address.
 ##### Response.
 ```json
 {
-	"schedulers": ["first scheduler name", "nth scheduler name"]
+	"schedulers": ["name of first scheduler name", "...", "name of nth scheduler"]
 }
 ```  
 Where 'schedulers' array contains `String` names of deleted schedulers.  
@@ -119,7 +120,7 @@ To be sent to _Chime_ address.
 ```json
 {
 	"operation": "delete",
-	"name": ["first scheduler name", "nth scheduler name"]
+	"name": ["name of first scheduler", "...", "name of nth scheduler"]
 }
 ```
 Where name array contains `String`s with names of schedulers to be deleted.  
@@ -127,55 +128,10 @@ Where name array contains `String`s with names of schedulers to be deleted.
 ##### Response.
 ```json
 {
-	"schedulers": ["first scheduler name", "nth scheduler name"]
+	"schedulers": ["name of first scheduler", "...", "name of nth scheduler"]
 }
 ```  
 Where 'schedulers' array contains `String` names of deleted schedulers.  
-
--------------
-
-### Get info on all schedulers.  
-
-To be sent to _Chime_ address.  
-
-##### Request.  
-```json
-{
-	"operation": "info",
-	"name": ""
-}
-```  
-
-##### Response.
-```json
-{
-	"schedulers": []
-}
-```  
-Where `schedulers` array contains `JsonObject`'s of [scheduler info](#get-scheduler-info).  
-
--------------
-
-### Get info on a given list of schedulers.  
-
-To be sent to _Chime_ address.  
-
-##### Request.  
-```json
-{
-	"operation": "info",
-	"name": ["name of first scheduler", "name of second scheduler"]
-}
-```  
-Where `names` is array of `Strings` with names of schedulers info is requested for.  
-
-##### Response.
-```json
-{
-	"schedulers": []
-}
-```  
-Where `schedulers` array contains `JsonObject`'s of [scheduler info](#get-scheduler-info).  
 
 -------------
 
@@ -201,6 +157,51 @@ To be sent to _Chime_ address or to _scheduler_ address.
 }
 ```  
 Where `timers` array contains `JsonObject`'s of [timer info](#get-timer-info).
+
+-------------
+
+### Get info on all schedulers.  
+
+To be sent to _Chime_ address.  
+
+##### Request.  
+```json
+{
+	"operation": "info",
+	"name": ""
+}
+```  
+
+##### Response.
+```json
+{
+	"schedulers": []
+}
+```  
+Where `schedulers` array contains `JsonObject`'s of [scheduler info](#get-scheduler-info).  
+
+-------------
+
+### Get info on a list of schedulers.  
+
+To be sent to _Chime_ address.  
+
+##### Request.  
+```json
+{
+	"operation": "info",
+	"name": ["name of first scheduler", "...", "name of nth scheduler"]
+}
+```  
+Where `names` is array of `Strings` with names of schedulers info is requested for.  
+
+##### Response.
+```json
+{
+	"schedulers": []
+}
+```  
+Where `schedulers` array contains `JsonObject`'s of [scheduler info](#get-scheduler-info).  
 
 -------------
 
@@ -379,7 +380,7 @@ Where 'name' array contains `String`s with names of timers to be deleted.
 ##### Response.
 ```json
 {
-	"timers": ["scheduler name:timer name"]
+	"timers": ["name of first timer", "..." "name of nth timer"]
 }
 ```  
 Where 'timers' array contains `String`s with names of deleted timers.
@@ -410,6 +411,30 @@ or to _scheduler_ address with either full or short timer name.
 ```  
 Response contains all fields set at [timer create request](#create-timer).  
 `description` field contains `JsonObject` with [timer descriptions](#timer-descriptions).  
+
+-------------
+
+### Get info on a list of timers.  
+
+To be sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
+or to _scheduler_ address with either full or short timer name.  
+
+##### Request.  
+```json
+{
+	"operation": "info",
+	"name": ["name of first timer", "..." "name of nth timer"]
+}
+```  
+Where `names` is array of `Strings` with names of timers the info is requested for.  
+
+##### Response.
+```json
+{
+	"timers": []
+}
+```  
+Where `timers` array contains `JsonObject`'s of [timer info](#get-timer-info).  
 
 -------------
 
