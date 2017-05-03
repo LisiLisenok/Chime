@@ -37,6 +37,7 @@ shared interface Scheduler {
 	shared formal void info( "Info handler." Anything(Throwable|SchedulerInfo) info );
 	
 	"Requests info on a list of timers."
+	since( "0.2.1" )
 	shared formal void timersInfo (
 		"Names of timers info is requested for." {String+} timers,
 		"Info handler." Anything(Throwable|TimerInfo[]) info
@@ -44,6 +45,7 @@ shared interface Scheduler {
 	
 	"Deletes a list of timers.  
 	 `handler` is called with a list of actually deleted timers or with an error if occured. "
+	since( "0.2.1" )
 	shared formal void deleteTimers (
 		"Names of timers to be deleted." {String+} timers,
 		"Optional delete handler." Anything(Throwable|{String*})? handler = null
@@ -129,6 +131,7 @@ shared interface Scheduler {
 	}
 	
 	"Creates union timer."
+	since( "0.2.1" )
 	shared default void createUnionTimer (
 		"Callback when timer created."
 		Anything(Timer|Throwable) handler,
@@ -161,6 +164,7 @@ shared interface Scheduler {
 
 	
 	"Creates timer with the given description."
+	since( "0.2.1" )
 	shared formal void createTimer (
 		"Callback when timer created." Anything(Timer|Throwable) handler,
 		"JSON timer description." JSON description,

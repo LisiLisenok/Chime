@@ -67,7 +67,7 @@ shared void schedulerInfo (
 		Chime.key.operation -> Chime.operation.info
 	};
 	if ( !names.empty ) {
-		request.put( Chime.key.name, JSONArray{ for ( item in names ) item } );
+		request.put( Chime.key.name, JSONArray( names ) );
 	}
 	eventBus.send (
 		shimeAddress, request,
@@ -83,4 +83,45 @@ shared void schedulerInfo (
 			}
 		}
 	);
+}
+
+
+"Deletes schedulers or timers with the given names."
+tagged( "Proxy" )
+since( "0.2.1" ) by( "Lis" )
+shared void deleteSchedulersOrTimers (
+	"List of scheduler or timer names."
+	{String+} names,
+	"Address to call _Chime_."
+	String shimeAddress,
+	"Event bus to send message to _Chime_."
+	EventBus eventBus,
+	"Optional handler called with a list of names of actually deleted schedulers or timers."
+	Anything( Throwable|{String*} )? handler = null
+) {
+	JSON request = JSON {
+		Chime.key.operation -> Chime.operation.delete,
+		Chime.key.name -> JSONArray( names )
+	};
+	if ( exists handler ) {
+		eventBus.send (
+			shimeAddress, request,
+			( Throwable|Message<JSON?> msg ) {
+				if ( is Message<JSON?> msg ) {
+					"Reply from scheduler request has not to be null."
+					assert( exists ret = msg.body() );
+					handler (
+						ret.getArray( Chime.key.schedulers ).narrow<String>()
+							.chain( ret.getArray( Chime.key.timers ).narrow<String>() )
+					);
+				}
+				else {
+					handler( msg );
+				}
+			}
+		);
+	}
+	else {
+		eventBus.send( shimeAddress, request );		
+	}
 }
