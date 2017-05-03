@@ -175,14 +175,12 @@ class SchedulerManager(
 		if ( is String name = nn ) {
 			if ( name.empty || name == address ) {
 				// remove all schedulers
+				JSONArray ret = JSONArray();
 				for ( scheduler in schedulers.items ) {
 					scheduler.stop();
+					ret.add( scheduler.address );
 				}
-				msg.reply (
-					JSON {
-						Chime.key.schedulers -> JSONArray( [ for ( scheduler in schedulers.items ) scheduler.shortInfo ] )
-					}
-				);
+				msg.reply( JSON{ Chime.key.schedulers -> ret } );
 				schedulers.clear();
 			}
 			else if ( exists sch = schedulers.remove( name ) ) {
@@ -210,7 +208,7 @@ class SchedulerManager(
 				if ( exists sch = schedulers.remove( item ) ) {
 					// delete scheduler
 					sch.stop();
-					ret.add( sch.shortInfo );
+					ret.add( sch.address );
 				}
 			}
 			msg.reply( JSON{ Chime.key.schedulers -> ret } );

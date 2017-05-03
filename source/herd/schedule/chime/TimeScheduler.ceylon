@@ -409,7 +409,8 @@ class TimeScheduler(
 	
 	"Deletes existing timer."
 	shared void operationDelete( Message<JSON?> msg ) {
-		if ( exists request = msg.body(), is String tName = request[Chime.key.name] ) {
+		value nn = msg.body()?.get( Chime.key.name );
+		if ( is String tName = nn ) {
 			if ( tName.empty || tName == address ) {
 				// delete this scheduler
 				removeScheduler( address );
@@ -426,6 +427,18 @@ class TimeScheduler(
 				// timer doesn't exist
 				msg.fail( Chime.errors.codeTimerNotExists, Chime.errors.timerNotExists );
 			}
+		}
+		else if ( is JSONArray arr = nn, nonempty names = arr.narrow<String>().sequence() ) {
+			JSONArray ret = JSONArray();
+			for ( item in names ) {
+				if ( exists t = timers.remove( timerFullName( item ) ) ) {
+					// delete timer
+					t.complete(); // mark timer as complete
+					publishCompleteEvent( t ); // send timer complete message
+					ret.add( t.name );
+				}
+			}
+			msg.reply( JSON{ Chime.key.timers -> ret } );
 		}
 		else {
 			// timer name to be specified
