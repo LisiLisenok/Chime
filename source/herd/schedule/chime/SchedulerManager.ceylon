@@ -133,7 +133,7 @@ class SchedulerManager(
 				Chime.operation.info -> operationInfo
 			};
 	
-	"Processes 'create new scheduler' operation."
+	"Processes 'create new scheduler or timer' operation."
 	void operationCreate( Message<JSON?> msg ) {
 		if ( exists request = msg.body(), is String name = request[Chime.key.name], !name.empty && name != address ) {
 			String schedulerName;
@@ -169,20 +169,21 @@ class SchedulerManager(
 		}
 	}
 	
-	"Processes 'delete scheduler' operation."
+	"Processes 'delete scheduler or timer' operation."
 	void operationDelete( Message<JSON?> msg ) {
-		if ( exists request = msg.body(), is String name = request[Chime.key.name] ) {
+		value nn = msg.body()?.get( Chime.key.name );
+		if ( is String name = nn ) {
 			if ( name.empty || name == address ) {
 				// remove all schedulers
 				for ( scheduler in schedulers.items ) {
 					scheduler.stop();
 				}
-				schedulers.clear();
 				msg.reply (
 					JSON {
-						Chime.key.schedulers -> JSONArray( [ for ( scheduler in schedulers.items ) scheduler.fullInfo ] )
+						Chime.key.schedulers -> JSONArray( [ for ( scheduler in schedulers.items ) scheduler.shortInfo ] )
 					}
 				);
+				schedulers.clear();
 			}
 			else if ( exists sch = schedulers.remove( name ) ) {
 				// delete scheduler
@@ -202,6 +203,17 @@ class SchedulerManager(
 					msg.fail( Chime.errors.codeSchedulerNotExists, Chime.errors.schedulerNotExists );
 				}
 			}
+		}
+		else if ( is JSONArray arr = nn, nonempty names = arr.narrow<String>().sequence() ) {
+			JSONArray ret = JSONArray();
+			for ( item in names ) {
+				if ( exists sch = schedulers.remove( item ) ) {
+					// delete scheduler
+					sch.stop();
+					ret.add( sch.shortInfo );
+				}
+			}
+			msg.reply( JSON{ Chime.key.schedulers -> ret } );
 		}
 		else {
 			// response with wrong format error
