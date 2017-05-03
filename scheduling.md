@@ -53,6 +53,9 @@ import io.vertx.ceylon.core {vertx}
 import herd.schedule.chime {Chime}
 Chime().deploy(vertx.vertx());
 ```
+ 
+Or with `vertx.deployVerticle(\"ceylon:herd.schedule.chime/0.2.1\");`
+but ensure that Ceylon verticle factory is available at class path.   
 
 ### Java users.  
 
@@ -99,7 +102,7 @@ The request sent to the _Chime_ has to contain **operation** and **name** keys.
 Name key provides scheduler or timer name. While operation key shows an action _Chime_ has to perform.
 There are only four possible operations:  
 * create - create new scheduler or timer;  
-* delete - delete scheduler with all its timers;  
+* delete - delete scheduler or timer;  
 * info - request info on _Chime_ or on a particular scheduler or timer;  
 * state - set or get scheduler or timer state (running, paused or completed).  
 
@@ -107,18 +110,18 @@ There are only four possible operations:
 ## Timers.  
 
 Now we have scheduler created and timers can be run within. There are two ways to access a given timer:  
-1. Sending message to **scheduler name** address using **timer name**.  
-2. Sending message to **chime** address using full timer name which is **scheduler name:timer name**.  
+1. Sending message to **chime** address with 'name' field set to **scheduler name:timer name**.  
+2. Sending message to **scheduler name** address with 'name' field set to either **timer name** or **scheduler name:timer name**.  
 
 Timer request is rather complicated and contains a lot of features.
 Investigate [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime) for the details.
-In this article only basic features are considered:  
+In this blog post only basic features are considered:  
 
 ```json
 {
 	"operation": "create",
 	"name": "scheduler name:timer name",
-	"description": {"timer description, see [below](#timer-descriptions)"}
+	"description": {}
 };
 ```
 
@@ -136,9 +139,9 @@ The other fields not shown here are optional and includes:
 
 ## Timer descriptions.  
 
-Currently three timer types are supported:  
+Currently, three types of timers are supported:  
 
-* __Interval timer__ fires after each given time period (minimum 1 second):  
+* __Interval timer__ which fires after each given time period (minimum 1 second):  
 ```json
 {
 	"type": "interval",
@@ -146,7 +149,7 @@ Currently three timer types are supported:
 };
 ```  
 
-* __Cron style timer__ is defined with cron-style:  
+* __Cron style timer__ which is defined with cron-style:  
 ```json
 {  
 	"type": "cron",  
@@ -162,7 +165,7 @@ Currently three timer types are supported:
 Cron timer is rather powerful and flexible.
 See specification details in [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime).  
 
-* __Union timer__ combines a number of timers into a one:  
+* __Union timer__ which combines a number of timers into a one:  
 ```json
 {  
 	"type": "union",  
@@ -242,7 +245,7 @@ eventBus.send<JsonObject> (
 
 [INFO '*' means any, 'SundayL' means last Sunday.]  
 
-[NOTE If 'create' request is sent to Chime address with full timer name and corresponding scheduler hasn't been created before then Chime creates both new scheduler and new timer.]  
+[NOTE If 'create' request is sent to Chime address with name set to 'scheduler name:timer name' and corresponding scheduler hasn't been created before then Chime creates both new scheduler and new timer.]  
 
 
 ### Java example.  
