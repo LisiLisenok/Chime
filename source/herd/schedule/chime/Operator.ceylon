@@ -20,7 +20,7 @@ abstract class Operator (
 	
 	"Event bus consumer."
 	variable MessageConsumer<JSON?>? consumer = null; 
-			
+	
 	"Operators map."	
 	variable Map<String, Anything(Message<JSON?>)>? operators = null;
 	
