@@ -99,6 +99,8 @@ class SchedulerManager(
 	
 	TimerCreator creator = TimerCreator( factory, converterFactory );
 
+	String schedulerNameFromFullName( String fullName )
+		=> fullName.spanTo( ( fullName.firstInclusion( Chime.configuration.nameSeparator ) else 0 ) - 1 );
 	
 	"Adds new scheduler.  
 	 Retruns new or already existed shceduler with name `name`."
@@ -191,7 +193,7 @@ class SchedulerManager(
 			}
 			else {
 				// scheduler doesn't exists - look if name is full timer name
-				value schedulerName = name.spanTo( ( name.firstInclusion( Chime.configuration.nameSeparator ) else 0 ) - 1 );
+				value schedulerName = schedulerNameFromFullName( name );
 				if ( !schedulerName.empty, exists sch = schedulers[schedulerName] ) {
 					// scheduler has to remove timer
 					sch.operationDelete( msg );
@@ -203,15 +205,25 @@ class SchedulerManager(
 			}
 		}
 		else if ( is JSONArray arr = nn, nonempty names = arr.narrow<String>().sequence() ) {
-			JSONArray ret = JSONArray();
+			JSONArray retSchedulers = JSONArray();
+			JSONArray retTimers = JSONArray();
 			for ( item in names ) {
 				if ( exists sch = schedulers.remove( item ) ) {
 					// delete scheduler
 					sch.stop();
-					ret.add( sch.address );
+					retSchedulers.add( sch.address );
+				}
+				else {
+					// delete timer
+					value schedulerName = schedulerNameFromFullName( item );
+					if ( !schedulerName.empty, exists sch = schedulers[schedulerName] ) {
+						if ( exists t = sch.deleteTimer( item ) ) {
+							retTimers.add( t.name );
+						}
+					}
 				}
 			}
-			msg.reply( JSON{ Chime.key.schedulers -> ret } );
+			msg.reply( JSON{ Chime.key.schedulers -> retSchedulers, Chime.key.timers -> retTimers } );
 		}
 		else {
 			// response with wrong format error
@@ -228,7 +240,7 @@ class SchedulerManager(
 				}
 				else {
 					// scheduler doesn't exists - look if name is full timer name
-					value schedulerName = name.spanTo( ( name.firstInclusion( Chime.configuration.nameSeparator ) else 0 ) - 1 );
+					value schedulerName = schedulerNameFromFullName( name );
 					if ( !schedulerName.empty, exists sch = schedulers[schedulerName] ) {
 						// scheduler has to provide timer state
 						sch.operationState( msg );
@@ -260,7 +272,7 @@ class SchedulerManager(
 			}
 			else {
 				// scheduler doesn't exists - look if name is full timer name
-				value schedulerName = name.spanTo( ( name.firstInclusion( Chime.configuration.nameSeparator ) else 0 ) - 1 );
+				value schedulerName = schedulerNameFromFullName( name );
 				if ( !schedulerName.empty, exists sch = schedulers[schedulerName] ) {
 					// scheduler has to reply for timer info
 					sch.operationInfo( msg );

@@ -408,6 +408,19 @@ class TimeScheduler(
 	}
 	
 	"Deletes existing timer."
+	shared TimerContainer? deleteTimer( String name ) {
+		if ( exists t = timers.remove( timerFullName( name ) ) ) {
+			// delete timer
+			t.complete(); // mark timer as complete
+			publishCompleteEvent( t ); // send timer complete message
+			return t;
+		}
+		else {
+			return null;
+		}
+	}
+	
+	"'delete' timer request."
 	shared void operationDelete( Message<JSON?> msg ) {
 		value nn = msg.body()?.get( Chime.key.name );
 		if ( is String tName = nn ) {
@@ -417,10 +430,7 @@ class TimeScheduler(
 				stop();
 				msg.reply( shortInfo );
 			}
-			else if ( exists t = timers.remove( timerFullName( tName ) ) ) {
-				// delete timer
-				t.complete(); // mark timer as complete
-				publishCompleteEvent( t ); // send timer complete message
+			else if ( exists t = deleteTimer( tName ) ) {
 				msg.reply( t.stateDescription() ); // timer successfully removed
 			}
 			else {
