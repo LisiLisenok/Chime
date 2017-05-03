@@ -1,6 +1,7 @@
 # Complete list of json messages.  
 
 ## Content.  
+* [Terminology](#terminology)
 * [Scheduler](#scheduler-request)  
 	* [create scheduler](#create-scheduler)  
 	* [delete scheduler](#delete-scheduler)  
@@ -27,13 +28,25 @@
 * [Timer events](#timer-events)  
 	* [fire event](#fire-event)  
 	* [complete event](#complete-event)  
-  
+
+
+## Terminology.  
+
+* _Chime_ address is event bus address _Chime_ is listen to.
+  Given with verticle configuration. Default is "chime".  
+* Scheduler address or name is given name scheduler is created with.
+  _Chime_ listens event bus at this address for the messages to the given scheduler.  
+* Timer name is given name timer is created with.  
+* Timer full name is 'scheduler name' and 'timer name' separated with ':', i.e. 'scheduler name:timer name'.
+  _Chime_ sends or publishes timer events to this address.  
+
+-------------
 
 ## Scheduler request.  
 
 ### Create scheduler.  
 
-Sent to _Chime_ address.  
+To be sent to _Chime_ address.  
 
 ##### Request.
 ```json
@@ -55,7 +68,7 @@ Sent to _Chime_ address.
 
 ### Delete scheduler.  
 
-Sent to _Chime_ address or to _scheduler_ address.  
+To be sent to _Chime_ address or to _scheduler_ address.  
 
 ##### Request.  
 ```json
@@ -77,7 +90,7 @@ Sent to _Chime_ address or to _scheduler_ address.
 
 ### Delete all schedulers.  
 
-Sent to _Chime_ address.  
+To be sent to _Chime_ address.  
 
 ##### Request.  
 ```json
@@ -99,7 +112,7 @@ Where 'schedulers' array contains `String` names of deleted schedulers.
 
 ### Delete a list of schedulers.  
 
-Sent to _Chime_ address.  
+To be sent to _Chime_ address.  
 
 ##### Request.  
 ```json
@@ -122,7 +135,7 @@ Where 'schedulers' array contains `String` names of deleted schedulers.
 
 ### Get info on all schedulers.  
 
-Sent to _Chime_ address.  
+To be sent to _Chime_ address.  
 
 ##### Request.  
 ```json
@@ -144,7 +157,7 @@ Where `schedulers` array contains `JsonObject`'s of [scheduler info](#get-schedu
 
 ### Get info on a given list of schedulers.  
 
-Sent to _Chime_ address.  
+To be sent to _Chime_ address.  
 
 ##### Request.  
 ```json
@@ -167,7 +180,7 @@ Where `schedulers` array contains `JsonObject`'s of [scheduler info](#get-schedu
 
 ### Get scheduler info.  
 
-Sent to _Chime_ address or to _scheduler_ address.  
+To be sent to _Chime_ address or to _scheduler_ address.  
 
 ##### Request.  
 ```json
@@ -192,7 +205,7 @@ Where `timers` array contains `JsonObject`'s of [timer info](#get-timer-info).
 
 ### Get scheduler state.  
 
-Sent to _Chime_ address or to _scheduler_ address.  
+To be sent to _Chime_ address or to _scheduler_ address.  
 
 ##### Request.  
 ```json
@@ -215,7 +228,7 @@ Sent to _Chime_ address or to _scheduler_ address.
 
 ### Set scheduler to paused state.  
 
-Sent to _Chime_ address or to _scheduler_ address.  
+To be sent to _Chime_ address or to _scheduler_ address.  
 Pausing scheduler leads to all timers operated within the given scheduler are paused.  
 
 ##### Request.  
@@ -239,7 +252,7 @@ Pausing scheduler leads to all timers operated within the given scheduler are pa
 
 ### Set scheduler to running state.  
 
-Sent to _Chime_ address or to _scheduler_ address.  
+To be sent to _Chime_ address or to _scheduler_ address.  
 Resuming scheduler leads to all timers with running state are resumed.
 While timers with paused state are remain paused.  
 
@@ -267,7 +280,7 @@ While timers with paused state are remain paused.
 
 ### Create timer.  
 
-Sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
+To be sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
 or to _scheduler_ address with either full or short timer name.  
 
 ##### Request.  
@@ -327,7 +340,7 @@ Other fields are optional, default values are:
 
 ### Delete timer.  
 
-Sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
+To be sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
 or to _scheduler_ address with either full or short timer name.  
 
 ##### Request.  
@@ -350,7 +363,7 @@ or to _scheduler_ address with either full or short timer name.
 
 ### Delete a list of timers.  
 
-Sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
+To be sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
 or to _scheduler_ address with either full or short timer name.  
 
 ##### Request.  
@@ -374,7 +387,7 @@ Where 'timers' array contains `String`s with names of deleted timers.
 
 ### Get timer info.  
 
-Sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
+To be sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
 or to _scheduler_ address with either full or short timer name.  
 
 ##### Request.  
@@ -401,7 +414,7 @@ Response contains all fields set at [timer create request](#create-timer).
 
 ### Get timer state.  
 
-Sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
+To be sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
 or to _scheduler_ address with either full or short timer name.  
 
 ##### Request.  
@@ -425,7 +438,7 @@ or to _scheduler_ address with either full or short timer name.
 
 ### Set timer to running state.  
 
-Sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
+To be sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
 or to _scheduler_ address with either full or short timer name.  
 
 ##### Request.  
@@ -449,7 +462,7 @@ or to _scheduler_ address with either full or short timer name.
 
 ### Set timer to paused state.  
 
-Sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
+To be sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
 or to _scheduler_ address with either full or short timer name.  
 
 ##### Request.  
