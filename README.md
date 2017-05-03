@@ -19,7 +19,7 @@ _Chime_ is time scheduler verticle which works on _Vert.x_ event bus and provide
 * listening and sending messages via event bus with _JSON_
 * _publishing_ or _sending_ timer fire event to the address of your choice  
 
-_Chime_ is written in [Ceylon](https://ceylon-lang.org) and is available on
+_Chime_ is written in [Ceylon](https://ceylon-lang.org) and is available at
 [Ceylon Herd](https://herd.ceylon-lang.org/modules/herd.schedule.chime)  
 
 > Runs with Ceylon 1.3.2 and Vert.x 3.4.1  
@@ -30,7 +30,7 @@ _Chime_ is written in [Ceylon](https://ceylon-lang.org) and is available on
 1. Deploy _Chime_ verticle  
 2. Create and listen timers on _EventBus_, see details in [API docs](https://modules.ceylon-lang.org/repo/1/herd/schedule/chime/0.2.0/module-doc/api/index.html)  
 
-> _Chime_ communicates over event bus with `Json` messages and complete list of messages is available [here](howto.md) 
+> _Chime_ communicates over event bus with `Json` messages. Complete list of messages is available [here](howto.md) 
 
 Examples:  
 * [with Ceylon](examples/herd/examples/schedule/chime)  

@@ -42,7 +42,8 @@ shared interface Scheduler {
 		Anything(Timer|Throwable) handler,
 		"Interval timer delay in seconds."
 		Integer delay,
-		"Timer name. Timer address is timer full name, i.e. \"scheduler name:timer name\"."
+		"Timer name. Timer address is timer full name, i.e. \"scheduler name:timer name\".  
+		 By default unique timer name is generate."
 		String? timerName = null,
 		"`True` if timer is paused at initial and `false` if running."
 		Boolean paused = false,
@@ -75,7 +76,8 @@ shared interface Scheduler {
 		"Months." String months,
 		"Optional days of week." String? daysOfWeek = null,
 		"Optional years." String? years = null,
-		"Timer name. Timer address is timer full name, i.e. \"scheduler name:timer name\"."
+		"Timer name. Timer address is timer full name, i.e. \"scheduler name:timer name\".  
+		 By default unique timer name is generate."
 		String? timerName = null,
 		"`True` if timer is paused at initial and `false` if running."
 		Boolean paused = false,
@@ -119,7 +121,8 @@ shared interface Scheduler {
 		Anything(Timer|Throwable) handler,
 		"Nonempty list of the timers to be combined into union."
 		{JSON+} timers,
-		"Timer name. Timer address is timer full name, i.e. \"scheduler name:timer name\"."
+		"Timer name. Timer address is timer full name, i.e. \"scheduler name:timer name\".  
+		 By default unique timer name is generate."
 		String? timerName = null,
 		"`True` if timer is paused at initial and `false` if running."
 		Boolean paused = false,
@@ -148,7 +151,8 @@ shared interface Scheduler {
 	shared formal void createTimer (
 		"Callback when timer created." Anything(Timer|Throwable) handler,
 		"JSON timer description." JSON description,
-		"Timer name. Timer address is timer full name, i.e. \"scheduler name:timer name\"."
+		"Timer name. Timer address is timer full name, i.e. \"scheduler name:timer name\".  
+		 By default unique timer name is generate."
 		String? timerName = null,
 		"`True` if timer is paused at initial and `false` if running."
 		Boolean paused = false,

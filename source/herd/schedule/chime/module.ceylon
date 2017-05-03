@@ -19,34 +19,60 @@
  * listening and sending messages via event bus with _JSON_;  
  * _publishing_ or _sending_ timer fire event to the address of your choice.  
  
- > _Chime_ communicates over event bus with \`Json\` messages and complete list of messages is available
+ > _Chime_ communicates over event bus with \`Json\` messages. Complete list of messages is available
    at [Github](https://github.com/LisiLisenok/Chime/blob/master/howto.md).  
  
  
- ## Running.
+ ## Content.  
+ * [Running the Chime.](#running)  
+ * [Configuration.](#configuration)  
+ * [Scheduling.](#scheduling)  
+ 	* [Requests and responses.](#requests-and-responses)  
+ 	* [Scheduler.](#scheduler)  
+ 		* [Request.](#scheduler-request)  
+ 		* [Example.](#scheduler-example)  
+ 	* [Timer.](#timer)  
+ 		* [Request.](#timer-request)  
+ 		* [Unique timer name.](#unique-timer-name)  
+ 		* [Supported timers.](#supported-timers)  
+ 		* [Events.](#timer-events)  
+ 		* [Time zones.](#time-zones)  
+ 		* [Example.](#timer-example)  
+ 	* [Scheduler and timer interfaces.](#scheduler-timer-interfaces)
+ 	* [Error messages.](#error-messages)  
+ * [Cron expression.](#cron-expression)  
+ 	* [Expression fields.](#cron-expression-fields)  
+ 	* [Special characters.](#cron-special-characters)  
+ 	* [Cron expression builder.](#cron-expression-builder)  
  
- Deploy _Chime_ using `Verticle.deployVerticle` method.  
+ 
+ ## <a name =\"running\"></a> Running the Chime.
+ 
+ Deploy _Chime_ using `Verticle.deployVerticle` method:  
  
  		import io.vertx.ceylon.core {vertx}
  		import herd.schedule.chime {Chime}
  		Chime c = Chime().deploy(vertx.vertx());
  
- > _Chime_ exchanges events with customers via event bus using `JSON` messages.  
+ Or with `vertx.deployVerticle(\"ceylon:herd.schedule.chime/0.2.1\");`
+ but ensure that Ceylon verticle factory is available at class path.    
  
  
- ## Configuration.
+ ## <a name =\"configuration\"></a> Configuration.
  
  Following parameters could be specified in `JSON` verticle configuration:  
  		JsonObject {
- 			// address _Chime_ is listen to
- 			\"address\" -> `String`, default is \"chime\"
- 			// limiting scheduling period in years
- 			\"max year period limit\" -> `Integer`, default is 10 years
+ 			// address _Chime_ is listen to, default is \"chime\"
+ 			\"address\" -> String,
+ 			// limiting scheduling period in years, default is 10 years
+ 			\"max year period limit\" -> Integer,
  			// tolerance in milliseconds used to compare actual and requested times
- 			\"tolerance\" -> `Integer`, default is 10 milliseconds
- 		}
+ 			// default is 10 milliseconds
+ 			\"tolerance\" -> Integer
+ 		};
  
- ## Scheduling.
+ 
+ ## <a name =\"scheduling\"></a> Scheduling.  
  
  _Chime_ operates by two structures: _timer_ and _scheduler_.  
  Timer is a unit which fires at a given time.
@@ -57,138 +83,96 @@
  * default time zone;  
  * listening event bus at the given scheduler address for the requests to.  
  
+  
+ -----------------
  
- ### _Scheduler_.
+ ### <a name =\"requests-and-responses\"></a> Requests and responses.  
  
- At least one scheduler has to be created before creating timers.  
+ _Chime_ communicates over event bus with \`Json\` messages.
+ Complete list of requests and responses is available
+ at [Github](https://github.com/LisiLisenok/Chime/blob/master/howto.md).  
+ 
+ Each request must contain \"operation\" field which identifies an action Chime has to perform.  
+ The following operations are available:  
+ * **\"create\"** - create new scheduler or timer.
+ * **\"delete\"** - delete scheduler or timer.
+ * **\"info\"** - request info on _Chime_ or on a particular scheduler or timer.
+ * **\"state\"**:
+ 	* if set to **\"get\"** then scheduler or timer state has to be returned;
+ 	* if set to **\"running\"** then scheduler or timer is to be set to _running_ state;
+ 	* if set to **\"paused\"** then scheduler or timer is to be set to _paused_ state;
+ 
+ 
+ -----------------
+ 
+ ### <a name =\"scheduler\"></a> Scheduler.  
+ 
+ At least one scheduler has to be created before creating timers.
  Each timer operates within some particular scheduler.  
- All messages _Chime_ listens are to be sent to _Chime_ address or to scheduler address.  
+ All messages _Chime_ listens are to be sent to _Chime_ address or to scheduler address.
+ The difference is that _Chime address_ provides services for every scheduler, while
+ messages to _scheduler address_ are only for this particular scheduler.  
+
  
- #### Scheduler messages.
+ #### <a name =\"scheduler-request\"></a> Scheduler request.  
  
  In order to maintain schedulers send `JSON` message to _Chime_ address (specified in configuration, \"chime\" is default)
  in the following format:
  		JsonObject {
- 			\"operation\" -> String // operation code, mandatory  
- 			\"name\" -> String // scheduler name, mandatory   
- 			\"state\" -> String // state, mandatory only if operation = 'state'  
- 			\"time zone\" -> String // default time zone ID, overriden by timer time zone, optional  
+ 			// operation code, mandatory
+ 			\"operation\" -> String,  
+ 			// scheduler name, mandatory
+ 			\"name\" -> String|JsonArray,   
+ 			// state, mandatory only if operation = 'state' otherwise optional
+ 			\"state\" -> String,  
+ 			// default time zone ID, overriden by timer time zone, optional
+ 			\"time zone\" -> String   
  		};
  
  > _Chime_ listens event bus at \"scheduler name\" address with messages for the given scheduler.  
- 
- 
- #### Scheduler operation codes.
-  
- * **\"create\"** - create new scheduler with specified name, state and description,
-   if state is not specified, scheduler is put to running state.
- * **\"delete\"** - delete scheduler with name `name`. All timers belong to the scheduler are deleted.
- * **\"info\"** - request info on _Chime_ or on a particular scheduler (scheduler name to be provided).
- * **\"state\"**:
- 	* if set to **\"get\"** then state has to be returned;
- 	* if set to **\"running\"** then scheduler is to be set to _running_, which leads all non paused timers are _running_;
- 	* if set to **\"paused\"** then scheduler is to be set to _paused_, which leads all timers are _paused_;
- 	* otherwise error is returned.
- 
- 
- #### Scheduler request examples.
- 
- 	// create new scheduler with name \"scheduler name\"
- 	JsonObject message = JsonObject { 
- 		\"operation\" -> \"create\", 
- 		\"name\" -> \"scheduler name\" 
- 	} ;
-  	
-  	// change state of scheduler with \"scheduler name\" to paused
- 	JsonObject message = JsonObject { 
- 		\"operation\" -> \"state\", 
- 		\"name\" -> \"scheduler name\",  
- 		\"state\" -> \"paused\"
- 	}; 
- 	
- 
- #### Scheduler response.  
- 
- _Chime_ responds on messages in `JSON` format:  
 
- 		JsonObject {
- 			\"name\" -> String // scheduler name  
- 			\"state\" -> String // scheduler state  
- 		};
- 		
- or on **\"info\"** request with no or empty **\"name\"** field
  
- 		JsonObject {
- 			\"schedulers\" -> JSONArray // Schedulers info. Each item contains name, state and a list of timers.  
- 		};
- where each item of the array is in format:
- 		JsonObject {
- 			\"name\" -> String // scheduler name  
- 			\"state\" -> String // scheduler state  
- 			\"timers\" -> JsonArray // list of scheduler timers
- 		}; 
- Where each item of the 'timers' array contains the same fields as provided with timer 'create' request (see below).
- Except:
- * 'state' which contains current state
- * 'count' which contains current number of fires.
+ #### <a name =\"scheduler-example\"></a> Scheduler example.  
  
- 
- #### Error response.  
- 
- The error response is sent using `Message.fail` with corresponding code and message, see [[Chime.errors]]. 
- 
- 
- #### Requesting info for a number of schedulers.  
- 
- Send message: 
- 		JsonObject message = JsonObject { 
- 			\"operation\" -> \"info\", 
- 			\"name\" -> JsonArray{\"name1\", ...} 
- 		}; 
- 
- I.e. name field contains JSON array with list of schedulers name.
- _Chime_ responds with:
- 		JsonObject {
- 			\"schedulers\" -> JsonArray{...} 
- 		};
- 
- Where returned JSON array contains info for all schedulers the info is requested for.  
- 
- 
- #### Deleting all schedulers / timers.  
- 
- Send delete message to the _Chime_ address with empty name or name equal to _Chime_ address:
- 		eventBus.send (
- 			chimeAddress,
+ 		// create scheduler with name 'scheduler'
+ 		eventBus.send<JsonObject> (
+ 			\"chime\",
  			JsonObject {
- 				Chime.key.operation -> Chime.operation.delete,
- 				Chime.key.name -> \"\"
+ 				\"operation\" -> \"create\",
+ 				\"name\" -> \"scheduler\"
+ 			},
+ 			(Throwable|Message<JsonObject> msg) {
+ 				if (is Message<JsonObject> msg) {
+ 					// scheduler has been successfully created
+ 				}
+ 				else {
+ 					// error while creating scheduler
+ 				}
+ 			}
+ 		);
+ 		
+ 		// set scheduler state to paused
+ 		eventBus.send<JsonObject> (
+ 			\"chime\",
+ 			JsonObject {
+ 				\"operation\" -> \"state\",
+ 				\"name\" -> \"scheduler\",
+ 				\"state\" -> \"paused\"
+ 			},
+ 			(Throwable|Message<JsonObject> msg) {
+ 				if (is Message<JsonObject> msg) {
+ 					// scheduler state is set to paused
+ 				}
+ 				else {
+ 					// error while setting scheduler state
+ 				}
  			}
  		);
  
- #### Pausing the given scheduler.    
  
- Pausing scheduler leads to all timers operated within the given scheduler are paused.  
+ -----------------
  
-  	JsonObject message = JsonObject { 
- 		\"operation\" -> \"state\", 
- 		\"name\" -> \"scheduler name\",  
- 		\"state\" -> \"paused\"
- 	}; 
- 
- #### Resuming the given scheduler.    
- 
- Resuming scheduler leads to all timers with running state are resumed.
- While timers which havepaused state are remain paused.  
- 
-  	JsonObject message = JsonObject { 
- 		\"operation\" -> \"state\", 
- 		\"name\" -> \"scheduler name\",  
- 		\"state\" -> \"running\"
- 	};
- 
- 
- ### _Timer_.
+ ### <a name =\"timer\"></a> Timer.
  
  Once scheduler is created timers can be run within.  
  
@@ -196,53 +180,84 @@
  * sending message to \"scheduler name\" address using timer short name \"timer name\"  
  * sending message to _Chime_ address using full timer name which is \"scheduler name:timer name\"  
  
- 
  > Timer full name is _scheduler name_ and _timer name_ separated with ':', i.e. \"scheduler name:timer name\".  
  
  > Timer fire message is sent to _timer full name_ address.  
  
  
- #### Timer request.
+ #### <a name =\"timer-request\"></a> Request.
  
+ > Complete list of requests and responses is available
+   at [Github](https://github.com/LisiLisenok/Chime/blob/master/howto.md).  
+  
  Request has to be sent in `JSON` format to _scheduler name_ address with _timer short name_
  or to _Chime_ address with _timer full name_.  
  Request format:  
  	JsonObject {  
- 		\"operation\" -> String // operation code, mandatory  
- 		\"name\" -> String // timer short or full name, mandatory  
- 		\"state\" -> String // state, optional, except if operation = 'sate'  
+ 		// operation code, mandatory
+ 		\"operation\" -> String,
+ 		// timer short or full name, mandatory  
+ 		\"name\" -> String|JsonArray,
+ 		// state, optional, except if operation = 'state' 
+ 		\"state\" -> String,
  		
  		// fields for create operation:
- 		\"maximum count\" -> Integer // maximum number of fires, default - unlimited  
- 		\"publish\" -> Boolean // if true message to be published and to be sent otherwise, optional  
+ 		
+ 		// maximum number of fires, default - unlimited
+ 		\"maximum count\" -> Integer,
+ 		// if true message to be published and to be sent otherwise, optional, default is false
+ 		\"publish\" -> Boolean,
  
- 		\"start time\" -> JsonObject // start time, nonmadatory, if doesn't exist timer will start immediately  
+ 		// start time, optional, if doesn't exist timer will start immediately
+ 		\"start time\" -> JsonObject  
  		{
- 			\"seconds\" -> Integer // seconds, mandatory  
- 			\"minutes\" -> Integer // minutes, mandatory  
- 			\"hours\" -> Integer // hours, mandatory  
- 			\"day of month\" -> Integer // days of month, mandatory  
- 			\"month\" -> Integer or String // months, mandatory  
- 			\"year\" -> Integer // year, mandatory  
- 		}  
+ 			// seconds, mandatory
+ 			\"seconds\" -> Integer,  
+ 			// minutes, mandatory
+ 			\"minutes\" -> Integer,  
+ 			// hours, mandatory
+ 			\"hours\" -> Integer,  
+ 			// days of month, mandatory
+ 			\"day of month\" -> Integer,  
+ 			// months, mandatory
+ 			\"month\" -> Integer|String,  
+ 			// year, mandatory
+ 			\"year\" -> Integer  
+ 		},
  
- 		\"end time\" -> JsonObject // end time, nonmadatory, default no end time  
+ 		// end time, nonmadatory, default no end time
+ 		\"end time\" -> JsonObject  
  		{  
- 			\"seconds\" -> Integer // seconds, mandatory  
- 			\"minutes\" -> Integer // minutes, mandatory  
- 			\"hours\" -> Integer // hours, mandatory  
- 			\"day of month\" -> Integer // days of month, mandatory  
- 			\"month\" -> Integer or String // months, mandatory  
- 			\"year\" -> Integer // year, mandatory  
- 		}  
+ 			// seconds, mandatory
+ 			\"seconds\" -> Integer,  
+ 			// minutes, mandatory
+ 			\"minutes\" -> Integer,  
+ 			// hours, mandatory
+ 			\"hours\" -> Integer,  
+ 			// days of month, mandatory
+ 			\"day of month\" -> Integer,  
+ 			// months, mandatory
+ 			\"month\" -> Integer|String,  
+ 			// year, mandatory
+ 			\"year\" -> Integer  
+ 		},
  
- 		\"time zone\" -> String // time zone, optional, default is scheduler time zone or server local if not given at both scheduler and timer  
+ 		// time zone, optional, default is scheduler time zone
+ 		// or server local if not given at both scheduler and timer
+ 		\"time zone\" -> String,   
 
- 		\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray // message which added to timer fire event, optional  
- 		\"delivery options\" -> JsonObject // delivery options the timer fire event is sent with, optional  
+ 		// message which is attached to timer fire event, optional
+ 		\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray
+ 		// delivery options the timer fire event is sent with, optional  
+ 		\"delivery options\" -> JsonObject,  
  
- 		\"description\" -> JsonObject // timer desciption, mandatoty for create operation  
+ 		// timer desciption, mandatoty for create operation
+ 		\"description\" -> JsonObject  
  	};  
+ 
+ > `message` field is to be attached to [timer fire event](#timer-events).  
+ 
+ > `delivery options` field provides event bus delivery options the fire event isto be sent with.  
  
  > `message` and `delivery options` fields may be put to either the timer `description` field or to the request upper level.  
    `message` and `delivery options` at description level is prefered to ones given at request level.  
@@ -250,19 +265,6 @@
  > To get JSON delivery options apply `deliveryOptions.toJSON()`.  
  
  > _Chime_ address could be specified in `verticle` configuration, default is \"chime\".  
- 
- 
- #### Timer operation codes.
-   
- * **\"create\"** - create new timer with specified name, state and description.
- * **\"delete\"** - delete timer with name `name`.
- * **\"info\"** - get information for timer (if timer name is specified) or scheduler (if timer name is not specified).
- * **\"state\"**:
- 	* if set to **\"get\"** timer state has to be returned;
- 	* if set to **\"running\"** timer state is to be set to _running_;
- 	* if set to **\"paused\"** timer state is to be set to _paused_;
- 	* otherwise error is returned.
-
   
  > If 'create' request is sent to Chime address with full timer name and corresponding scheduler
    hasn't been created before then Chime creates both new scheduler and new timer.  
@@ -270,7 +272,7 @@
  > Timer fires only if both timer and scheduler states are _running_.   
  
  
- #### Unique timer name.  
+ #### <a name =\"unique-timer-name\"></a> Unique timer name.  
  
  The _Chime_ may generate unique timer name automatically. Just follow next steps:  
  1. Set **\"operation\"** field to **\"create\"**.  
@@ -280,51 +282,60 @@
  5. Take the unique timer name from the response.  
  
  
- #### Supported timers.
+ #### <a name =\"supported-timers\"></a> Supported timers.
  
- Timer is specified within _description_ field of timer creation request.  
+ Timer is specified within _description_ field of timer create request.  
  
  > `message` and `delivery options` fields may be put to either the timer `description` field or to the request upper level.  
    `message` and `delivery options` at description level is prefered to ones given at request level.  
  
  * __Cron style timer__ is defined with cron-style:  
- 		JsonObject {  
- 			\"type\" -> \"cron\" // timer type, mandatory  	
+ 		JsonObject {
+ 			// timer type, mandatory
+ 			\"type\" -> \"cron\",  	
  
- 			\"seconds\" -> String // seconds in cron style, mandatory, nonempty  
- 			\"minutes\" -> String // minutes in cron style, mandatory, nonempty  
- 			\"hours\" -> String // hours in cron style, mandatory, nonempty  
- 			\"days of month\" -> String // days of month in cron style, mandatory, nonempty  
- 			\"months\" -> String // months in cron style, mandatory, nonempty  
- 			\"days of week\" -> String // days of week in cron style, L means last, # means nth of month, optional    
- 			\"years\" -> String // year in cron style, optional  
+ 			// seconds in cron style, mandatory, nonempty
+ 			\"seconds\" -> String,
+ 			// minutes in cron style, mandatory, nonempty  
+ 			\"minutes\" -> String,
+ 			// hours in cron style, mandatory, nonempty  
+ 			\"hours\" -> String,
+ 			// days of month in cron style, mandatory, nonempty
+ 			\"days of month\" -> String,
+ 			// months in cron style, mandatory, nonempty  
+ 			\"months\" -> String,
+ 			// days of week in cron style, L means last, # means nth of month, optional
+ 			\"days of week\" -> String,
+ 			// year in cron style, optional
+ 			\"years\" -> String,
  			   		
- 			\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray // message which added to timer fire event, optional  
- 			\"delivery options\" -> JsonObject // delivery options the timer fire event is sent with, optional  
+ 			// message which is attached to timer fire event, optional
+ 			\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray,
+ 			// delivery options the timer fire event is sent with, optional
+ 			\"delivery options\" -> JsonObject
  		};  
-   Following notations are applicable:
-     * `FROM`-`TO`/`STEP`
-     * `FROM`/`STEP`
-     * `FROM`-`TO`
-     * '*' means any allowed
-     * month can be specified using digits (1 is for January) or using names (like 'jan' or 'january', case insensitive)
-     * day of week can be specified using digits (1 is for Sunday) or using names (like 'sun' or 'sunday', case insensitive)  
  
- > Month and day of week are case insensitive.  
+ Details of cron specification is listed [below](#cron-expression).  
  
+ > Month and day of week may be specified either with digits or names.
+ > Names are case insensitive and might be either short or full.  
  > Sunday is the first day of week.  
-  
+ 
  > [[CronBuilder]] may help to build JSON description of a cron timer.  
  
  ------------------------------------------  
    
  * __Interval timer__ fires after each given time period (minimum 1 second):  
- 		JsonObject {  
- 			\"type\" -> \"interval\" // timer type, mandatory  
- 			\"delay\" -> Integer // timer delay in seconds, if <= 0 timer fires only once, mandatory  
+ 		JsonObject {
+ 			// timer type, mandatory
+ 			\"type\" -> \"interval\",
+ 			// timer delay in seconds, must be > 0, mandatory
+ 			\"delay\" -> Integer,
  			
- 			\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray // message which added to timer fire event, optional  
- 			\"delivery options\" -> JsonObject // delivery options the timer fire event is sent with, optional  
+ 			// message which is attached to timer fire event, optional
+ 			\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray,
+ 			// delivery options the timer fire event is sent with, optional
+ 			\"delivery options\" -> JsonObject
  		};  
  
  > Interval timer delay is in _seconds_
@@ -333,11 +344,15 @@
    
  * __Union timer__ combines a number of timers into a one:  
  		JsonObject {  
- 			\"type\" -> \"union\" // timer type, mandatory  
- 			\"timers\" -> JsonArray // list of the timers, each item is JSON according to its description, mandatory  
+ 			// timer type, mandatory
+ 			\"type\" -> \"union\",
+ 			// list of the timers, each item is JSON according to its description, mandatory
+ 			\"timers\" -> JsonArray,
  			
- 			\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray // message which added to timer fire event, optional  
- 			\"delivery options\" -> JsonObject // delivery options the timer fire event is sent with, optional  
+ 			// message which is attached to timer fire event, optional
+ 			\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray,
+ 			// delivery options the timer fire event is sent with, optional
+ 			\"delivery options\" -> JsonObject
  		};  
  
  This may be useful to fire at specific dates / times. For example, following timer fires
@@ -371,61 +386,49 @@
  
  > [[UnionBuilder]] may help to build JSON description of a union timer.  
  
- 
- #### Response on a timer request.  
- 
- > Remember: timer request has to be sent to _scheduler name_ address with _timer short name_
- or to _Chime_ address with _timer full name_.  
 
- _Chime_ responds on each request to a scheduler in `JSON` format:  
- 	JsonObject {  
- 		\"name\" -> String //  timer name  
- 		\"state\" -> String // state  
- 		
- 		// 'Info' request also returns fields from timer 'create' request
- 	};  
-
- or as response on 'info' request with no or empty 'name' field specified - info for all timers is returned
+ #### <a name =\"timer-events\"></a> Events
  
- 	JsonObject {
- 		\"timers\" -> JsonArray // list of timer infos currently scheduled
- 	};
- 
- Where each item of the array contains the same fields as provided with timer 'create' request.
- Except:
- * 'state' which contains current state
- * 'count' which contains current number of fires.
- 
- 
- #### Error response.  
- 
- The error response is sent using `Message.fail` with corresponding code and message, see [[Chime.errors]].
- 
-
- #### Timer events
- 
- Timer sends or publishes to _full timer name_ address two types of events in `JSON`:
+ Timer sends or publishes to _full timer name_ address ('scheduler name:timer name') two types of events in `JSON`:
  * fire event  
- 		JsonObject {  
- 			\"name\" -> String, timer name  
- 			\"event\" -> \"fire\"  
- 			\"count\" -> Integer, total number of fire times  
- 			\"time\" -> String formated time / date  
- 			\"seconds\" -> Integer, number of seconds since last minute  
- 			\"minutes\" -> Integer, number of minutes since last hour  
- 			\"hours\" -> Integer, hour of day  
- 			\"day of month\" -> Integer, day of month  
- 			\"month\" -> Integer, month  
- 			\"year\" -> Integer, year  
- 			\"time zone\" -> String, time zone the timer works in  
- 			\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray, message given at a timer create request  
+ 		JsonObject {
+ 			// timer name
+ 			\"name\" -> String,
+ 			// event type
+ 			\"event\" -> \"fire\",  
+ 			// total number of fire times
+ 			\"count\" -> Integer,
+ 			// string formated time / date
+ 			\"time\" -> String,
+ 			// number of seconds since last minute
+ 			\"seconds\" -> Integer,
+ 			// number of minutes since last hour
+ 			\"minutes\" -> Integer,
+ 			// hour of day
+ 			\"hours\" -> Integer,
+ 			// day of month
+ 			\"day of month\" -> Integer,
+ 			// month
+ 			\"month\" -> Integer,
+ 			// year
+ 			\"year\" -> Integer,
+ 			// time zone the timer works in
+ 			\"time zone\" -> String,
+ 			// message given at a timer create request
+ 			\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray
  		};  
  * complete event  
  		JsonObject {  
- 			\"name\" -> String, timer name  
- 			\"event\" -> \"complete\"  
- 			\"count\" -> Integer, total number of fire times  
+ 			// timer name
+ 			\"name\" -> String,
+ 			// event type
+ 			\"event\" -> \"complete\",
+ 			// total number of fire times
+ 			\"count\" -> Integer  
  		};  
+ 
+ 
+ > Fire event is sent or published with delivery options given at [timer create request](#timer-request).  
  
  > Complete event is always published in order every listener receives it.  
    While fire event may be either published or send depending on 'publish' field in timer create request.  
@@ -437,23 +440,27 @@
  > String formatted time / date is per [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).  
  
  
- #### Time zones.
+ #### <a name =\"time-zones\"></a> Time zones.
  
  [Available time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones),
  actual availability may depend on particular JVM installation.  
  
  See also [time zones and JRE](http://www.oracle.com/technetwork/java/javase/dst-faq-138158.html).
  
+ Time zone may be set at either scheduler or timer level.
+ If no time zone is set at timer then scheduler time zone is applied
+ otherwise timer timezone is used. If no timezone is given at all
+ then time zone local for the machine is used.  
  
- #### Timer example.
  
- 		// creat new Scheduler with name \"schedule manager\" at first and then the timer
+ #### <a name =\"timer-example\"></a> Example.
+ 
+ 		// creat new Scheduler with name \"scheduler\" at first and then create timer
  		eventBus.send<JsonObject> (
  			\"chime\",
  			JsonObject {
  				\"operation\" -> \"create\",
- 				\"name\" -> \"schedule manager\",
- 				\"state\" -> \"running\"
+ 				\"name\" -> \"scheduler\"
  			},
  			(Throwable|Message<JsonObject> msg) {
  				if (is Message<JsonObject> msg) {
@@ -462,50 +469,59 @@
  						\"chime\",
  						JsonObject {
  							\"operation\" -> \"create\",
- 							\"name\" -> \"schedule manager:scheduled timer\", // full timer name == address to listen timer
- 							\"state\" -> \"running\",
- 							\"publish\" -> false, // timer will send messages
+ 							// full timer name == address to listen timer
+ 							\"name\" -> \"scheduler:timer\",
  							\"max count\" -> 3,
  							\"time zone\" -> \"Europe/Paris\",
  							\"descirption\" -> JsonObject {
- 								\"type\" -> \"cron\", // timer type is 'cron'
- 								\"seconds\" -> \"27/30\", // 27 with step 30 leads to fire at 27 and 57 seconds
- 								\"minutes\" -> \"*\", // every minute
- 								\"hours\" -> \"0-23\", // every hour
- 								\"days of month\" -> \"1-31\", // every day
- 								\"months\" -> \"january-OCTOBER\", // from January and up to October
- 								\"days of week\" -> \"sat#2,sunday\", // at second Saturday and at each Sunday 
+ 								// timer type is 'cron'
+ 								\"type\" -> \"cron\",
+ 								// 27 with step 30 leads to fire at 27 and 57 seconds
+ 								\"seconds\" -> \"27/30\",
+ 								// every minute
+ 								\"minutes\" -> \"*\",
+ 								// every hour
+ 								\"hours\" -> \"*\",
+ 								// every day
+ 								\"days of month\" -> \"*\",
+ 								// from January and up to October
+ 								\"months\" -> \"january-OCTOBER\",
+ 								// at second Saturday and at each Sunday
+ 								\"days of week\" -> \"sat#2,sunday\", 
  								\"years\" -> \"2015-2019\"
  							}
  						},
  						(Throwable|Message<JsonObject?> msg) {
- 							print(msg); // Chime replies if timer successfully created or some error occured
+ 							// Chime replies if timer successfully created or some error occured
+ 							print(msg);
  						}
  					);
  				}
  				else {
- 					print(\"time scheduler creation error: \`\`msg\`\`\");
+ 					print(\"error while creating scheduler: \`\`msg\`\`\");
  				}
  			}
  		);
  		
  		// listen timer
  		eventBus.consumer (
- 			\"schedule manager:scheduled timer\",
+ 			\"scheduler:timer\",
  			(Throwable | Message<JsonObject?> msg) {
  				...
  			}
  		);
  
+  
+ ------------------------------------------  
  
- ### Scheduler and Timer interfaces.  
+ ### <a name =\"scheduler-timer-interfaces\"></a> Scheduler and Timer interfaces.  
  
  [[Scheduler]] interface provides a convenient way to exchange messages with particular scheduler.  
  In order to connect to already existed scheduler or to create new one [[connectToScheduler]]
- function can be used. The function sends create scheduler request to the _Chime_ and wraps
+ function can be used. The function sends 'create scheduler' request to the _Chime_ and wraps
  the event bus with implementation of [[Scheduler]] interface.  
  
- [[Timer]] interface provides a convenient way to exchange messages with particular scheduler.  
+ [[Timer]] interface provides a convenient way to exchange messages with particular timer.  
  To get an instance of the [[Timer]] call [[Scheduler.createIntervalTimer]],
  [[Scheduler.createCronTimer]], [[Scheduler.createUnionTimer]] or [[Scheduler.createTimer]].  
  
@@ -535,8 +551,10 @@
  			\"chime\", eventBus, \"scheduler name\"
  		);
  
+  
+ ------------------------------------------  
  
- ### Error messages.  
+ ### <a name =\"error-messages\"></a> Error messages.  
  
  The error is sent using `Message.fail` with corresponding code and message, see [[Chime.errors]].  
  
@@ -564,10 +582,12 @@
  * \"timers list has to be specified\"  
  * \"timer description has to be in JSON\"  
  
+  
+ ------------------------------------------  
  
- ## Cron expressions.  
+ ## <a name =\"cron-expression\"></a> Cron expression.  
  
- #### Expression fields.  
+ #### <a name =\"cron-expression-fields\"></a> Expression fields.  
  
  * _seconds_, mandatory  
  	* allowed values: 0-59  
@@ -591,13 +611,21 @@
  	* allowed values 1970-2099  
  	* allowed special characters: , - * /  
  
- 
+ Following notations are applicable:  
+ * `FROM`-`TO`/`STEP`, for example, '0-30/15' means '0,15,30'  
+ * `FROM`/`STEP`, in this case `TO` is set to maximum allowed for the given field,
+   for example, '0/15' in seconds field means '0,15,30,45'  
+ * `FROM`-`TO`, for example, '10-12' means '10, 11, 12'  
+ * '*' means any allowed  
+ * month can be specified using digits (1 is for January) or using names (like 'jan' or 'january', case insensitive)  
+ * day of week can be specified using digits (1 is for Sunday) or using names (like 'sun' or 'sunday', case insensitive)  
+
  > Names of months and days of the week are case insensitive.  
  
  > Sunday is the first day of week.  
- 
- 
- #### Special characters.
+
+  
+ #### <a name =\"cron-special-characters\"></a> Special characters.
  
  * '*' means all values  
  * ',' separates list items  
@@ -610,7 +638,7 @@
    for example, '6#3' means _the third Friday of the month_   
  
  
- #### Cron expression builder.  
+ #### <a name =\"cron-expression-builder\"></a> Cron expression builder.  
  
  [[CronBuilder]] may help to build JSON description of a cron timer.
  The builder has a number of function to add particular cron record to the description.

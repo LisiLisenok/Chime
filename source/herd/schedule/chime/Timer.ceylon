@@ -2,12 +2,15 @@
 
 "Wraps event bus to provide exchanging messages with previously created timer.  
  The object implementing interface is returned by [[Scheduler.createIntervalTimer]]
- and [[Scheduler.createCronTimer]].  
+ [[Scheduler.createCronTimer]], [[Scheduler.createUnionTimer]] and [[Scheduler.createTimer]].  
  
  Timer is sent timer fire or complete events with [[TimerEvent]].
  To set timer event handler call [[handler]].  
  
- > Complete event is always published.
+ > Complete event is always published.  
+ 
+ If a timer object is no longer needed call [[unregister]] in order to unregister event listener at event bus.  
+ The listener is automatically unregistered at timer complete event.  
  "
 see( `interface Scheduler` )
 tagged( "Proxy" )

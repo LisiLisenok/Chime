@@ -10,8 +10,8 @@ import io.vertx.ceylon.core.eventbus {
 
 
 "Represents a timer event: fire or complete.  
- Timer publishes or sends the event in JSON format to timer address when the timer fires or completes.
- [[Timer]] interface converts JSON event to `TimerEvent`.  
+ Timer publishes or sends the event in JSON format to timer address when the timer fires or completes.  
+ [[Timer]] interface converts JSON event into `TimerEvent`.  
  
  > Complete event is always published.
  "

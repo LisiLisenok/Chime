@@ -38,7 +38,7 @@ There are a lot of useful features time scheduler may introduce to the Vert.x st
  * listening and sending messages via event bus with _JSON_;  
  * _publishing_ or _sending_ timer fire event to the address of your choice.  
 
-[INFO _Chime_ is written in [Ceylon](https://ceylon-lang.org) and is available on
+[INFO _Chime_ is written in [Ceylon](https://ceylon-lang.org) and is available at
 [Ceylon Herd](https://herd.ceylon-lang.org/modules/herd.schedule.chime).]  
 
 

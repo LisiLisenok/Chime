@@ -4,6 +4,8 @@
 * [Scheduler](#scheduler-request)  
 	* [create scheduler](#create-scheduler)  
 	* [delete scheduler](#delete-scheduler)  
+	* [delete all schedulers](#delete-all-schedulers)  
+	* [delete a list of schedulers](#delete-a-list-of-schedulers)  
 	* [get info on all schedulers](#get-info-on-all-schedulers)  
 	* [get info on a given list of schedulers](#get-info-on-a-given-list-of-schedulers)  
 	* [get scheduler info](#get-scheduler-info)  
@@ -13,6 +15,7 @@
 * [Timer](#timer-request)  
 	* [create timer](#create-timer)  
 	* [delete timer](#delete-timer)  
+	* [delete a list of timers](#delete-a-list-of-timers)  
 	* [get timer info](#get-timer-info)  
 	* [get timer state](#get-timer-state)  
 	* [set timer to paused state](#set-timer-to-paused-state)  
@@ -72,6 +75,51 @@ Sent to _Chime_ address or to _scheduler_ address.
 
 -------------
 
+### Delete all schedulers.  
+
+Sent to _Chime_ address.  
+
+##### Request.  
+```json
+{
+	"operation": "delete",
+	"name": ""
+}
+```
+
+##### Response.
+```json
+{
+	"schedulers": ["first scheduler name", "nth scheduler name"]
+}
+```  
+Where 'schedulers' array contains `String` names of deleted schedulers.  
+
+-------------
+
+### Delete a list of schedulers.  
+
+Sent to _Chime_ address.  
+
+##### Request.  
+```json
+{
+	"operation": "delete",
+	"name": ["first scheduler name", "nth scheduler name"]
+}
+```
+Where name array contains `String`s with names of schedulers to be deleted.  
+
+##### Response.
+```json
+{
+	"schedulers": ["first scheduler name", "name": "nth scheduler name"]
+}
+```  
+Where 'schedulers' array contains `String` names of deleted schedulers.  
+
+-------------
+
 ### Get info on all schedulers.  
 
 Sent to _Chime_ address.  
@@ -87,7 +135,6 @@ Sent to _Chime_ address.
 ##### Response.
 ```json
 {
-	"name": "scheduler name",
 	"schedulers": []
 }
 ```  
@@ -111,7 +158,6 @@ Where `names` is array of `Strings` with names of schedulers info is requested f
 ##### Response.
 ```json
 {
-	"name": "scheduler name",
 	"schedulers": []
 }
 ```  
@@ -170,6 +216,7 @@ Sent to _Chime_ address or to _scheduler_ address.
 ### Set scheduler to paused state.  
 
 Sent to _Chime_ address or to _scheduler_ address.  
+Pausing scheduler leads to all timers operated within the given scheduler are paused.  
 
 ##### Request.  
 ```json
@@ -193,6 +240,8 @@ Sent to _Chime_ address or to _scheduler_ address.
 ### Set scheduler to running state.  
 
 Sent to _Chime_ address or to _scheduler_ address.  
+Resuming scheduler leads to all timers with running state are resumed.
+While timers with paused state are remain paused.  
 
 ##### Request.  
 ```json
@@ -227,9 +276,9 @@ or to _scheduler_ address with either full or short timer name.
 	"operation": "create",
 	"name": "scheduler name:timer name",
 	"description": {},
-	"state": "running, paused or completed",
-	"maximum count": "Integer, maximum number of fires",
-	"publish": "Boolean, if true message to be published and to be sent otherwise",
+	"state": "running, paused or completed, default is running",
+	"maximum count": "Integer, maximum number of fires, default is unlimited",
+	"publish": "Boolean, if true message to be published and to be sent otherwise, default is false",
 	"start time": {
  		"seconds": "Integer",
  		"minutes": "Integer",
@@ -246,7 +295,7 @@ or to _scheduler_ address with either full or short timer name.
  		"month": "Integer or String",
  		"year": "Integer"
 	},
-	"time zone": "String",
+	"time zone": "String, default is local time zone",
 	"message": "any Json supports",
 	"delivery options": {}
 }
@@ -262,6 +311,9 @@ Other fields are optional, default values are:
 * `time zone` = local  
 * `message` = unused  
 * `delivery options` = unused  
+
+> If name field is 'scheduler name', i.e. timer name is omitted then
+  unique timer name is generated and returned with response.  
 
 #### Response.  
 ```json
@@ -293,6 +345,29 @@ or to _scheduler_ address with either full or short timer name.
 	"state": "completed"
 }
 ```  
+
+-------------
+
+### Delete a list of timers.  
+
+Sent to _scheduler_ address with either full or short timer name.  
+
+##### Request.  
+```json
+{
+	"operation": "delete",
+	"name": ["scheduler name:timer name"]
+}
+```
+Where 'name' array contains `String`s with names of timers to be deleted.  
+
+##### Response.
+```json
+{
+	"timers": ["scheduler name:timer name"]
+}
+```  
+Where 'timers' array contains `String`s with names of deleted timers.
 
 -------------
 
