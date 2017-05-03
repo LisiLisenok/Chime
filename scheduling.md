@@ -113,9 +113,7 @@ Now we have scheduler created and timers can be run within. There are two ways t
 1. Sending message to **chime** address with 'name' field set to **scheduler name:timer name**.  
 2. Sending message to **scheduler name** address with 'name' field set to either **timer name** or **scheduler name:timer name**.  
 
-Timer request is rather complicated and contains a lot of features.
-Investigate [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime) for the details.
-In this blog post only basic features are considered:  
+[Timer request](https://modules.ceylon-lang.org/repo/1/herd/schedule/chime/0.2.1/module-doc/api/index.html#timer-request) is rather complicated and contains a lot of details. In this blog post only basic features are considered:  
 
 ```json
 {
@@ -162,8 +160,7 @@ Currently, three types of timers are supported:
 	"years": "years in cron style, String, optional"  
 };
 ```  
-Cron timer is rather powerful and flexible.
-See specification details in [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime).  
+Cron timer is rather powerful and flexible. Investigate [specification](https://modules.ceylon-lang.org/repo/1/herd/schedule/chime/0.2.1/module-doc/api/index.html#cron-expression) for the complete list of features.  
 
 * __Union timer__ which combines a number of timers into a one:  
 ```json
@@ -303,6 +300,6 @@ There are also some ideas for the future:
 -----------------------------
 
 This is very quick introduction to the _Chime_ and if you are interested in you may read
-more at [Chime documentation](https://herd.ceylon-lang.org/modules/herd.schedule.chime) or even [contribute](https://github.com/LisiLisenok/Chime) to.  
+more in [Chime documentation](https://modules.ceylon-lang.org/repo/1/herd/schedule/chime/0.2.1/module-doc/api/index.html) or even [contribute](https://github.com/LisiLisenok/Chime) to.  
 
 Thank's for the reading and enjoy with coding!  
