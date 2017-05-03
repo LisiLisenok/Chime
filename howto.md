@@ -113,7 +113,7 @@ Where name array contains `String`s with names of schedulers to be deleted.
 ##### Response.
 ```json
 {
-	"schedulers": ["first scheduler name", "name": "nth scheduler name"]
+	"schedulers": ["first scheduler name", "nth scheduler name"]
 }
 ```  
 Where 'schedulers' array contains `String` names of deleted schedulers.  
@@ -546,6 +546,7 @@ Used in [timer create request](#create-timer).
 	"delivery options": {}
 }
 ```  
+`type` and `interval` are mandatory.  
 `message` and `delivery options` are optional.  
 
 -------------
@@ -560,6 +561,7 @@ Used in [timer create request](#create-timer).
 }
 ```  
 Where `timers` array contains `JsonObject`'s of [timer descriptions](#timer-descriptions).  
+`type` and `timers` are mandatory.  
 `message` and `delivery options` are optional.  
 
 -------------
@@ -605,4 +607,4 @@ Published by _Chime_ to timer full name ("scheduler name:timer name") address.
 }
 ```  
 
-> Complete event is always published in order all consumers may receive this.  
+> Complete event is always published in order all consumers may receive it.  
