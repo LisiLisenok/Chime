@@ -36,6 +36,19 @@ shared interface Scheduler {
 	"Requests scheduler info."
 	shared formal void info( "Info handler." Anything(Throwable|SchedulerInfo) info );
 	
+	"Requests info on a list of timers."
+	shared formal void timersInfo (
+		"Names of timers info is requested for." {String+} timers,
+		"Info handler." Anything(Throwable|TimerInfo[]) info
+	);
+	
+	"Deletes a list of timers.  
+	 `handler` is called with a list of actually deleted timers or with an error if occured. "
+	shared formal void deleteTimers (
+		"Names of timers to be deleted." {String+} timers,
+		"Optional delete handler." Anything(Throwable|{String*})? handler = null
+	);
+	
 	"Creates interval timer."
 	shared default void createIntervalTimer (
 		"Callback when timer created."

@@ -8,6 +8,7 @@ import io.vertx.ceylon.core.eventbus {
 }
 import ceylon.json {
 	JSON=Object,
+	JSONArray=Array,
 	ObjectValue
 }
 
@@ -226,6 +227,57 @@ class SchedulerImpl (
 				}
 			}
 		);
-	}		
+	}
+	
+	shared actual void deleteTimers( {String+} timers, Anything( Throwable|{String*} )? handler ) {
+		if ( exists handler ) {
+			eventBus.send (
+				name,
+				JSON {
+					Chime.key.operation -> Chime.operation.delete,
+					Chime.key.name -> JSONArray( timers )
+				},
+				( Throwable|Message<JSON?> msg ) {
+					if ( is Message<JSON?> msg ) {
+						"Reply from scheduler request has not to be null."
+						assert( exists ret = msg.body() );
+						handler( ret.narrow<String>() );
+					}
+					else {
+						handler( msg );
+					}
+				}
+			);
+		}
+		else {
+			eventBus.send (
+				name,
+				JSON {
+					Chime.key.operation -> Chime.operation.delete,
+					Chime.key.name -> JSONArray( timers )
+				}
+			);			
+		}
+	}
+	
+	shared actual void timersInfo( {String+} timers, Anything(Throwable|TimerInfo[]) info ) {
+		eventBus.send (
+			name,
+			JSON {
+				Chime.key.operation -> Chime.operation.info,
+				Chime.key.name -> JSONArray( timers )
+			},
+			( Throwable|Message<JSON?> msg ) {
+				if ( is Message<JSON?> msg ) {
+					"Reply from scheduler request has not to be null."
+					assert( exists ret = msg.body() );
+					info( ret.narrow<JSON>().map( TimerInfo.fromJSON ).sequence() );
+				}
+				else {
+					info( msg );
+				}
+			}
+		);
+	}
 	
 }

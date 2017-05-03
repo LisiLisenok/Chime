@@ -131,7 +131,7 @@ Where name array contains `String`s with names of schedulers to be deleted.
 	"schedulers": ["name of first scheduler", "...", "name of nth scheduler"]
 }
 ```  
-Where 'schedulers' array contains `String` names of deleted schedulers.  
+Where 'schedulers' array contains `String` names of actually deleted schedulers.  
 
 -------------
 
@@ -383,7 +383,7 @@ Where 'name' array contains `String`s with names of timers to be deleted.
 	"timers": ["name of first timer", "..." "name of nth timer"]
 }
 ```  
-Where 'timers' array contains `String`s with names of deleted timers.
+Where 'timers' array contains `String`s with names of actually deleted timers.
 
 -------------
 
