@@ -350,7 +350,8 @@ or to _scheduler_ address with either full or short timer name.
 
 ### Delete a list of timers.  
 
-Sent to _scheduler_ address with either full or short timer name.  
+Sent to _Chime_ address with full timer name, i.e. "scheduler name:timer name"
+or to _scheduler_ address with either full or short timer name.  
 
 ##### Request.  
 ```json
