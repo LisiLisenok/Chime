@@ -29,6 +29,7 @@
 	* [fire event](#fire-event)  
 	* [complete event](#complete-event)  
 
+-------------
 
 ## Terminology.  
 
