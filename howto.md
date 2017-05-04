@@ -60,11 +60,11 @@ To be sent to _Chime_ address.
 }
 ```  
 
-`operation` and `name` are mandatory.  
+`operation` and `name` fields are mandatory.  
 
-`state` is optional with default value set to "running".  
+`state` field is optional with default value set to "running".  
 
-`time zone` is optional with default value equal to local time zone.
+`time zone` field is optional with default value equal to local time zone.
 Time zone applied at scheduler level is default for timers [created](#create-timer] within this scheduler.    
 [Available time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).  
 
