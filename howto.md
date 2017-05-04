@@ -65,7 +65,7 @@ To be sent to _Chime_ address.
 `state` field is optional with default value set to "running".  
 
 `time zone` field is optional with default value equal to local time zone.
-Time zone applied at scheduler level is default for timers [created](#create-timer] within this scheduler.    
+Time zone applied at scheduler level is default for timers [created](#create-timer) within this scheduler.    
 [Available time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).  
 
 ##### Response.
