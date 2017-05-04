@@ -131,6 +131,11 @@
  
  > _Chime_ listens event bus at \"scheduler name\" address with messages for the given scheduler.  
 
+ There are two limitations for the scheduler name:  
+ 1. Scheduler name must not be equal to _Chime_ address. Since both addresses are registered at event bus.  
+ 2. Scheduler name must not contain ':'. Since it is used as separator
+    in full timer name - 'scheduler name:timer name', see [timer.](#timer).  
+ 
  
  #### <a name =\"scheduler-example\"></a> Scheduler example.  
  
@@ -183,6 +188,9 @@
  > Timer full name is _scheduler name_ and _timer name_ separated with ':', i.e. \"scheduler name:timer name\".  
  
  > Timer fire message is sent to _timer full name_ address.  
+ 
+ > Both scheduler and timer names must not contain ':',
+   since it is used as separator of 'scheduler name:timer name'.  
  
  
  #### <a name =\"timer-request\"></a> Request.

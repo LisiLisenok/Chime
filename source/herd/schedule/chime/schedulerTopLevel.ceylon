@@ -51,6 +51,7 @@ shared void connectToScheduler (
 
 "Returns info on the given schedulers."
 tagged( "Proxy" )
+see( `function Scheduler.timersInfo`, `function Scheduler.info` )
 since( "0.2.0" ) by( "Lis" )
 shared void schedulerInfo (
 	"Handler to receive scheduler infos or error if occured."
@@ -88,20 +89,22 @@ shared void schedulerInfo (
 
 "Deletes schedulers or timers with the given names."
 tagged( "Proxy" )
+see( `function Scheduler.deleteTimers`, `function Scheduler.delete` )
 since( "0.2.1" ) by( "Lis" )
-shared void deleteSchedulersOrTimers (
-	"List of scheduler or timer names."
-	{String+} names,
+shared void delete (
 	"Address to call _Chime_."
 	String shimeAddress,
 	"Event bus to send message to _Chime_."
 	EventBus eventBus,
+	"List of scheduler or timer names.  
+	 If empty then every scheduler and timer have to be deleted."
+	{String*} names = {},
 	"Optional handler called with a list of names of actually deleted schedulers or timers."
 	Anything( Throwable|{String*} )? handler = null
 ) {
 	JSON request = JSON {
 		Chime.key.operation -> Chime.operation.delete,
-		Chime.key.name -> JSONArray( names )
+		Chime.key.name -> ( if ( names.empty ) then "" else JSONArray( names ) )
 	};
 	if ( exists handler ) {
 		eventBus.send (

@@ -21,6 +21,7 @@ shared interface Timer {
 	shared formal String name;
 	
 	"Stops and removes this timer."
+	see( `function Scheduler.deleteTimers` )
 	shared formal void delete( "Optional reply handler. Replied with timer name." Anything(Throwable|String)? reply = null );
 
 	"Pauses this timer."
@@ -32,6 +33,7 @@ shared interface Timer {
 	shared formal void resume( "Optional reply handler. Replied with timer state." Anything(Throwable|State)? reply = null );
 	
 	"Requests timer info."
+	see( `function Scheduler.timersInfo` )
 	shared formal void info( "Info handler." Anything(Throwable|TimerInfo) info );
 	
 	"Sets the handler for the timer events. Replaces previous one if has been set."

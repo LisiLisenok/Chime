@@ -34,10 +34,11 @@ shared interface Scheduler {
 	shared formal void resume( "Optional reply handler. Replied with scheduler state." Anything(Throwable|State)? reply = null );
 	
 	"Requests scheduler info."
+	see( `function schedulerInfo` )
 	shared formal void info( "Info handler." Anything(Throwable|SchedulerInfo) info );
 	
 	"Requests info on a list of timers."
-	since( "0.2.1" )
+	see( `function schedulerInfo` ) since( "0.2.1" )
 	shared formal void timersInfo (
 		"Names of timers info is requested for." {String+} timers,
 		"Info handler." Anything(Throwable|TimerInfo[]) info
@@ -45,7 +46,7 @@ shared interface Scheduler {
 	
 	"Deletes a list of timers.  
 	 `handler` is called with a list of actually deleted timers or with an error if occured. "
-	since( "0.2.1" )
+	see( `function delete` ) since( "0.2.1" )
 	shared formal void deleteTimers (
 		"Names of timers to be deleted." {String+} timers,
 		"Optional delete handler." Anything(Throwable|{String*})? handler = null

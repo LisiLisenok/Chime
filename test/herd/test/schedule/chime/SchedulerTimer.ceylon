@@ -16,6 +16,7 @@ import herd.schedule.chime {
 	Scheduler,
 	connectToScheduler,
 	schedulerInfo,
+	delete,
 	Timer,
 	TimerEvent,
 	TimerInfo,
@@ -154,15 +155,86 @@ shared class SchedulerTimer()
 		);
 	}
 	
-	void deleteSchedulerOrTimer( String name ) {
-		eventBus.send (
-			chime,
-			JSON {
-				Chime.key.operation -> Chime.operation.delete,
-				Chime.key.name -> name
+	
+	test shared void deleteTimers( AsyncTestContext context ) {
+		String scheduler1 = "scheduler1";
+		String scheduler2 = "scheduler2";
+		String timer1 = "timer1";
+		String timer2 = "timer2";
+		String timer1Full = scheduler1 + ":" + timer1;
+		String timer2Full = scheduler2 + ":" + timer2;
+		
+		// deletes all schedulers if created before this test
+		delete( chime, eventBus );
+		
+		createTimer( scheduler1, timer1, 5 );
+		createTimer( scheduler1, timer2, 7 );
+		createTimer( scheduler2, timer1, 4 );
+		createTimer( scheduler2, timer2, 9 );
+		
+		delete (
+			chime, eventBus, { timer1Full, timer2Full },
+			( Throwable|{String*} msg ) {
+				if ( is Throwable msg ) {
+					delete( chime, eventBus );
+					context.fail( msg );
+					context.complete();
+				}
+				else {
+					context.assertThat( msg, SizeOf( 2 ) );
+					if ( exists timer1Name = msg.first, exists timer2Name = msg.last ) {
+						context.assertThat( timer1Name, EqualTo( timer1Full ) );
+						context.assertThat( timer2Name, EqualTo( timer2Full ) );
+					}
+					else {
+						context.fail( AssertionError( "Returned list of deleted items is empty." ) );
+					}
+					delete( chime, eventBus );
+					context.complete();
+				}
 			}
 		);
 	}
+	
+	
+	test shared void deleteSchedulers( AsyncTestContext context ) {
+		String scheduler1 = "scheduler1";
+		String scheduler2 = "scheduler2";
+		String timer1 = "timer1";
+		String timer2 = "timer2";
+		
+		// deletes all schedulers if created before this test
+		delete( chime, eventBus );
+		
+		createTimer( scheduler1, timer1, 5 );
+		createTimer( scheduler1, timer2, 7 );
+		createTimer( scheduler2, timer1, 4 );
+		createTimer( scheduler2, timer2, 9 );
+		
+		delete (
+			chime, eventBus, { scheduler1, scheduler2 },
+			( Throwable|{String*} msg ) {
+				if ( is Throwable msg ) {
+					delete( chime, eventBus );
+					context.fail( msg );
+					context.complete();
+				}
+				else {
+					context.assertThat( msg, SizeOf( 2 ) );
+					if ( exists scheduler1Name = msg.first, exists scheduler2Name = msg.last ) {
+						context.assertThat( scheduler1Name, EqualTo( scheduler1 ) );
+						context.assertThat( scheduler2Name, EqualTo( scheduler2 ) );
+					}
+					else {
+						context.fail( AssertionError( "Returned list of deleted items is empty." ) );
+					}
+					delete( chime, eventBus );
+					context.complete();
+				}
+			}
+		);
+	}
+
 	
 	test shared void getSchedulerInfo( AsyncTestContext context ) {
 		String scheduler1 = "info1";
@@ -171,7 +243,7 @@ shared class SchedulerTimer()
 		String timer2 = "timer2";
 		
 		// deletes all schedulers if created before this test
-		deleteSchedulerOrTimer( chime );
+		delete( chime, eventBus );
 		
 		createTimer( scheduler1, timer1, 5 );
 		createTimer( scheduler1, timer2, 7 );
@@ -181,6 +253,7 @@ shared class SchedulerTimer()
 		schedulerInfo (
 			( Throwable|SchedulerInfo[] msg ) {
 				if ( is Throwable msg ) {
+					delete( chime, eventBus );
 					context.fail( msg );
 					context.complete();
 				}
@@ -195,7 +268,7 @@ shared class SchedulerTimer()
 					else {
 						context.fail( AssertionError( "Returned list of infos is empty." ) );
 					}
-					deleteSchedulerOrTimer( chime );
+					delete( chime, eventBus );
 					context.complete();
 				}
 			},
