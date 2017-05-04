@@ -59,9 +59,13 @@ To be sent to _Chime_ address.
 	"time zone": "String, default is local time zone"
 }
 ```  
-'operation' and 'name' are mandatory.  
-'state' is optional with default value set to "running".  
-'time zone' is optional with default value equal to local time zone.  
+
+`operation` and `name` are mandatory.  
+
+`state` is optional with default value set to "running".  
+
+`time zone` is optional with default value equal to local time zone.
+Time zone applied at scheduler level is default for timers [created](#create-timer] within this scheduler.    
 [Available time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).  
 
 ##### Response.
