@@ -54,9 +54,15 @@ To be sent to _Chime_ address.
 ```json
 {
 	"operation": "create",
-	"name": "scheduler name"
+	"name": "scheduler name",
+	"state": "String, one of running, paused or completed, default is running",
+	"time zone": "String, default is local time zone"
 }
 ```  
+'operation' and 'name' are mandatory.  
+'state' is optional with default value set to "running".  
+'time zone' is optional with default value equal to local time zone.  
+[Available time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).  
 
 ##### Response.
 ```json
@@ -222,7 +228,7 @@ To be sent to _Chime_ address or to _scheduler_ address.
 ```json
 {
 	"name": "scheduler name",
-	"state": "running, paused or completed"
+	"state": "String, one of running, paused or completed"
 }
 ```  
 
@@ -291,7 +297,7 @@ or to _scheduler_ address with either full or short timer name.
 	"operation": "create",
 	"name": "scheduler name:timer name",
 	"description": {},
-	"state": "running, paused or completed, default is running",
+	"state": "String, one of running, paused or completed, default is running",
 	"maximum count": "Integer, maximum number of fires, default is unlimited",
 	"publish": "Boolean, if true message to be published and to be sent otherwise, default is false",
 	"start time": {
@@ -329,6 +335,11 @@ Other fields are optional, default values are:
 
 > If name field is 'scheduler name', i.e. timer name is omitted then
   unique timer name is generated and returned with response.  
+
+> If scheduler with 'scheduler name' hasn't been [created](#create-scheduler) before 
+  then new scheduler with 'scheduler name' will be created.  
+
+> [Available time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).  
 
 #### Response.  
 ```json

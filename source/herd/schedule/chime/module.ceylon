@@ -133,8 +133,8 @@
 
  There are two limitations for the scheduler name:  
  1. Scheduler name must not be equal to _Chime_ address. Since both addresses are registered at event bus.  
- 2. Scheduler name must not contain ':'. Since it is used as separator
-    in full timer name - 'scheduler name:timer name', see [timer.](#timer).  
+ 2. Scheduler name must not contain **:**. Since it is used as separator
+    in full timer name - **scheduler name:timer name**, see [timer.](#timer).  
  
  
  #### <a name =\"scheduler-example\"></a> Scheduler example.  
