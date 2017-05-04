@@ -18,7 +18,7 @@ import io.vertx.ceylon.core.eventbus {
 "Posses timer."
 since( "0.1.0" ) by( "Lis" )
 class TimerContainer (
-	"Timer full name, which is *'scheduler name':'timer name'*." shared String name,
+	"Timer full name, which is **scheduler name:timer name**." shared String name,
 	"Timer [[JSON]] description" shared JSON description,
 	"`true` if message to be published and `false` if message to be send" shared Boolean publish,
 	"Timer within this container." TimeRow timer,

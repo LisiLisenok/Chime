@@ -19,7 +19,9 @@ tagged( "Proxy" )
 since( "0.2.0" ) by( "Lis" )
 shared interface Scheduler {
 	
-	"Name of the scheduler."
+	"Name of the scheduler.  
+	 _Chime_ listens event bus at this address for the messages to this scheduler.  
+	 See details in [[module herd.schedule.chime]]."
 	shared formal String name;
 
 	"Removes this scheduler."
@@ -58,7 +60,7 @@ shared interface Scheduler {
 		Anything(Timer|Throwable) handler,
 		"Interval timer delay in seconds."
 		Integer delay,
-		"Timer name. Timer address is timer full name, i.e. \"scheduler name:timer name\".  
+		"Timer name. Timer address is timer full name, i.e. **scheduler name:timer name**.  
 		 By default unique timer name is generate."
 		String? timerName = null,
 		"`True` if timer is paused at initial and `false` if running."
@@ -92,7 +94,7 @@ shared interface Scheduler {
 		"Months." String months,
 		"Optional days of week." String? daysOfWeek = null,
 		"Optional years." String? years = null,
-		"Timer name. Timer address is timer full name, i.e. \"scheduler name:timer name\".  
+		"Timer name. Timer address is timer full name, i.e. **scheduler name:timer name**.  
 		 By default unique timer name is generate."
 		String? timerName = null,
 		"`True` if timer is paused at initial and `false` if running."
@@ -138,7 +140,7 @@ shared interface Scheduler {
 		Anything(Timer|Throwable) handler,
 		"Nonempty list of the timers to be combined into union."
 		{JSON+} timers,
-		"Timer name. Timer address is timer full name, i.e. \"scheduler name:timer name\".  
+		"Timer name. Timer address is timer full name, i.e. **scheduler name:timer name**.  
 		 By default unique timer name is generate."
 		String? timerName = null,
 		"`True` if timer is paused at initial and `false` if running."
@@ -169,7 +171,7 @@ shared interface Scheduler {
 	shared formal void createTimer (
 		"Callback when timer created." Anything(Timer|Throwable) handler,
 		"JSON timer description." JSON description,
-		"Timer name. Timer address is timer full name, i.e. \"scheduler name:timer name\".  
+		"Timer name. Timer address is timer full name, i.e. **scheduler name:timer name**.  
 		 By default unique timer name is generate."
 		String? timerName = null,
 		"`True` if timer is paused at initial and `false` if running."

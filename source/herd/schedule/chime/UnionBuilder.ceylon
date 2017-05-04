@@ -30,6 +30,7 @@ import herd.schedule.chime.cron {
  Finally, [[UnionBuilder.build]] has to be called to build the timer JSON description.   
  "
 tagged( "Builder" )
+see( `class CronBuilder`, `function package.every` )
 since( "0.2.1" ) by( "Lis" )
 shared class UnionBuilder
 {

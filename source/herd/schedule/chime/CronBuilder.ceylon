@@ -40,6 +40,7 @@ import io.vertx.ceylon.core.eventbus {
  
  "
 tagged( "Builder" )
+see( `function every`, `class UnionBuilder` )
 since( "0.2.1" ) by( "Lis" )
 shared class CronBuilder {
 	

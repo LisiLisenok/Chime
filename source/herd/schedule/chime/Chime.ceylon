@@ -17,9 +17,9 @@ import java.util {
 
 "Chime scheduler verticle. Starts scheduling.  
  
- > Ensure that the verticle is started just a once!  
+ > Ensure that just a one instance of the verticle is started!  
  
- Static strings contain keys of the JSON messages and some possible values."
+ Static objects contain keys of the JSON messages and some possible values."
 since( "0.1.0" ) by( "Lis" )
 shared class Chime extends Verticle
 {

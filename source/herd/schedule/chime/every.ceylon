@@ -10,6 +10,7 @@ import io.vertx.ceylon.core.eventbus {
 
 "Builds JSON description of an interval timer."
 tagged( "Builder" )
+see( `class CronBuilder`, `class UnionBuilder` )
 since( "0.2.1" ) by( "Lis" )
 shared JSON every (
 	"Timer interval measured in `timeUnit`." Integer interval,

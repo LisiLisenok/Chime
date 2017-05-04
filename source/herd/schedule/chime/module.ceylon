@@ -38,7 +38,7 @@
  		* [Events.](#timer-events)  
  		* [Time zones.](#time-zones)  
  		* [Example.](#timer-example)  
- 	* [Scheduler and timer interfaces.](#scheduler-timer-interfaces)
+ 	* [Scheduler and timer interfaces.](#scheduler-timer-interfaces)  
  	* [Error messages.](#error-messages)  
  * [Cron expression.](#cron-expression)  
  	* [Expression fields.](#cron-expression-fields)  
@@ -52,10 +52,10 @@
  
  		import io.vertx.ceylon.core {vertx}
  		import herd.schedule.chime {Chime}
- 		Chime c = Chime().deploy(vertx.vertx());
+ 		Chime().deploy(vertx.vertx());
  
  Or with `vertx.deployVerticle(\"ceylon:herd.schedule.chime/0.2.1\");`
- but ensure that Ceylon verticle factory is available at class path.    
+ but ensure that Ceylon verticle factory is available at class path.  
  
  
  ## <a name =\"configuration\"></a> Configuration.
@@ -88,19 +88,19 @@
  
  ### <a name =\"requests-and-responses\"></a> Requests and responses.  
  
- _Chime_ communicates over event bus with \`Json\` messages.
+ _Chime_ communicates over event bus with `Json` messages.
  Complete list of requests and responses is available
  at [Github](https://github.com/LisiLisenok/Chime/blob/master/howto.md).  
  
- Each request must contain \"operation\" field which identifies an action Chime has to perform.  
+ Each request must contain `operation` field which identifies an action Chime has to perform.  
  The following operations are available:  
- * **\"create\"** - create new scheduler or timer.
- * **\"delete\"** - delete scheduler or timer.
- * **\"info\"** - request info on _Chime_ or on a particular scheduler or timer.
- * **\"state\"**:
- 	* if set to **\"get\"** then scheduler or timer state has to be returned;
- 	* if set to **\"running\"** then scheduler or timer is to be set to _running_ state;
- 	* if set to **\"paused\"** then scheduler or timer is to be set to _paused_ state;
+ * `create` - create new scheduler or timer.
+ * `delete` - delete scheduler or timer.
+ * `info` - request info on _Chime_ or on a particular scheduler or timer.
+ * `state`:
+ 	* if set to `get` then scheduler or timer state has to be returned;
+ 	* if set to `running` then scheduler or timer is to be set to _running_ state;
+ 	* if set to `paused` then scheduler or timer is to be set to _paused_ state;
  
  
  -----------------
@@ -129,12 +129,16 @@
  			\"time zone\" -> String   
  		};
  
- > _Chime_ listens event bus at \"scheduler name\" address with messages for the given scheduler.  
-
+ > _Chime_ listens event bus at **scheduler name** address with messages for the given scheduler.  
+ 
+ > Complete list of messages is available at [Github](https://github.com/LisiLisenok/Chime/blob/master/howto.md).  
+ 
  There are two limitations for the scheduler name:  
  1. Scheduler name must not be equal to _Chime_ address. Since both addresses are registered at event bus.  
  2. Scheduler name must not contain **:**. Since it is used as separator
     in full timer name - **scheduler name:timer name**, see [timer.](#timer).  
+ 
+ > [[Scheduler]] interface proxies event bus and provides a convinient way to eachange messages with particular scheduler.  
  
  
  #### <a name =\"scheduler-example\"></a> Scheduler example.  
@@ -182,15 +186,15 @@
  Once scheduler is created timers can be run within.  
  
  There are two ways to access a given timer:  
- * sending message to \"scheduler name\" address using timer short name \"timer name\"  
- * sending message to _Chime_ address using full timer name which is \"scheduler name:timer name\"  
+ * sending message to **scheduler name** address using timer short name **timer name**  
+ * sending message to _Chime_ address using full timer name which is **scheduler name:timer name**  
  
- > Timer full name is _scheduler name_ and _timer name_ separated with ':', i.e. \"scheduler name:timer name\".  
+ > Timer full name is _scheduler name_ and _timer name_ separated with ':', i.e. **scheduler name:timer name**.  
  
  > Timer fire message is sent to _timer full name_ address.  
  
- > Both scheduler and timer names must not contain ':',
-   since it is used as separator of 'scheduler name:timer name'.  
+ > Both scheduler and timer names must not contain **:**,
+   since it is used as separator of **scheduler name:timer name**.  
  
  
  #### <a name =\"timer-request\"></a> Request.
@@ -198,8 +202,9 @@
  > Complete list of requests and responses is available
    at [Github](https://github.com/LisiLisenok/Chime/blob/master/howto.md).  
   
- Request has to be sent in `JSON` format to _scheduler name_ address with _timer short name_
- or to _Chime_ address with _timer full name_.  
+ Request has to be sent in `JSON` format to **scheduler name** address with _timer short name_
+ or to **Chime** address with _timer full name_.  
+ 
  Request format:  
  	JsonObject {  
  		// operation code, mandatory
@@ -263,38 +268,38 @@
  		\"description\" -> JsonObject  
  	};  
  
- > `message` field is to be attached to [timer fire event](#timer-events).  
- 
- > `delivery options` field provides event bus delivery options the fire event isto be sent with.  
- 
- > `message` and `delivery options` fields may be put to either the timer `description` field or to the request upper level.  
+ Notes: 
+ * `message` field is to be attached to [timer fire event](#timer-events).  
+ * `delivery options` field provides event bus delivery options the fire event is to be sent with.  
+ * `message` and `delivery options` fields may be put to either the timer `description` field or to the request upper level.  
    `message` and `delivery options` at description level is prefered to ones given at request level.  
- 
- > To get JSON delivery options apply `deliveryOptions.toJSON()`.  
- 
- > _Chime_ address could be specified in `verticle` configuration, default is \"chime\".  
-  
- > If 'create' request is sent to Chime address with full timer name and corresponding scheduler
+ * To get JSON delivery options apply `deliveryOptions.toJSON()`.  
+ * _Chime_ address could be specified in verticle configuration, default is \"chime\".  
+ * If `create` request is sent to Chime address with full timer name and corresponding scheduler
    hasn't been created before then Chime creates both new scheduler and new timer.  
-  
- > Timer fires only if both timer and scheduler states are _running_.   
+ * Timer fires only if both timer and scheduler states are _running_.  
+ * `description` field is discussed [below](#supported-timers).  
+ 
+ > [[Timer]] interface proxies event bus and provides a convinient way to eachange messages with particular timer.  
  
  
  #### <a name =\"unique-timer-name\"></a> Unique timer name.  
  
  The _Chime_ may generate unique timer name automatically. Just follow next steps:  
- 1. Set **\"operation\"** field to **\"create\"**.  
- 2. Set **\"name\"** field to scheduler name (i.e. omit timer name).  
- 3. Fill **\"description\"** field with required timer data.  
+ 1. Set `operation` field to `create`.  
+ 2. Set `name` field to scheduler name (i.e. omit timer name).  
+ 3. Fill `description` field with required timer data.  
  4. Send message to _Chime_ or scheduler address.  
  5. Take the unique timer name from the response.  
+ 
+ > `name` field can be empty or omitted at all if message is sent to scheduler address.  
  
  
  #### <a name =\"supported-timers\"></a> Supported timers.
  
  Timer is specified within _description_ field of timer create request.  
  
- > `message` and `delivery options` fields may be put to either the timer `description` field or to the request upper level.  
+ > `message` and `delivery options` fields may be put to either the timer `description` field or at the request level.  
    `message` and `delivery options` at description level is prefered to ones given at request level.  
  
  * __Cron style timer__ is defined with cron-style:  
@@ -364,7 +369,7 @@
  		};  
  
  This may be useful to fire at specific dates / times. For example, following timer fires
- at 8-00 each Monday and at 17-00 each Friday:  
+ at 8-00 each Monday with \"Monday morning\" message and at 17-00 each Friday with \"Friday evening\" message:  
  		JsonObject {  
  			\"type\" -> \"union\",  
  			\"timers\" -> JsonArray {
@@ -375,7 +380,8 @@
  					\"hours\" -> \"8\",  
  					\"days of month\" -> \"*\",  
  					\"months\" -> \"*\",  
- 					\"days of week\" -> \"Monday\"    
+ 					\"days of week\" -> \"Monday\",  
+ 					\"message\" -> \"Monday morning\"
  				},
  				JsonObject {
  					\"type\" -> \"cron\",
@@ -384,13 +390,14 @@
  					\"hours\" -> \"17\",  
  					\"days of month\" -> \"*\",  
  					\"months\" -> \"*\",  
- 					\"days of week\" -> \"Friday\"  
+ 					\"days of week\" -> \"Friday\",
+ 					\"message\" -> \"Friday evening\"  
  				}  
   			}  
  		};  
  
- > Each sub-timer may fire with each own message, just put \"message\" field to the sub-timer description.  
-   If \"message\" field is not found at sub-timer description then union timer \"message\" field is used.  
+ > Each sub-timer may fire with each own message, just put `message` field to the sub-timer description.  
+   If `message` field is not found at sub-timer description then union timer `message` field is used.  
  
  > [[UnionBuilder]] may help to build JSON description of a union timer.  
  
@@ -526,7 +533,7 @@
  
  [[Scheduler]] interface provides a convenient way to exchange messages with particular scheduler.  
  In order to connect to already existed scheduler or to create new one [[connectToScheduler]]
- function can be used. The function sends 'create scheduler' request to the _Chime_ and wraps
+ function can be used. The function sends [create scheduler request.](#scheduler-request) to the _Chime_ and wraps
  the event bus with implementation of [[Scheduler]] interface.  
  
  [[Timer]] interface provides a convenient way to exchange messages with particular timer.  

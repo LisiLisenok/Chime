@@ -371,12 +371,15 @@ class TimeScheduler(
 	shared void operationCreate( Message<JSON?> msg ) {
 		if ( exists request = msg.body(), request.defines( Chime.key.description ) ) {
 			String timerName;
-			if ( is String tName = request[Chime.key.name] ) {
-				if ( tName.startsWith( nameWithSeparator ) && tName.size > nameWithSeparator.size ) {
+			if ( is String tName = request[Chime.key.name], !tName.empty ) {
+				if ( tName == address ) {
+					timerName = nameWithSeparator + generateUniqueName();
+				}
+				else if ( tName.startsWith( nameWithSeparator ) && tName.size > nameWithSeparator.size ) {
 					timerName = tName;
 				}
 				else {
-					timerName = nameWithSeparator + generateUniqueName();
+					timerName = nameWithSeparator + tName;
 				}
 			}
 			else {

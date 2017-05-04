@@ -17,7 +17,7 @@ tagged( "Proxy" )
 since( "0.2.0" ) by( "Lis" )
 shared interface Timer {
 	
-	"Full name of the timer, i.e. \"scheduler name:timer name\"."
+	"Full name of the timer, i.e. **scheduler name:timer name**."
 	shared formal String name;
 	
 	"Stops and removes this timer."
