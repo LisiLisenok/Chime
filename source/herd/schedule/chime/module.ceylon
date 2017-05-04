@@ -138,7 +138,7 @@
  2. Scheduler name must not contain **:**. Since it is used as separator
     in full timer name - **scheduler name:timer name**, see [timer.](#timer).  
  
- > [[Scheduler]] interface proxies event bus and provides a convinient way to eachange messages with particular scheduler.  
+ > [[Scheduler]] interface provides a convenient way to eachange messages with particular scheduler.  
  
  
  #### <a name =\"scheduler-example\"></a> Scheduler example.  
@@ -280,7 +280,7 @@
  * Timer fires only if both timer and scheduler states are _running_.  
  * `description` field is discussed [below](#supported-timers).  
  
- > [[Timer]] interface proxies event bus and provides a convinient way to eachange messages with particular timer.  
+ > [[Timer]] interface provides a convenient way to eachange messages with particular timer.  
  
  
  #### <a name =\"unique-timer-name\"></a> Unique timer name.  
