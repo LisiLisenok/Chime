@@ -12,20 +12,12 @@ import herd.schedule.chime.cron {
 
 	CronExpression
 }
-import ceylon.json {
-	ObjectValue
-}
-import io.vertx.ceylon.core.eventbus {
-	DeliveryOptions
-}
 
 
 "Ccron-like timer."
 since( "0.1.0" ) by( "Lis" )
 class TimeRowCronStyle (
-	"Cron expression rules the timer." CronExpression expression,
-	shared actual ObjectValue? message,
-	shared actual DeliveryOptions? options
+	"Cron expression rules the timer." CronExpression expression
 )
 		satisfies TimeRow
 {

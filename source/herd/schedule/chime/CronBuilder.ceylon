@@ -1,7 +1,6 @@
 import ceylon.json {
 	
-	JSON = Object,
-	ObjectValue
+	JSON = Object
 }
 import herd.schedule.chime.cron {
 	cron,
@@ -11,9 +10,6 @@ import herd.schedule.chime.cron {
 import ceylon.time.base {
 	DayOfWeek,
 	Month
-}
-import io.vertx.ceylon.core.eventbus {
-	DeliveryOptions
 }
 
 
@@ -85,10 +81,7 @@ shared class CronBuilder {
 		`class AssertionError`,
 		"Invalid cron expression, generally when one of seconds, minutes, hours, days of month or months are not defined."
 	)
-	shared JSON build (
-		"Optional message to be added to timer fire event." ObjectValue? message = null,
-		"Optional delivery options the timer fire event is sent with." DeliveryOptions? options = null
-	) {
+	shared JSON build() {
 		"Invalid cron expression."
 		assert (
 			exists cronExpr = parseCron (
@@ -109,12 +102,6 @@ shared class CronBuilder {
 		}
 		if ( !years.empty ) {
 			ret.put( Chime.date.years, years.string );
-		}
-		if ( exists message ) {
-			ret.put( Chime.key.message, message );
-		}
-		if ( exists options ) {
-			ret.put( Chime.key.deliveryOptions, options.toJson() );
 		}
 		return ret;
 	}

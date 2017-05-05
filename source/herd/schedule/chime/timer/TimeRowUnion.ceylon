@@ -1,11 +1,5 @@
-import io.vertx.ceylon.core.eventbus {
-	DeliveryOptions
-}
 import ceylon.time {
 	DateTime
-}
-import ceylon.json {
-	ObjectValue
 }
 import ceylon.collection {
 	ArrayList
@@ -19,8 +13,6 @@ shared class TimeRowUnion satisfies TimeRow {
 	static class InternalRow( TimeRow row ) satisfies TimeRow {
 		variable DateTime? currentDate_ = null;
 		shared DateTime? currentDate => currentDate_;
-		shared actual ObjectValue? message => row.message;
-		shared actual DeliveryOptions? options => row.options;
 		shared actual DateTime? shiftTime() {
 			return ( currentDate_ = row.shiftTime() );
 		}
@@ -34,26 +26,13 @@ shared class TimeRowUnion satisfies TimeRow {
 	
 	"Currently selected row, i.e. with min date. Selected at [[shiftTime]] or [[start]]."
 	variable InternalRow currentRow = emptyInternalRow;
-	"Message given at the union level and to be attached to the timer fire event."
-	ObjectValue? unionMessage;
-	"Delivery options given at the union level and message has to be sent with."
-	DeliveryOptions? unionOptions;
 	"List of currently active time rows."
 	ArrayList<InternalRow> timeRows;
 	
 	
 	"Instantiates new time row union from a list of time rows."
-	shared new (
-		"Time rows for union."
-		{TimeRow+} rows,
-		"Message given at the union level and to be attached to the timer fire event."
-		ObjectValue? unionMessage,
-		"Delivery options given at the union level and message has to be sent with."
-		DeliveryOptions? unionOptions
-	) {
+	shared new ( "Time rows for union." {TimeRow+} rows ) {
 		timeRows = ArrayList<InternalRow>{ for ( item in rows ) InternalRow( item ) };
-		this.unionMessage = unionMessage;
-		this.unionOptions = unionOptions;
 	}
 	
 	
@@ -66,10 +45,6 @@ shared class TimeRowUnion satisfies TimeRow {
 		}
 	}
 	
-	
-	shared actual ObjectValue? message => currentRow.message else unionMessage;
-	
-	shared actual DeliveryOptions? options => currentRow.options else unionOptions;
 	
 	shared actual DateTime? shiftTime() {
 		currentRow.shiftTime();

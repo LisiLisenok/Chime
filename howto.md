@@ -540,14 +540,11 @@ Used in [timer create request](#create-timer).
 	"days of month": "String in cron-style",
 	"months": "String in cron-style",
 	"days of week": "String in cron-style, optional",
-	"years": "String in cron-style, optional",
-	"message": "any Json supports",
-	"delivery options": {}
+	"years": "String in cron-style, optional"
 }
 ```  
 `type`, `seconds`, `minutes`, `hours`, `days of month` and `months` are mandatory.  
 `days of week` and `years` are optional.  
-`message` and `delivery options` are optional.  
 
 ##### Cron specification.  
 
@@ -595,13 +592,10 @@ Used in [timer create request](#create-timer).
 ```json
 {
 	"type": "interval",
-	"delay": "Integer > 0",
-	"message": "any Json supports",
-	"delivery options": {}
+	"delay": "Integer > 0"
 }
 ```  
 `type` and `interval` are mandatory.  
-`message` and `delivery options` are optional.  
 
 -------------
 
@@ -609,14 +603,11 @@ Used in [timer create request](#create-timer).
 ```json
 {
 	"type": "union",
-	"timers": [],
-	"message": "any Json supports",
-	"delivery options": {}
+	"timers": []
 }
 ```  
 Where `timers` array contains `JsonObject`'s of [timer descriptions](#timer-descriptions).  
-`type` and `timers` are mandatory.  
-`message` and `delivery options` are optional.  
+`type` and `timers` are mandatory.   
 
 -------------
 

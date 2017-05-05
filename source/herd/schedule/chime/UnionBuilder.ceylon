@@ -4,7 +4,6 @@ import ceylon.collection {
 import ceylon.json {
 	
 	JSON = Object,
-	ObjectValue,
 	JSONArray = Array
 }
 import ceylon.time {
@@ -14,9 +13,6 @@ import ceylon.time {
 import ceylon.time.base {
 	DayOfWeek,
 	Month
-}
-import io.vertx.ceylon.core.eventbus {
-	DeliveryOptions
 }
 import herd.schedule.chime.cron {
 	calendar,
@@ -50,38 +46,11 @@ shared class UnionBuilder
 	
 	
 	"Builds the timer."
-	shared JSON build (
-		"Optional message to be added to timer fire event." ObjectValue? message = null,
-		"Optional delivery options the timer fire event is sent with." DeliveryOptions? options = null
-	) {
-		JSON ret = JSON {
+	shared JSON build()
+		=> JSON {
 			Chime.key.type -> Chime.type.union,
 			Chime.key.timers -> JSONArray( union )
 		};
-		if ( exists message ) {
-			ret.put( Chime.key.message, message );
-		}
-		if ( exists options ) {
-			ret.put( Chime.key.deliveryOptions, options.toJson() );
-		}
-		return ret;
-	}
-	
-	
-	"Adds timer with the given message."
-	void withMessage (
-		"Timer description to be added." JSON timer,
-		"Optional message to be added to timer fire event." ObjectValue? message,
-		"Optional delivery options the timer fire event is sent with." DeliveryOptions? options
-	) {
-		if ( exists message ) {
-			timer.put( Chime.key.message, message );
-		}
-		if ( exists options ) {
-			timer.put( Chime.key.deliveryOptions, options.toJson() );
-		}
-		union.add( timer );
-	}
 
 	
 	"Adds timer by its JSON description."
@@ -89,21 +58,17 @@ shared class UnionBuilder
 	
 	"Fires at the given date / time with year taken into account.
 	 So, this timer will fire just a once."
-	shared void at (
-		"Date / time to fire at." DateTime time,
-		"Optional message to be added to timer fire event." ObjectValue? message = null,
-		"Optional delivery options the timer fire event is sent with." DeliveryOptions? options = null
-	) {
-		JSON timer = JSON {
-			Chime.key.type -> Chime.type.cron,
-			Chime.date.seconds -> time.seconds.string,
-			Chime.date.minutes -> time.minutes.string,
-			Chime.date.hours -> time.hours.string,
-			Chime.date.daysOfMonth -> time.day.string,
-			Chime.date.months -> time.month.string
-		};
-		withMessage( timer, message, options );
-	}
+	shared void at( "Date / time to fire at." DateTime time )
+		=> union.add (
+			JSON {
+				Chime.key.type -> Chime.type.cron,
+				Chime.date.seconds -> time.seconds.string,
+				Chime.date.minutes -> time.minutes.string,
+				Chime.date.hours -> time.hours.string,
+				Chime.date.daysOfMonth -> time.day.string,
+				Chime.date.months -> time.month.string
+			}
+		);
 	
 	"Fires every year at the given time, day and month."
 	shared void annual (
@@ -112,11 +77,9 @@ shared class UnionBuilder
 		"Month to fire at." Integer|String|Month month,
 		"Optional list of days of week to limit fire event to.  
 		 > Sunday is the first day of week."
-		{Integer|String|DayOfWeek+} daysOfWeek = 1..7,
-		"Optional message to be added to timer fire event." ObjectValue? message = null,
-		"Optional delivery options the timer fire event is sent with." DeliveryOptions? options = null
-	) {
-		JSON timer = JSON {
+		{Integer|String|DayOfWeek+} daysOfWeek = 1..7
+	) => union.add (
+		JSON {
 			Chime.key.type -> Chime.type.cron,
 			Chime.date.seconds -> time.seconds.string,
 			Chime.date.minutes -> time.minutes.string,
@@ -125,9 +88,8 @@ shared class UnionBuilder
 			Chime.date.months -> calendar.digitalMonth( month ).string,
 			Chime.date.daysOfWeek -> calendar.cronDaysOfWeek( daysOfWeek ),
 			Chime.date.years -> cron.allValues.string
-		};
-		withMessage( timer, message, options );
-	}
+		}
+	);
 	
 	"Fires every month at the given time and day of month.  
 	 I.e. `monthly(time(0,0,0), 1)` will fire each 1st day of every month at 0:0:0."
@@ -136,11 +98,9 @@ shared class UnionBuilder
 		"Day of month to fire at." Integer dayOfMonth,
 		"Optional list of days of week to limit fire event to.  
 		 > Sunday is the first day of week."
-		{Integer|String|DayOfWeek+} daysOfWeek = 1..7,
-		"Optional message to be added to timer fire event." ObjectValue? message = null,
-		"Optional delivery options the timer fire event is sent with." DeliveryOptions? options = null
-	) {
-		JSON timer = JSON {
+		{Integer|String|DayOfWeek+} daysOfWeek = 1..7
+	) => union.add (
+		JSON {
 			Chime.key.type -> Chime.type.cron,
 			Chime.date.seconds -> time.seconds.string,
 			Chime.date.minutes -> time.minutes.string,
@@ -149,9 +109,8 @@ shared class UnionBuilder
 			Chime.date.months -> cron.allValues.string,
 			Chime.date.daysOfWeek -> calendar.cronDaysOfWeek( daysOfWeek ),
 			Chime.date.years -> cron.allValues.string
-		};
-		withMessage( timer, message, options );
-	}
+		}
+	);
 	
 	"Fires every given day of week at the given time.  
 	 I.e. `weekly(time(0,0,0), monday)` will fire each monday at 0:0:0 time."
@@ -159,11 +118,9 @@ shared class UnionBuilder
 		"Time to fire at." Time time,
 		"Day of week to fire at.  
 		 > Sunday is the first day of week."
-		Integer|String|DayOfWeek dayOfWeek,
-		"Optional message to be added to timer fire event." ObjectValue? message = null,
-		"Optional delivery options the timer fire event is sent with." DeliveryOptions? options = null
-	) {
-		JSON timer = JSON {
+		Integer|String|DayOfWeek dayOfWeek
+	) => union.add (
+		JSON {
 			Chime.key.type -> Chime.type.cron,
 			Chime.date.seconds -> time.seconds.string,
 			Chime.date.minutes -> time.minutes.string,
@@ -172,9 +129,8 @@ shared class UnionBuilder
 			Chime.date.months -> cron.allValues.string,
 			Chime.date.daysOfWeek -> calendar.digitalDayOfWeek( dayOfWeek ).string,
 			Chime.date.years -> cron.allValues.string
-		};
-		withMessage( timer, message, options );
-	}
+		}
+	);
 	
 	"Fires every month at the last day of week and given time.  
 	 I.e. `last(time(0,0,0), friday)` will fire every month last friday at 0:0:0 time."
@@ -182,11 +138,9 @@ shared class UnionBuilder
 		"Time to fire at." Time time,
 		"Last day of week to fire at.  
 		 > Sunday is the first day of week."
-		Integer|String|DayOfWeek dayOfWeek,
-		"Optional message to be added to timer fire event." ObjectValue? message = null,
-		"Optional delivery options the timer fire event is sent with." DeliveryOptions? options = null
-	) {
-		JSON timer = JSON {
+		Integer|String|DayOfWeek dayOfWeek
+	) => union.add (
+		JSON {
 			Chime.key.type -> Chime.type.cron,
 			Chime.date.seconds -> time.seconds.string,
 			Chime.date.minutes -> time.minutes.string,
@@ -195,9 +149,8 @@ shared class UnionBuilder
 			Chime.date.months -> cron.allValues.string,
 			Chime.date.daysOfWeek -> calendar.digitalDayOfWeek( dayOfWeek ).string + cron.last.string,
 			Chime.date.years -> cron.allValues.string
-		};
-		withMessage( timer, message, options );
-	}
+		}
+	);
 	
 	"Fires every month at the n'th day of week and given time.  
 	 I.e. `last(time(0,0,0), friday, 3)` will fire every month third friday at 0:0:0 time."
@@ -206,11 +159,9 @@ shared class UnionBuilder
 		"Day of week to fire at.  
 		 > Sunday is the first day of week."
 		Integer|String|DayOfWeek dayOfWeek,
-		"Theorder of the day of week to fire at." Integer order,
-		"Optional message to be added to timer fire event." ObjectValue? message = null,
-		"Optional delivery options the timer fire event is sent with." DeliveryOptions? options = null
-	) {
-		JSON timer = JSON {
+		"Theorder of the day of week to fire at." Integer order
+	) => union.add (
+		JSON {
 			Chime.key.type -> Chime.type.cron,
 			Chime.date.seconds -> time.seconds.string,
 			Chime.date.minutes -> time.minutes.string,
@@ -219,9 +170,8 @@ shared class UnionBuilder
 			Chime.date.months -> cron.allValues.string,
 			Chime.date.daysOfWeek -> calendar.digitalDayOfWeek( dayOfWeek ).string + cron.nth.string + order.string,
 			Chime.date.years -> cron.allValues.string
-		};
-		withMessage( timer, message, options );
-	}
+		}
+	);
 		
 	"Fires daily at the given time.  
 	 For example, `daily(Time(12,0,0), 1..5)` will fire at 12:0:0 at working days only."
@@ -229,11 +179,9 @@ shared class UnionBuilder
 		"Time to fire at." Time time,
 		"Optional list of days of week to limit fire event to.  
 		 > Sunday is the first day of week."
-		{Integer|String|DayOfWeek+} daysOfWeek = 1..7,
-		"Optional message to be added to timer fire event." ObjectValue? message = null,
-		"Optional delivery options the timer fire event is sent with." DeliveryOptions? options = null
-	) {
-		JSON timer = JSON {
+		{Integer|String|DayOfWeek+} daysOfWeek = 1..7
+	) => union.add (
+		JSON {
 			Chime.key.type -> Chime.type.cron,
 			Chime.date.seconds -> time.seconds.string,
 			Chime.date.minutes -> time.minutes.string,
@@ -242,25 +190,22 @@ shared class UnionBuilder
 			Chime.date.months -> cron.allValues.string,
 			Chime.date.daysOfWeek -> calendar.cronDaysOfWeek( daysOfWeek ),
 			Chime.date.years -> cron.allValues.string
-		};
-		withMessage( timer, message, options );
-	}
+		}
+	);
 	
 	"Fires every given time interval."
 	shared void every (
 		"Timer interval measured in `timeUnit`." Integer interval,
-		"Unit to measure `delay`." TimeUnit timeUnit = TimeUnit.seconds,
-		"Optional message to be added to timer fire event." ObjectValue? message = null,
-		"Optional delivery options the timer fire event is sent with." DeliveryOptions? options = null
+		"Unit to measure `delay`." TimeUnit timeUnit = TimeUnit.seconds
 	) {
 		"Timer interval has to be positive, while given is ``interval``."
 		assert( interval > 0 );
-		
-		JSON timer= JSON {
-			Chime.key.type -> Chime.type.interval,
-			Chime.key.delay -> interval * timeUnit.secondsIn
-		};
-		withMessage( timer, message, options );
+		union.add (
+			JSON {
+				Chime.key.type -> Chime.type.interval,
+				Chime.key.delay -> interval * timeUnit.secondsIn
+			}
+		);
 	}
 	
 }

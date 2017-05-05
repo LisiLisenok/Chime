@@ -3,12 +3,6 @@ import ceylon.time {
 	DateTime,
 	dateTime
 }
-import ceylon.json {
-	ObjectValue
-}
-import io.vertx.ceylon.core.eventbus {
-	DeliveryOptions
-}
 
 
 "Incremental timer - starts from specific time date
@@ -17,9 +11,7 @@ import io.vertx.ceylon.core.eventbus {
  "
 since( "0.1.0" ) by( "Lis" )
 class TimeRowInterval (
-	"Timing delay in miliseconds, to be >= 0." shared Integer intervalMilliseconds,
-	shared actual ObjectValue? message,
-	shared actual DeliveryOptions? options
+	"Timing delay in miliseconds, to be >= 0." shared Integer intervalMilliseconds
 )
 		satisfies TimeRow
 {

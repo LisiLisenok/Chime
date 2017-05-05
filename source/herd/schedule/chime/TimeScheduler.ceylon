@@ -234,16 +234,7 @@ class TimeScheduler(
 		}
 	}
 	
-	"Sends fire event in standard Chime format.
-	 
-	 message format:  
-	 {  
-	 	\"name\": timer name, String   
-	 	\"event\": \"fire\"
-	 	\"time\": String formated time / date from [[TimerContainer.remoteFireTime]] or nothing if not specified   
-	 	\"count\": total number of fire times  
-	 }
-	 "
+	"Sends fire event in standard Chime format."
 	shared void sendFireEvent( TimerContainer timer, DateTime date ) {
 		JSON message = JSON {
 			Chime.key.event -> Chime.event.fire,

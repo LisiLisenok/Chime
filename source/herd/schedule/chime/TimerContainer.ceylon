@@ -8,6 +8,7 @@ import ceylon.time {
 	DateTime
 }
 import herd.schedule.chime.timer {
+
 	TimeRow
 }
 import io.vertx.ceylon.core.eventbus {
@@ -26,8 +27,8 @@ class TimerContainer (
 	"Max count or null if not specified." shared Integer? maxCount,
 	"Timer start time or null if to be started immediately." shared DateTime? startTime,
 	"Timer end time or null if not specified." shared DateTime? endTime,
-	"Message given at request level and to be attached to the timer fire event." ObjectValue? requestMessage,
-	"Delivery options given at request level and message has to be sent with." DeliveryOptions? requestOptions
+	"Message to be attached to the timer fire event." shared ObjectValue? message,
+	"Delivery options the message has to be sent with." shared DeliveryOptions? options
 ) {
 	
 	"Timer fire counting."
@@ -48,11 +49,6 @@ class TimerContainer (
 	"Time zone ID."
 	shared String timeZoneID => converter.timeZoneID;
 
-	"Message to be attached to the timer fire event."
-	shared ObjectValue? message => timer.message else requestMessage;
-	
-	"Delivery options message has to be sent with."
-	shared DeliveryOptions? options => timer.options else requestOptions;
 
 	"Timer name + state."
 	shared JSON stateDescription() {
@@ -105,10 +101,10 @@ class TimerContainer (
 			);
 		}
 		
-		if ( exists m = requestMessage ) {
+		if ( exists m = message ) {
 			descr.put( Chime.key.message, m );
 		}
-		if ( exists m = requestOptions ) {
+		if ( exists m = options ) {
 			descr.put( Chime.key.deliveryOptions, m.toJson() );
 		}
 		
