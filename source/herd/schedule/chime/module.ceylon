@@ -271,8 +271,6 @@
  Notes: 
  * `message` field is to be attached to [timer fire event](#timer-events).  
  * `delivery options` field provides event bus delivery options the fire event is to be sent with.  
- * `message` and `delivery options` fields may be put to either the timer `description` field or to the request upper level.  
-   `message` and `delivery options` at description level is prefered to ones given at request level.  
  * To get JSON delivery options apply `deliveryOptions.toJSON()`.  
  * _Chime_ address could be specified in verticle configuration, default is \"chime\".  
  * If `create` request is sent to Chime address with full timer name and corresponding scheduler
@@ -298,9 +296,7 @@
  #### <a name =\"supported-timers\"></a> Supported timers.
  
  Timer is specified within _description_ field of timer create request.  
- 
- > `message` and `delivery options` fields may be put to either the timer `description` field or at the request level.  
-   `message` and `delivery options` at description level is prefered to ones given at request level.  
+
  
  * __Cron style timer__ is defined with cron-style:  
  		JsonObject {
@@ -320,12 +316,7 @@
  			// days of week in cron style, L means last, # means nth of month, optional
  			\"days of week\" -> String,
  			// year in cron style, optional
- 			\"years\" -> String,
- 			   		
- 			// message which is attached to timer fire event, optional
- 			\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray,
- 			// delivery options the timer fire event is sent with, optional
- 			\"delivery options\" -> JsonObject
+ 			\"years\" -> String
  		};  
  
  Details of cron specification is listed [below](#cron-expression).  
@@ -343,12 +334,7 @@
  			// timer type, mandatory
  			\"type\" -> \"interval\",
  			// timer delay in seconds, must be > 0, mandatory
- 			\"delay\" -> Integer,
- 			
- 			// message which is attached to timer fire event, optional
- 			\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray,
- 			// delivery options the timer fire event is sent with, optional
- 			\"delivery options\" -> JsonObject
+ 			\"delay\" -> Integer
  		};  
  
  > Interval timer delay is in _seconds_
@@ -360,16 +346,11 @@
  			// timer type, mandatory
  			\"type\" -> \"union\",
  			// list of the timers, each item is JSON according to its description, mandatory
- 			\"timers\" -> JsonArray,
- 			
- 			// message which is attached to timer fire event, optional
- 			\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray,
- 			// delivery options the timer fire event is sent with, optional
- 			\"delivery options\" -> JsonObject
+ 			\"timers\" -> JsonArray
  		};  
  
  This may be useful to fire at specific dates / times. For example, following timer fires
- at 8-00 each Monday with \"Monday morning\" message and at 17-00 each Friday with \"Friday evening\" message:  
+ at 8-00 each Monday and at 17-00 each Friday:  
  		JsonObject {  
  			\"type\" -> \"union\",  
  			\"timers\" -> JsonArray {
@@ -380,8 +361,7 @@
  					\"hours\" -> \"8\",  
  					\"days of month\" -> \"*\",  
  					\"months\" -> \"*\",  
- 					\"days of week\" -> \"Monday\",  
- 					\"message\" -> \"Monday morning\"
+ 					\"days of week\" -> \"Monday\"
  				},
  				JsonObject {
  					\"type\" -> \"cron\",
@@ -390,14 +370,10 @@
  					\"hours\" -> \"17\",  
  					\"days of month\" -> \"*\",  
  					\"months\" -> \"*\",  
- 					\"days of week\" -> \"Friday\",
- 					\"message\" -> \"Friday evening\"  
+ 					\"days of week\" -> \"Friday\" 
  				}  
   			}  
  		};  
- 
- > Each sub-timer may fire with each own message, just put `message` field to the sub-timer description.  
-   If `message` field is not found at sub-timer description then union timer `message` field is used.  
  
  > [[UnionBuilder]] may help to build JSON description of a union timer.  
  
@@ -690,7 +666,7 @@ license (
 )
 by( "Lis" )
 native( "jvm" )
-module herd.schedule.chime "0.2.1" {
+module herd.schedule.chime "0.2.2" {
 	shared import io.vertx.ceylon.core "3.4.1";
 	shared import ceylon.time "1.3.2";
 	import ceylon.json "1.3.0";
