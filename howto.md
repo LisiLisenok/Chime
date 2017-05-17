@@ -1,7 +1,10 @@
-# Complete list of json messages.  
+# Complete list of json messages version 0.3.0.  
 
 ## Content.  
 * [Terminology](#terminology)
+* [Chime](#chime)
+	* [configuration](#configuration)
+	* [info on installed extensions](#info-on-installed-extensions)
 * [Scheduler](#scheduler-request)  
 	* [create scheduler](#create-scheduler)  
 	* [delete scheduler](#delete-scheduler)  
@@ -44,6 +47,39 @@
 
 -------------
 
+## Chime.
+
+### Configuration.
+
+Provided with verticle deploy configuration.  
+```json
+{
+	"address": "String address Chime has to listen, default is 'chime'",
+	"tolerance": "Integer tolerance in milliseconds used to compare actual and requested times, default is 10ms",
+	"local": "Boolean, If 'true' _Chime_ and schedulers event bus addresses have not to propagate across the cluster",
+	"services": [
+		"module name/module version"
+	]
+}
+```  
+
+`services` is a list of modules with version to look the extensions as service providers.  
+
+`local` identifies the event bus listening area.  
+If `true` _Chime_ and schedulers event bus addresses have not to propagate across the cluster,
+i.e. _Chime_ has to listen only messages from this local node.  
+If `false` _Chime_ has to listen all nodes in the cluster.  
+Default is `false`.  
+
+Additional options may be specified to be available to extensions during initialization.  
+
+
+### Info on installed extensions.
+
+see [get info on all schedulers](#get-info-on-all-schedulers).
+
+-------------
+
 ## Scheduler request.  
 
 ### Create scheduler.  
@@ -55,8 +91,12 @@ To be sent to _Chime_ address.
 {
 	"operation": "create",
 	"name": "scheduler name",
-	"state": "String, one of running, paused or completed, default is running",
-	"time zone": "String, default is local time zone"
+	"state": "String, optional, one of running, paused or completed, default is running",
+	"time zone": "String, optional, default time zone, applied to timer if no one given at timer level",
+	"time zone provider": "String, optional.",
+	"message source": "String, optional, default message source",
+	"message source configuration": "String, optional, configuration to instantiate message source",
+	"delivery options": "JsonObject, optional, default delivery options, applied if no one given at a timer create request"
 }
 ```  
 
@@ -64,9 +104,10 @@ To be sent to _Chime_ address.
 
 `state` field is optional with default value set to "running".  
 
-`time zone` field is optional with default value equal to local time zone.
-Time zone applied at scheduler level is default for timers [created](#create-timer) within this scheduler.    
+`time zone` field is optional. Time zone applied at scheduler level is default for timers [created](#create-timer) within this scheduler. If `time zone provider` then the given provider is used to extract time zone, otherwise default "jvm" provider is used.  
 [Available time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).  
+
+`delivery options` field specifies event bus delivery options a timer fire event is to be sent with, see details in [create timer.](#create-timer). Scheduler may contain default options, which used if no one given at timer level.  
 
 ##### Response.
 ```json
@@ -185,7 +226,15 @@ To be sent to _Chime_ address.
 ##### Response.
 ```json
 {
-	"schedulers": []
+	"schedulers": [],
+	"services": {
+		"timer providers": {
+			"provider type, returned by 'Extension.type'": "declaration"
+		},
+		"time zone providers": {
+			"provider type, returned by 'Extension.type'": "declaration"
+		}
+	}
 }
 ```  
 Where `schedulers` array contains `JsonObject`'s of [scheduler info](#get-scheduler-info).  
@@ -321,21 +370,27 @@ or to _scheduler_ address with either full or short timer name.
  		"year": "Integer"
 	},
 	"time zone": "String, default is local time zone",
-	"message": "any Json supports",
+	"time zone provider": "String",
+	"message": "any Json value",
+	"message source": "String, default message source",
+	"message source configuration": "String, configuration to instantiate message source",
 	"delivery options": {}
 }
 ```  
-Where `description` contains `JsonObject` with [timer descriptions](#timer-descriptions).  
-`operation`, `name`, and `description` are mandatory fields.  
+Where `operation`, `name`, and `description` are mandatory fields.  
+`description` field contains `JsonObject` with [timer descriptions](#timer-descriptions).  
 Other fields are optional, default values are:  
 * `state` = "running"  
 * `maximum count` = unlimited  
 * `publish` = false  
 * `start time` = right now  
 * `end time` = never  
-* `time zone` = local  
+* `time zone` = given at scheduler level or local  
+* `time zone provider` = used only if `time zone` is given, default is "jvm"
 * `message` = unused  
-* `delivery options` = unused  
+* `message source` = given at scheduler level or unused  
+* `message source configuration` = used only if `message source` is given  
+* `delivery options` = given at scheduler level or unused  
 
 > If name field is 'scheduler name', i.e. timer name is omitted then
   unique timer name is generated and returned with response.  
@@ -421,11 +476,32 @@ or to _scheduler_ address with either full or short timer name.
 	"name": "scheduler name:timer name",
 	"state": "running, paused or completed",
 	"count": "Integer, total number of fires when request is received",
+	"start time": {
+		"seconds": "Integer",
+		"minutes": "Integer",
+		"hours": "Integer",
+		"dayOfMonth": "Integer",
+		"month": "String",
+		"year": "Integer"
+	},
+	"end time": {
+		"seconds": "Integer",
+		"minutes": "Integer",
+		"hours": "Integer",
+		"dayOfMonth": "Integer",
+		"month": "String",
+		"year": "Integer"
+	},
+	"time zone": "String, time zone the timer operates with",
+	"delivery options": {},
 	"description": {}
 }
 ```  
 Response contains all fields set at [timer create request](#create-timer).  
 `description` field contains `JsonObject` with [timer descriptions](#timer-descriptions).  
+
+`start time`, `end time`, `message`, `message source configuration` and
+`delivery options` are optional and may not be given if ignored in timer create request.  
 
 -------------
 

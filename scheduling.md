@@ -149,7 +149,7 @@ Currently, three types of timers are supported:
 
 * __Cron style timer__ which is defined with cron-style:  
 ```json
-{  
+{
 	"type": "cron",  
 	"seconds": "seconds in cron style, String",  
 	"minutes": "minutes in cron style, String",  
@@ -164,7 +164,7 @@ Cron timer is rather powerful and flexible. Investigate [specification](https://
 
 * __Union timer__ which combines a number of timers into a one:  
 ```json
-{  
+{
 	"type": "union",  
 	"timers": ["list of the timer descriptions"]  
 };

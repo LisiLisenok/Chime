@@ -10,7 +10,7 @@ import herd.schedule.chime {
 }
 import ceylon.json {
 	
-	JSON = Object
+	JsonObject
 }
 import herd.asynctest.match {
 	ItemByKey,
@@ -20,7 +20,7 @@ import herd.asynctest.match {
 class CronBuilderTest() {
 	
 	shared test void cronBuilderWith( AsyncTestContext context ) {
-		JSON cron = CronBuilder().withSeconds(1,2).withMinutes(1,2).withHours(1,2)
+		JsonObject cron = CronBuilder().withSeconds(1,2).withMinutes(1,2).withHours(1,2)
 				.withDays(1,2).withMonths(1,2).withYears(2017).withDaysOfWeek(1,2).build();
 		context.assertThat (
 			cron,
@@ -58,7 +58,7 @@ class CronBuilderTest() {
 	}
 	
 	shared test void cronBuilderWithAll( AsyncTestContext context ) {
-		JSON cron = CronBuilder().withAllSeconds().withAllMinutes().withAllHours()
+		JsonObject cron = CronBuilder().withAllSeconds().withAllMinutes().withAllHours()
 				.withAllDays().withAllMonths().withAllYears().withAllDaysOfWeek().build();
 		context.assertThat (
 			cron,
@@ -96,7 +96,7 @@ class CronBuilderTest() {
 	}
 	
 	shared test void cronBuilderWithRange( AsyncTestContext context ) {
-		JSON cron = CronBuilder().withSecondsRange(1,5,2).withMinutesRange(1,5,2).withHoursRange(1,5,2)
+		JsonObject cron = CronBuilder().withSecondsRange(1,5,2).withMinutesRange(1,5,2).withHoursRange(1,5,2)
 				.withDaysRange(1,5,2).withMonthsRange(1,5,2).withYearsRange(2017,2021,2).withDaysOfWeekRange(1,5,2).build();
 		context.assertThat (
 			cron,
@@ -135,7 +135,7 @@ class CronBuilderTest() {
 	
 	shared test void cronBuilderFromBuilder( AsyncTestContext context ) {
 		CronBuilder cronBuilder = CronBuilder().withSeconds(1,2).withMinutes(1,2).withHours(1,2);
-		JSON cron = CronBuilder.fromBuilder(cronBuilder).withDays(1,2).withMonths(1,2).build();
+		JsonObject cron = CronBuilder.fromBuilder(cronBuilder).withDays(1,2).withMonths(1,2).build();
 		context.assertThat (
 			cron,
 			ItemByKey( "type", Chime.type.cron )

@@ -21,8 +21,8 @@ import ceylon.test {
 }
 import ceylon.json {
 
-	JSON=Object,
-	JSONArray=Array
+	JsonObject,
+	JsonArray
 }
 import herd.asynctest.match {
 
@@ -72,15 +72,15 @@ shared class SimpleTimers()
 	}
 	
 	void setupScheduler( AsyncPrePostContext initContext ) {
-		eventBus.send<JSON> (
+		eventBus.send<JsonObject> (
 			chime,
-			JSON {
+			JsonObject {
 				Chime.key.operation -> Chime.operation.create,
 				Chime.key.name -> scheduler,
 				Chime.key.state -> Chime.state.running
 			},
-			( Throwable | Message<JSON?> msg ) {
-				if ( is Message<JSON?> msg ) {
+			( Throwable | Message<JsonObject?> msg ) {
+				if ( is Message<JsonObject?> msg ) {
 					initContext.proceed();
 				}
 				else {
@@ -92,14 +92,14 @@ shared class SimpleTimers()
 	}
 	
 	
-	Anything( Throwable | Message<JSON?> ) timerValidation (
+	Anything( Throwable | Message<JsonObject?> ) timerValidation (
 		String timerName, Integer delay, Integer max, AsyncTestContext context
 	) {
 		variable Integer fireCount = 0;
 		variable Integer? previousTime = null;
 		variable Integer totalDelay = 0;
-		return ( Throwable | Message<JSON?> msg ) {
-			if ( is Message<JSON?> msg ) {
+		return ( Throwable | Message<JsonObject?> msg ) {
+			if ( is Message<JsonObject?> msg ) {
 				if ( exists body = msg.body() ) {
 					if ( is String event = body[Chime.key.event] ) {
 						if ( event == Chime.event.complete ) {
@@ -169,20 +169,20 @@ shared class SimpleTimers()
 			timerValidation( interval, timerDelay, 3, context )
 		);
 		
-		eventBus.send<JSON>(
+		eventBus.send<JsonObject>(
 			chime,
-			JSON {
+			JsonObject {
 				Chime.key.operation -> Chime.operation.create,
 				Chime.key.name -> interval,
 				Chime.key.state -> Chime.state.running,
 				Chime.key.publish -> false,
 				Chime.key.maxCount -> 3,
-				Chime.key.description -> JSON {
+				Chime.key.description -> JsonObject {
 					Chime.key.type -> Chime.type.interval,
 					Chime.key.delay -> timerDelay
 				}
 			},
-			( Throwable | Message<JSON?> msg ) {
+			( Throwable | Message<JsonObject?> msg ) {
 				if ( is Throwable msg ) {
 					context.fail( msg, "Interval timer setup" );
 					context.complete();
@@ -205,15 +205,15 @@ shared class SimpleTimers()
 			timerValidation( cron, 1, 3, context )
 		);
 		
-		eventBus.send<JSON>(
+		eventBus.send<JsonObject>(
 			chime,
-			JSON {
+			JsonObject {
 				Chime.key.operation -> Chime.operation.create,
 				Chime.key.name -> cron,
 				Chime.key.state -> Chime.state.running,
 				Chime.key.publish -> false,
 				Chime.key.maxCount -> 3,
-				Chime.key.description -> JSON {
+				Chime.key.description -> JsonObject {
 					Chime.key.type -> Chime.type.cron,
 					Chime.date.seconds -> "0-59",
 					Chime.date.minutes -> "*",
@@ -224,7 +224,7 @@ shared class SimpleTimers()
 					Chime.date.years -> "2015-2019"
 				}
 			},
-			( Throwable | Message<JSON?> msg ) {
+			( Throwable | Message<JsonObject?> msg ) {
 				if ( is Throwable msg ) {
 					context.fail( msg, "Cron timer setup" );
 					context.complete();
@@ -247,18 +247,18 @@ shared class SimpleTimers()
 			timerValidation( union, 1, 3, context )
 		);
 		
-		eventBus.send<JSON>(
+		eventBus.send<JsonObject>(
 			chime,
-			JSON {
+			JsonObject {
 				Chime.key.operation -> Chime.operation.create,
 				Chime.key.name -> union,
 				Chime.key.state -> Chime.state.running,
 				Chime.key.publish -> false,
 				Chime.key.maxCount -> 3,
-				Chime.key.description -> JSON {
+				Chime.key.description -> JsonObject {
 					Chime.key.type -> Chime.type.union,
-					Chime.key.timers -> JSONArray {
-						JSON {
+					Chime.key.timers -> JsonArray {
+						JsonObject {
 							Chime.key.type -> Chime.type.cron,
 							Chime.date.seconds -> "0-59/3",
 							Chime.date.minutes -> "*",
@@ -266,7 +266,7 @@ shared class SimpleTimers()
 							Chime.date.daysOfMonth -> "*",
 							Chime.date.months -> "*"
 						},
-						JSON {
+						JsonObject {
 							Chime.key.type -> Chime.type.cron,
 							Chime.date.seconds -> "1-59/3",
 							Chime.date.minutes -> "*",
@@ -274,7 +274,7 @@ shared class SimpleTimers()
 							Chime.date.daysOfMonth -> "*",
 							Chime.date.months -> "*"
 						},
-						JSON {
+						JsonObject {
 							Chime.key.type -> Chime.type.cron,
 							Chime.date.seconds -> "2-59/3",
 							Chime.date.minutes -> "*",
@@ -285,7 +285,7 @@ shared class SimpleTimers()
 					}
 				}
 			},
-			( Throwable | Message<JSON?> msg ) {
+			( Throwable | Message<JsonObject?> msg ) {
 				if ( is Throwable msg ) {
 					context.fail( msg, "Union timer setup" );
 					context.complete();

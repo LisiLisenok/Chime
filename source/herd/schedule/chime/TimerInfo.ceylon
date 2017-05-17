@@ -1,6 +1,6 @@
 import ceylon.json {
 	
-	JSON=Object
+	JsonObject
 }
 import ceylon.time {
 
@@ -22,7 +22,7 @@ shared final class TimerInfo {
 	"Time the timer has to be started, or `null` if immediately." shared DateTime? startTime;
 	"Optional time the timer has to be completed." shared DateTime? endTime;
 	"Time zone the timer works in." shared String timeZone;
-	"Timer description." shared JSON description;
+	"Timer description." shared JsonObject description;
 	
 	
 	"Instantiates `TimerInfo` with the given parameters."
@@ -35,7 +35,7 @@ shared final class TimerInfo {
 		"Time the timer has to be started, or `null` if immediately." DateTime? startTime,
 		"Optional time the timer has to be completed." DateTime? endTime,
 		"Time zone the timer works in." String timeZone,
-		"Timer description." JSON description
+		"Timer description." JsonObject description
 	) {
 		this.name = name;
 		this.state = state;
@@ -48,8 +48,8 @@ shared final class TimerInfo {
 		this.description = description;
 	}
 	
-	"Instantiates `TimerInfo` from JSON description as send by _Chime_."
-	shared new fromJSON( "Timer info received from _Chime_." JSON timerInfo ) {
+	"Instantiates `TimerInfo` from `JsonObject` description as send by _Chime_."
+	shared new fromJSON( "Timer info received from _Chime_." JsonObject timerInfo ) {
 		this.name = timerInfo.getString( Chime.key.name );
 		"Timer info replied from scheduler has to contain state field."
 		assert( exists state = stateByName( timerInfo.getString( Chime.key.state ) ) );
@@ -69,7 +69,12 @@ shared final class TimerInfo {
 		this.description = timerInfo.getObject( Chime.key.description );
 	}
 	
+	"Name of the scheduler the timer works within."
+	shared String schedulerName => name[... ( name.firstOccurrence( Chime.configuration.nameSeparatorChar ) else 0 ) - 1];
 	
-	shared actual String string => "Timer ``name``, ``state``, count = ``count``";
+	"Short name of the timer, i.e. name with shceduler name skipped."
+	shared String shortName => name[( name.firstOccurrence( Chime.configuration.nameSeparatorChar ) else 0 ) + 1 ...];
+	
+	shared actual String string => "Info on timer ``name``, ``state``, count = ``count``";
 	
 }

@@ -1,16 +1,18 @@
 import ceylon.json {
 
-	JSON=Object
+	JsonObject
 }
 import ceylon.time {
 
 	dateTime,
 	DateTime
 }
-import herd.schedule.chime.timer {
-
+import herd.schedule.chime.service {
+	ChimeServices,
 	TimeRowFactory,
-	TimeRow
+	TimeRow,
+	TimeZone,
+	MessageSource
 }
 import herd.schedule.chime.cron {
 
@@ -18,28 +20,33 @@ import herd.schedule.chime.cron {
 }
 import io.vertx.ceylon.core.eventbus {
 
-	deliveryOptions
+	deliveryOptions,
+	DeliveryOptions
 }
 
 
-"Uses [[JSON]] description to creates [[TimerContainer]] with timer [[TimeRow]] created by timer factory."
+"Uses `JSON` description to creates [[TimerContainer]] with timer [[TimeRow]] created by timer factory."
 see( `interface TimeRowFactory`, `interface TimeRow`, `class TimerContainer` )
 since( "0.1.0" ) by( "Lis" )
 class TimerCreator (
-	"Factory to create timers." TimeRowFactory factory,
-	"Factory to instantiates time converters." TimeConverterFactory converterFactory
+	"Services Chime provides." ChimeServices services
 ) {
 	
 	"Creates timer from creation request."
 	shared TimerContainer|<Integer->String> createTimer (
 			"Timer name." String name,
-			"Request with timer description." JSON request,
-			"Default converter applied if no time zone given." TimeConverter defaultConverter
+			"Request with timer description." JsonObject request,
+			"Default time zone applied if no time zone name is given." TimeZone defaultTimeZone,
+			"Default message source used if no one specified at timer." MessageSource defaultMessageSource,
+			"Default message delivery options applied to timer if no one given at timer create request."
+			DeliveryOptions? defaultOptions
 		) {
-		if ( is JSON description = request[Chime.key.description] ) {
-			value timer = factory.createTimer( description );
+		if ( is JsonObject description = request[Chime.key.description] ) {
+			value timer = services.createTimeRow( description );
 			if ( is TimeRow timer ) {
-				return createTimerContainer( request, description, name, timer, defaultConverter );
+				return createTimerContainer (
+					request, description, name, timer, defaultTimeZone, defaultMessageSource, defaultOptions
+				);
 			}
 			else {
 				return timer;
@@ -54,15 +61,18 @@ class TimerCreator (
 	
 	"Creates timer container by container and creation request."
 	TimerContainer|<Integer->String> createTimerContainer (
-		"Request on timer creation." JSON request,
-		"Timer description." JSON description,
+		"Request on timer creation." JsonObject request,
+		"Timer description." JsonObject description,
 		"Timer name." String name,
 		"Timer." TimeRow timer,
-		"Default converter applied if no time zone given." TimeConverter defaultConverter
+		"Default time zone applied if no time zone name is given." TimeZone defaultTimeZone,
+		"Default message source used if no one specified at timer." MessageSource defaultMessageSource,
+		"Default message delivery options applied to timer if no one given at timer create request."
+		DeliveryOptions? defaultOptions
 	) {
 		// extract start date if exists
 		DateTime? startDate;
-		if ( is JSON startTime = request[Chime.key.startTime] ) {
+		if ( is JsonObject startTime = request[Chime.key.startTime] ) {
 			if ( exists st = extractDate( startTime ) ) {
 				startDate = st;
 			}
@@ -76,7 +86,7 @@ class TimerCreator (
 		
 		// extract end date if exists
 		DateTime? endDate;
-		if ( is JSON endTime = request[Chime.key.endTime] ) {
+		if ( is JsonObject endTime = request[Chime.key.endTime] ) {
 			if ( exists st = extractDate( endTime ) ) {
 				endDate = st;
 			}
@@ -95,22 +105,23 @@ class TimerCreator (
 			}
 		}
 		
-		if ( exists converter = converterFromRequest( request, converterFactory, defaultConverter ) ) {
+		value exactServices = servicesFromRequest( request, services, defaultTimeZone, defaultMessageSource );
+		if ( is [TimeZone, MessageSource] exactServices ) {
 			return TimerContainer (
 				name, description, extractPublish( request ), timer,
-				converter, extractMaxCount( request ), startDate, endDate,
-				request.get( Chime.key.message ),
+				exactServices[0], extractMaxCount( request ), startDate, endDate,
+				exactServices[1], request.get( Chime.key.message ),
 				if ( exists options = request.getObjectOrNull( Chime.key.deliveryOptions ) )
-				then deliveryOptions.fromJson( options ) else null
+				then deliveryOptions.fromJson( options ) else defaultOptions
 			);
 		}
 		else {
-			return Chime.errors.codeUnsupportedTimezone->Chime.errors.unsupportedTimezone;
+			return exactServices;
 		}
 	}
 	
 	"Extracts month from field with key key. The field can be either integer or string (like JAN, FEB etc, see [[calendar]])."
-	Integer? extractMonth( JSON description, String key ) {
+	Integer? extractMonth( JsonObject description, String key ) {
 		if ( is Integer val = description[key] ) {
 			if ( val > 0 && val < 13 ) {
 				return val;
@@ -130,8 +141,8 @@ class TimerCreator (
 		}
 	}
 	
-	"Extracts date from [[JSON]], key returns [[JSON]] object with date."
-	DateTime? extractDate( JSON date ) {
+	"Extracts date from `JSON`, key returns `JSON` object with date."
+	DateTime? extractDate( JsonObject date ) {
 		if ( is Integer seconds = date[Chime.date.seconds],
 			is Integer minutes = date[Chime.date.minutes],
 			is Integer hours = date[Chime.date.hours],
@@ -152,7 +163,7 @@ class TimerCreator (
 	"Extracts publish field from description.  
 	 `publish` or `send` are nonmandatory field.  
 	 If no field extracted - default to be send." 
-	Boolean extractPublish( JSON description ) {
+	Boolean extractPublish( JsonObject description ) {
 		if ( is Boolean b = description[Chime.key.publish] ) {
 			return b;
 		}
@@ -162,7 +173,7 @@ class TimerCreator (
 	}
 	
 	"`maxCount` - nonmandatory field, if not specified - infinitely."
-	Integer? extractMaxCount( JSON description ) {
+	Integer? extractMaxCount( JsonObject description ) {
 		if ( is Integer c = description[Chime.key.maxCount] ) {
 			if ( c > 0 ) {
 				return c;

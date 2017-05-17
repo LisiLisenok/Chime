@@ -1,18 +1,20 @@
 import ceylon.json {
 
-	JSON=Object,
+	JsonObject,
 	ObjectValue
 }
 import ceylon.time {
 
 	DateTime
 }
-import herd.schedule.chime.timer {
 
-	TimeRow
-}
 import io.vertx.ceylon.core.eventbus {
 	DeliveryOptions
+}
+import herd.schedule.chime.service {
+	TimeRow,
+	TimeZone,
+	MessageSource
 }
 
 
@@ -20,14 +22,15 @@ import io.vertx.ceylon.core.eventbus {
 since( "0.1.0" ) by( "Lis" )
 class TimerContainer (
 	"Timer full name, which is **scheduler name:timer name**." shared String name,
-	"Timer [[JSON]] description" shared JSON description,
+	"Timer `JsonObject` description" JsonObject description,
 	"`true` if message to be published and `false` if message to be send" shared Boolean publish,
 	"Timer within this container." TimeRow timer,
-	"Remote-local date-time converter." TimeConverter converter,
-	"Max count or null if not specified." shared Integer? maxCount,
-	"Timer start time or null if to be started immediately." shared DateTime? startTime,
-	"Timer end time or null if not specified." shared DateTime? endTime,
-	"Message to be attached to the timer fire event." shared ObjectValue? message,
+	"Time zone for the timer." TimeZone timeZone,
+	"Max count or null if not specified." Integer? maxCount,
+	"Timer start time or null if to be started immediately." DateTime? startTime,
+	"Timer end time or null if not specified." DateTime? endTime,
+	"Source to extract message." MessageSource messageSource,
+	"Message to be attached to the timer fire event." ObjectValue? message,
 	"Delivery options the message has to be sent with." shared DeliveryOptions? options
 ) {
 	
@@ -44,23 +47,23 @@ class TimerContainer (
 	shared DateTime? remoteFireTime => nextRemoteFireTime;
 	
 	"Next fire timer in machine local TZ or null if completed."
-	shared DateTime? localFireTime => if ( exists d = nextRemoteFireTime ) then converter.toLocal( d ) else null;
+	shared DateTime? localFireTime => if ( exists d = nextRemoteFireTime ) then timeZone.toLocal( d ) else null;
 	
 	"Time zone ID."
-	shared String timeZoneID => converter.timeZoneID;
+	shared String timeZoneID => timeZone.timeZoneID;
 
 
 	"Timer name + state."
-	shared JSON stateDescription() {
-		return JSON {
+	shared JsonObject stateDescription() {
+		return JsonObject {
 			Chime.key.name -> name,
 			Chime.key.state -> state.string
 		};
 	}
 	
 	"Returns _full_ timer description."
-	shared JSON fullDescription() {
-		JSON descr = JSON {
+	shared JsonObject fullDescription() {
+		JsonObject descr = JsonObject {
 			Chime.key.name -> name,
 			Chime.key.state -> state.string,
 			Chime.key.count -> count,
@@ -76,7 +79,7 @@ class TimerContainer (
 		if ( exists d = startTime ) {
 			descr.put (
 				Chime.key.startTime,
-				JSON {
+				JsonObject {
 					Chime.date.seconds -> d.seconds,
 					Chime.date.minutes -> d.minutes,
 					Chime.date.hours -> d.hours,
@@ -90,7 +93,7 @@ class TimerContainer (
 		if ( exists d = endTime ) {
 			descr.put (
 				Chime.key.endTime,
-				JSON {
+				JsonObject {
 					Chime.date.seconds -> d.seconds,
 					Chime.date.minutes -> d.minutes,
 					Chime.date.hours -> d.hours,
@@ -101,9 +104,6 @@ class TimerContainer (
 			);
 		}
 		
-		if ( exists m = message ) {
-			descr.put( Chime.key.message, m );
-		}
 		if ( exists m = options ) {
 			descr.put( Chime.key.deliveryOptions, m.toJson() );
 		}
@@ -111,9 +111,19 @@ class TimerContainer (
 		return descr;
 	}
 	
+	"Creates timer fire event for the given date time and with extracted message."
+	shared void timerFireEvent( DateTime at, Anything(TimerContainer, JsonObject, Map<String,String>?) handler ) {
+		TimerFire event = TimerFire( name, count, timeZoneID, at, message );
+		messageSource.extract (
+			event,
+			( ObjectValue? toSend, Map<String,String>? headers )
+					=> handler( this, event.toJsonWithMessage( toSend ), headers )
+		);
+	}
+	
 	"Starts the timer."
 	shared void start( DateTime currentLocal ) {
-		DateTime currentRemote = converter.toRemote( currentLocal );
+		DateTime currentRemote = timeZone.toRemote( currentLocal );
 		// check if max count has been reached before
 		if ( exists c = maxCount ) {
 			if ( count >= c ) {

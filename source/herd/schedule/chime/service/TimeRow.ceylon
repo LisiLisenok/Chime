@@ -4,7 +4,10 @@ import ceylon.time {
 }
 
 
-"Time row interface. Acts like _enumerator_ but might be restarted from any date."
+"Time row interface. Acts like _enumerator_ but might be restarted from any date.    
+ Generally, a time row is instantiated by [[TimeRowFactory]] given as service provider,
+ see [[package herd.schedule.chime.service]]."
+see( `interface TimeRowFactory` )
 since( "0.1.0" ) by( "Lis" )
 shared interface TimeRow
 {

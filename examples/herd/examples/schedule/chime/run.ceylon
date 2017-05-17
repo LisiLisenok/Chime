@@ -5,7 +5,7 @@ import io.vertx.ceylon.core.eventbus {
 }
 import ceylon.json {
 
-	JSON=Object
+	JsonObject
 }
 import io.vertx.ceylon.core {
 
@@ -45,16 +45,16 @@ class Scheduler(Vertx v, String address = Chime.configuration.defaultAddress)
 	
 	"Initializes testing - creates schedule manager and timer."
 	shared void initialize() {
-		eventBus.send<JSON> (
+		eventBus.send<JsonObject> (
 			address,
-			JSON {
+			JsonObject {
 				Chime.key.operation -> Chime.operation.create,
 				Chime.key.name -> "scheduler",
 				Chime.key.state -> Chime.state.running,
 				Chime.key.timeZone -> "Europe/Paris"
 			},
-			(Throwable | Message<JSON?> msg) {
-				if (is Message<JSON?> msg) {
+			(Throwable | Message<JsonObject?> msg) {
+				if (is Message<JsonObject?> msg) {
 					schedulerCreated(msg);
 				}
 				else {
@@ -66,8 +66,8 @@ class Scheduler(Vertx v, String address = Chime.configuration.defaultAddress)
 	}
 	
 	
-	void printMessage(Throwable|Message<JSON?> msg) {
-		if (is Message<JSON?> msg) {
+	void printMessage(Throwable|Message<JsonObject?> msg) {
+		if (is Message<JsonObject?> msg) {
 			if (exists body = msg.body()) {
 				print(body);
 				if (is String event = body[Chime.key.event], event == Chime.event.complete) {
@@ -86,20 +86,20 @@ class Scheduler(Vertx v, String address = Chime.configuration.defaultAddress)
 	}
 	
 	
-	void schedulerCreated(Message<JSON?> msg) {
+	void schedulerCreated(Message<JsonObject?> msg) {
 		
 		eventBus.consumer("scheduler:timer", printMessage);
 		
-		eventBus.send<JSON> (
+		eventBus.send<JsonObject> (
 			address,
-			JSON {
+			JsonObject {
 				Chime.key.operation -> Chime.operation.create,
 				Chime.key.name -> "scheduler:timer",
 				Chime.key.state -> Chime.state.running,
 				Chime.key.publish -> false,
 				Chime.key.maxCount -> 5,
 				//Chime.key.timeZone -> "Europe/Paris",
-				Chime.key.description -> JSON {
+				Chime.key.description -> JsonObject {
 					Chime.key.type -> Chime.type.cron,
 					Chime.date.seconds -> "20/15",
 					Chime.date.minutes -> "*",

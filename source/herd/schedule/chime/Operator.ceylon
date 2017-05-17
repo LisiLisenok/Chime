@@ -1,6 +1,6 @@
 import ceylon.json {
 
-	JSON=Object
+	JsonObject
 }
 import io.vertx.ceylon.core.eventbus {
 
@@ -10,7 +10,7 @@ import io.vertx.ceylon.core.eventbus {
 }
 
 
-"Provides basic operations with [[JSON]] message."
+"Provides basic operations with `JsonObject` message."
 see( `class SchedulerManager`, `class TimeScheduler` )
 since( "0.1.0" ) by( "Lis" )
 abstract class Operator (
@@ -19,16 +19,16 @@ abstract class Operator (
 ) {
 	
 	"Event bus consumer."
-	variable MessageConsumer<JSON?>? consumer = null; 
+	variable MessageConsumer<JsonObject?>? consumer = null; 
 	
 	"Operators map."	
-	variable Map<String, Anything(Message<JSON?>)>? operators = null;
+	variable Map<String, Anything(Message<JsonObject?>)>? operators = null;
 	
 	"Creates operators map."
-	shared formal Map<String, Anything(Message<JSON?>)> createOperators();
+	shared formal Map<String, Anything(Message<JsonObject?>)> createOperators();
 	
 	"Returns operator by operation code."
-	shared Anything(Message<JSON?>)? getOperator( "operation code" String code ) {
+	shared Anything(Message<JsonObject?>)? getOperator( "operation code" String code ) {
 		if ( !operators exists ) {			
 			// create operators map if doesn't exists
 			operators = createOperators();
@@ -38,7 +38,7 @@ abstract class Operator (
 
 	
 	"Extracts state from request, helper method."
-	shared State? extractState( JSON request ) {
+	shared State? extractState( JsonObject request ) {
 		if ( is String state = request[Chime.key.state] ) {
 			return stateByName( state );
 		}
@@ -48,7 +48,7 @@ abstract class Operator (
 	}
 		
 	"Message has been received from event bus - process it!."
-	void onMessage( "Message from event bus." Message<JSON?> msg ) {
+	void onMessage( "Message from event bus." Message<JsonObject?> msg ) {
 		if ( exists request = msg.body(), is String operation = request[Chime.key.operation] ) {
 			// depending on operation code
 			if ( exists operator = getOperator( operation ) ) {
@@ -66,11 +66,16 @@ abstract class Operator (
 	}
 	
 	"Connects to event bus, returns promise resolved when event listener registered."
-	shared default void connect() {
+	shared default void connect( Boolean local ) {
 		"Already connected."
 		assert( !consumer exists );
 		// setup event bus listener
-		consumer = eventBus.consumer( address, onMessage );
+		if ( local ) {
+			consumer = eventBus.localConsumer( address, onMessage );
+		}
+		else {
+			consumer = eventBus.consumer( address, onMessage );
+		}
 	}
 	
 	shared default void stop() {

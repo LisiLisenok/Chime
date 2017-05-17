@@ -19,17 +19,10 @@ class TimeRowInterval (
 	variable DateTime currentDate = dateTime( 0, 1, 1 );
 	
 		
-	/* Timer interface */
-		
-	shared actual DateTime? start( DateTime current ) {
-		// next fire time
-		currentDate = current.plusMilliseconds( intervalMilliseconds );
-		return currentDate;
-	}
+	shared actual DateTime? start( DateTime current ) => currentDate = current.plusMilliseconds( intervalMilliseconds );
 	
-	shared actual DateTime? shiftTime() {
-		currentDate = currentDate.plusMilliseconds( intervalMilliseconds );
-		return currentDate;	
-	}
+	shared actual DateTime? shiftTime() => currentDate = currentDate.plusMilliseconds( intervalMilliseconds );
 
+	shared actual String string => "interval time row with delay of ``intervalMilliseconds`` ms";
+	
 }

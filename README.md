@@ -1,7 +1,7 @@
 ## Chime.
 
 _Chime_ is time scheduler verticle which works on [Vert.x](http://vertx.io/) event bus and provides:  
-* scheduling with _cron-style_, _interval_ or _union_ timers:  
+* scheduling with _cron-style_, _interval_, _union_ or _custom_ timers:  
 	* at a certain time of day (to the second)  
 	* on certain days of the week, month or year  
 	* with a given time interval  
@@ -30,11 +30,12 @@ _Chime_ is written in [Ceylon](https://ceylon-lang.org) and is available at
 1. Deploy _Chime_ verticle  
 2. Create and listen timers on _EventBus_, see details in [API docs](https://modules.ceylon-lang.org/repo/1/herd/schedule/chime/0.2.0/module-doc/api/index.html)  
 
-> _Chime_ communicates over event bus with `Json` messages. Complete list of messages is available [here](../../wiki/Messages) 
+> _Chime_ communicates over event bus with `Json` messages.  
+  Complete list of messages is available [here](../../wiki/Messages) 
 
 Examples:  
 * [with Ceylon](examples/herd/examples/schedule/chime)  
 * [with Java and Maven](https://github.com/LisiLisenok/ChimeJavaExample)  
  
 
-[Blog post at vert.x website](http://vertx.io/blog/time-scheduling-with-chime/)  
+[Blog post at Vert.x website](http://vertx.io/blog/time-scheduling-with-chime/)  

@@ -1,5 +1,5 @@
 import ceylon.json {
-	JSON=Object
+	JsonObject
 }
 import ceylon.time {
 	dateTime,
@@ -9,7 +9,7 @@ import ceylon.time {
 
 "Reads date-time from JSON into `DateTime`."
 since( "0.2.0" ) by( "Lis" )
-DateTime dateTimeFromJSON( JSON dateTimeDescr )
+DateTime dateTimeFromJSON( JsonObject dateTimeDescr )
 	=> dateTime (
 		dateTimeDescr.getInteger( Chime.date.year ), dateTimeDescr.getInteger( Chime.date.month ),
 		dateTimeDescr.getInteger( Chime.date.dayOfMonth ), dateTimeDescr.getInteger( Chime.date.hours ),

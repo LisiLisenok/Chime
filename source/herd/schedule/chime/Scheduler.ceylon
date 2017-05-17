@@ -3,8 +3,8 @@ import ceylon.time {
 }
 import ceylon.json {
 	
-	JSON = Object,
-	JSONArray = Array,
+	JsonObject,
+	JsonArray,
 	ObjectValue
 }
 import io.vertx.ceylon.core.eventbus {
@@ -13,8 +13,8 @@ import io.vertx.ceylon.core.eventbus {
 
 
 "Wraps event bus to provide exchanging messages with previously created scheduler.  
- The object implementing interface is returned by [[connectToScheduler]]."
-see( `interface Timer`, `function connectToScheduler` )
+ The object implementing interface is returned by [[connectScheduler]]."
+see( `interface Timer`, `function connectScheduler`, `function createScheduler` )
 tagged( "Proxy" )
 since( "0.2.0" ) by( "Lis" )
 shared interface Scheduler {
@@ -54,7 +54,7 @@ shared interface Scheduler {
 		"Optional delete handler." Anything(Throwable|{String*})? handler = null
 	);
 	
-	"Creates interval timer."
+	"Creates an interval timer."
 	shared default void createIntervalTimer (
 		"Callback when timer created."
 		Anything(Timer|Throwable) handler,
@@ -73,18 +73,25 @@ shared interface Scheduler {
 		DateTime? startDate = null,
 		"Timer end date."
 		DateTime? endDate = null,
-		"Time zone."
+		"Time zone, default is machine local."
 		String? timeZone = null,
-		"Message to be attached to the timer fire event."
+		"Optional time zone provider, default is \"jvm\"."
+		String? timeZoneProvider = null,
+		"Message to be passed to message source in order to extract final message."
 		ObjectValue? message = null,
-		"Delivery options message has to be sent with."
+		"Optional message source type, default is \"direct\" which attaches `message` as is."
+		String? messageSource = null,
+		"Optional configuration passed to message source factory."
+		ObjectValue? messageSourceConfig = null,
+		"Delivery options the timer fire event has to be sent with."
 		DeliveryOptions? options = null
-	) => createTimer( 
-			handler, JSON { Chime.key.type -> Chime.type.interval, Chime.key.delay -> delay },
-			timerName, paused, publish, maxCount, startDate, endDate, timeZone, message, options
+	) => createTimer ( 
+			handler, JsonObject { Chime.key.type -> Chime.type.interval, Chime.key.delay -> delay },
+			timerName, paused, publish, maxCount, startDate, endDate, timeZone, timeZoneProvider,
+			message, messageSource, messageSourceConfig, options
 		);
 	
-	"Creates cron timer."
+	"Creates a cron timer."
 	shared default void createCronTimer (
 		"Callback when timer created." Anything(Timer|Throwable) handler,
 		"Seconds." String seconds,
@@ -109,12 +116,18 @@ shared interface Scheduler {
 		DateTime? endDate = null,
 		"Time zone."
 		String? timeZone = null,
-		"Message to be attached to the timer fire event."
+		"Optional time zone provider, default is \"jvm\"."
+		String? timeZoneProvider = null,
+		"Message to be passed to message source in order to extract final message."
 		ObjectValue? message = null,
-		"Delivery options message has to be sent with."
+		"Optional message source type, default is \"direct\" which attaches `message` as is."
+		String? messageSource = null,
+		"Optional configuration passed to message source factory."
+		ObjectValue? messageSourceConfig = null,
+		"Delivery options the timer fire event has to be sent with."
 		DeliveryOptions? options = null
 	) {
-		JSON descr = JSON {
+		JsonObject descr = JsonObject {
 			Chime.key.type -> Chime.type.cron,
 			Chime.date.seconds -> seconds,
 			Chime.date.minutes -> minutes,
@@ -128,18 +141,19 @@ shared interface Scheduler {
 		if ( exists d = years, !d.empty ) {
 			descr.put( Chime.date.years, d );
 		}
-		createTimer( 
-			handler, descr, timerName, paused, publish, maxCount, startDate, endDate, timeZone, message, options
+		createTimer ( 
+			handler, descr, timerName, paused, publish, maxCount, startDate, endDate, timeZone,
+			timeZoneProvider, message, messageSource, messageSourceConfig, options
 		);
 	}
 	
-	"Creates union timer."
+	"Creates an union timer."
 	since( "0.2.1" )
 	shared default void createUnionTimer (
 		"Callback when timer created."
 		Anything(Timer|Throwable) handler,
 		"Nonempty list of the timers to be combined into union."
-		{JSON+} timers,
+		{JsonObject+} timers,
 		"Timer name. Timer address is timer full name, i.e. **scheduler name:timer name**.  
 		 By default unique timer name is generate."
 		String? timerName = null,
@@ -155,22 +169,29 @@ shared interface Scheduler {
 		DateTime? endDate = null,
 		"Time zone."
 		String? timeZone = null,
-		"Message to be attached to the timer fire event."
+		"Optional time zone provider, default is \"jvm\"."
+		String? timeZoneProvider = null,
+		"Message to be passed to message source in order to extract final message."
 		ObjectValue? message = null,
-		"Delivery options message has to be sent with."
+		"Optional message source type, default is \"direct\" which attaches `message` as is."
+		String? messageSource = null,
+		"Optional configuration passed to message source factory."
+		ObjectValue? messageSourceConfig = null,
+		"Delivery options the timer fire event has to be sent with."
 		DeliveryOptions? options = null
 	) =>
-		createTimer( 
-			handler, JSON { Chime.key.type -> Chime.type.union, Chime.key.timers -> JSONArray( timers ) },
-			timerName, paused, publish, maxCount, startDate, endDate, timeZone, message, options
+		createTimer ( 
+			handler, JsonObject { Chime.key.type -> Chime.type.union, Chime.key.timers -> JsonArray( timers ) },
+			timerName, paused, publish, maxCount, startDate, endDate, timeZone, timeZoneProvider,
+			message, messageSource, messageSourceConfig, options
 		);
 
 	
-	"Creates timer with the given description."
+	"Creates a timer with the given description."
 	since( "0.2.1" )
 	shared formal void createTimer (
 		"Callback when timer created." Anything(Timer|Throwable) handler,
-		"JSON timer description." JSON description,
+		"JSON timer description." JsonObject description,
 		"Timer name. Timer address is timer full name, i.e. **scheduler name:timer name**.  
 		 By default unique timer name is generate."
 		String? timerName = null,
@@ -184,11 +205,17 @@ shared interface Scheduler {
 		DateTime? startDate = null,
 		"Timer end date."
 		DateTime? endDate = null,
-		"Time zone."
+		"Opyional time zone, default is scheduler or local."
 		String? timeZone = null,
-		"Message to be attached to the timer fire event."
+		"Optional time zone provider, default is scheduler or \"jvm\"."
+		String? timeZoneProvider = null,
+		"Message to be passed to message source in order to extract final message."
 		ObjectValue? message = null,
-		"Delivery options message has to be sent with."
+		"Optional message source type, default is scheduler or \"direct\" which attaches `message` as is."
+		String? messageSource = null,
+		"Optional configuration passed to message source factory."
+		ObjectValue? messageSourceConfig = null,
+		"Delivery options the timer fire event has to be sent with."
 		DeliveryOptions? options = null
 	);
 	

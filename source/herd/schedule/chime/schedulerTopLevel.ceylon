@@ -1,19 +1,58 @@
 import io.vertx.ceylon.core.eventbus {
-	Message,
-	EventBus
+	EventBus,
+	DeliveryOptions
 }
 import ceylon.json {
-	JSON=Object,
-	JSONArray=Array
+	JsonObject,
+	JsonArray,
+	ObjectValue
 }
 
 
-"Connects to scheduler. If scheduler has not been created yet then new one is created."
+"Connects to already existed scheduler."
 see( `interface Scheduler` )
 throws( `class AssertionError`, "scheduler name contains ':'" )
 tagged( "Proxy" )
 since( "0.2.0" ) by( "Lis" )
-shared void connectToScheduler (
+shared void connectScheduler (
+	"Handler to receive created scheduler or error if occured."
+	Anything( Throwable|Scheduler ) handler,
+	"Address to call _Chime_." String shimeAddress,
+	"Event bus to send message to _Chime_." EventBus eventBus,
+	"Name of the scheduler to be connected or created.  
+	 Must not contain ':' symbol, since it separates scheduler and timer names."
+	String name,
+	"Timeout to send message with."
+	Integer? sendTimeout = null
+) {
+	"Scheduler name must not contain ``Chime.configuration.nameSeparator``, since it separates scheduler and timer names."
+	assert( !name.contains( Chime.configuration.nameSeparator ) );
+	JsonObject request = JsonObject {
+		Chime.key.operation -> Chime.operation.info,
+		Chime.key.name -> name
+	};
+	if ( exists sendTimeout ) {
+		eventBus.send<JsonObject> (
+			shimeAddress, request, DeliveryOptions( null, null, sendTimeout ),
+			SchedulerImpl.createSchedulerImpl( handler, eventBus, sendTimeout )
+		);
+	}
+	else {
+		eventBus.send<JsonObject> (
+			shimeAddress, request,
+			SchedulerImpl.createSchedulerImpl( handler, eventBus, sendTimeout )
+		);
+	}
+	
+}
+
+
+"Creates new scheduler or connects to already existed scheduler."
+see( `interface Scheduler` )
+throws( `class AssertionError`, "scheduler name contains ':'" )
+tagged( "Proxy" )
+since( "0.2.0" ) by( "Lis" )
+shared void createScheduler (
 	"Handler to receive created scheduler or error if occured."
 	Anything( Throwable|Scheduler ) handler,
 	"Address to call _Chime_." String shimeAddress,
@@ -23,29 +62,54 @@ shared void connectToScheduler (
 	String name,
 	"`True` if new scheduler is paused and `false` if running.  
 	 If scheduler has been created early its state is not changed."
-	Boolean paused = false
+	Boolean paused = false,
+	"Optional time zone default for the scheduler."
+	String? timeZone = null,
+	"Optional time zone provider, default is \"jvm\"."
+	String? timeZoneProvider = null,
+	"Optional message source type default for the scheduler."
+	String? messageSource = null,
+	"Optional configuration passed to message source factory."
+	ObjectValue? messageSourceConfig = null,
+	"Default delivery options a timer fire event has to be sent with."
+	DeliveryOptions? deliveryOptions = null,
+	"Timeout to send message with."
+	Integer? sendTimeout = null
 ) {
 	"Scheduler name must not contain ``Chime.configuration.nameSeparator``, since it separates scheduler and timer names."
 	assert( !name.contains( Chime.configuration.nameSeparator ) );
-	
-	eventBus.send<JSON> (
-		shimeAddress,
-		JSON {
-			Chime.key.operation -> Chime.operation.create,
-			Chime.key.name -> name,
-			Chime.key.state -> ( if ( paused ) then Chime.state.paused else Chime.state.running )
-		},
-		( Throwable | Message<JSON?> msg ) {
-			if ( is Message<JSON?> msg ) {
-				"Chime has to respond with non-optional message."
-				assert( exists ret = msg.body() );
-				handler( SchedulerImpl( ret.getString( Chime.key.name ), eventBus ) );
-			}
-			else {
-				handler( msg );
-			}
+	JsonObject request = JsonObject {
+		Chime.key.operation -> Chime.operation.create,
+		Chime.key.name -> name,
+		Chime.key.state -> ( if ( paused ) then Chime.state.paused else Chime.state.running )
+	};
+	if ( exists timeZone ) {
+		request.put( Chime.key.timeZone, timeZone );
+		if ( exists timeZoneProvider ) {
+			request.put( Chime.key.timeZoneProvider, timeZoneProvider );
 		}
-	);
+	}
+	if ( exists messageSource ) {
+		request.put( Chime.key.messageSource, messageSource );
+		if ( exists messageSourceConfig ) {
+			request.put( Chime.key.messageSourceConfig, messageSourceConfig );
+		}
+	}
+	if ( exists deliveryOptions ) {
+		request.put( Chime.key.deliveryOptions, deliveryOptions.toJson() );
+	}
+	
+	if ( exists sendTimeout ) {
+		eventBus.send<JsonObject> (
+			shimeAddress, request, DeliveryOptions( null, null, sendTimeout ),
+			SchedulerImpl.createSchedulerImpl( handler, eventBus, sendTimeout )
+		);
+	}
+	else {
+		eventBus.send<JsonObject> (
+			shimeAddress, request, SchedulerImpl.createSchedulerImpl( handler, eventBus, sendTimeout )
+		);
+	}
 }
 
 
@@ -62,28 +126,29 @@ shared void schedulerInfo (
 	EventBus eventBus,
 	"List of scheduler name, the info to be requested for.  
 	 If empty then info on all schedulers are requested."
-	String* names
+	{String*} names = {},
+	"Timeout to send message with."
+	Integer? sendTimeout = null
+	
 ) {
-	JSON request = JSON {
+	JsonObject request = JsonObject {
 		Chime.key.operation -> Chime.operation.info
 	};
 	if ( !names.empty ) {
-		request.put( Chime.key.name, JSONArray( names ) );
+		request.put( Chime.key.name, JsonArray( names ) );
 	}
-	eventBus.send (
-		shimeAddress, request,
-		( Throwable|Message<JSON?> msg ) {
-			if ( is Message<JSON?> msg ) {
-				"Reply from scheduler request has not to be null."
-				assert( exists ret = msg.body() );
-				value sch = ret.getArray( Chime.key.schedulers );
-				handler( [for ( item in sch.narrow<JSON>() ) SchedulerInfo.fromJSON( item )] );
-			}
-			else {
-				handler( msg );
-			}
-		}
-	);
+	
+	if ( exists sendTimeout ) {
+		eventBus.send<JsonObject> (
+			shimeAddress, request, DeliveryOptions( null, null, sendTimeout ),
+			SchedulerImpl.replyWithInfo( handler )
+		);
+	}
+	else {
+		eventBus.send<JsonObject> (
+			shimeAddress, request, SchedulerImpl.replyWithInfo( handler )
+		);
+	}
 }
 
 
@@ -100,31 +165,33 @@ shared void delete (
 	 If empty then every scheduler and timer have to be deleted."
 	{String*} names = {},
 	"Optional handler called with a list of names of actually deleted schedulers or timers."
-	Anything( Throwable|{String*} )? handler = null
+	Anything( Throwable|{String*} )? handler = null,
+	"Timeout to send message with."
+	Integer? sendTimeout = null
 ) {
-	JSON request = JSON {
+	JsonObject request = JsonObject {
 		Chime.key.operation -> Chime.operation.delete,
-		Chime.key.name -> ( if ( names.empty ) then "" else JSONArray( names ) )
+		Chime.key.name -> ( if ( names.empty ) then "" else JsonArray( names ) )
 	};
 	if ( exists handler ) {
-		eventBus.send (
-			shimeAddress, request,
-			( Throwable|Message<JSON?> msg ) {
-				if ( is Message<JSON?> msg ) {
-					"Reply from scheduler request has not to be null."
-					assert( exists ret = msg.body() );
-					handler (
-						ret.getArray( Chime.key.schedulers ).narrow<String>()
-							.chain( ret.getArray( Chime.key.timers ).narrow<String>() )
-					);
-				}
-				else {
-					handler( msg );
-				}
-			}
-		);
+		if ( exists sendTimeout ) {
+			eventBus.send<JsonObject> (
+				shimeAddress, request, DeliveryOptions( null, null, sendTimeout ),
+				SchedulerImpl.replyWithList( handler, Chime.key.schedulers )
+			);
+		}
+		else {
+			eventBus.send<JsonObject> (
+				shimeAddress, request, SchedulerImpl.replyWithList( handler, Chime.key.schedulers )
+			);
+		}
 	}
 	else {
-		eventBus.send( shimeAddress, request );		
+		if ( exists sendTimeout ) {
+			eventBus.send( shimeAddress, request, DeliveryOptions( null, null, sendTimeout ) );
+		}
+		else {
+			eventBus.send( shimeAddress, request );	
+		}
 	}
 }

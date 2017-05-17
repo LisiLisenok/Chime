@@ -3,8 +3,8 @@ import ceylon.collection {
 }
 import ceylon.json {
 	
-	JSON = Object,
-	JSONArray = Array
+	JsonObject,
+	JsonArray
 }
 import ceylon.time {
 	DateTime,
@@ -23,7 +23,7 @@ import herd.schedule.chime.cron {
 "Builds an union timer.  
  The builder has a number of function to add particular timer.
  The function may be called in any order and any number of times.  
- Finally, [[UnionBuilder.build]] has to be called to build the timer JSON description.   
+ Finally, [[UnionBuilder.build]] has to be called to build the timer `JsonObject` description.   
  "
 tagged( "Builder" )
 see( `class CronBuilder`, `function package.every` )
@@ -31,36 +31,36 @@ since( "0.2.1" ) by( "Lis" )
 shared class UnionBuilder
 {
 	
-	ArrayList<JSON> union;
+	ArrayList<JsonObject> union;
 	
 	
 	"Instantiates new empty cron builder."
 	shared new () {
-		union = ArrayList<JSON>();
+		union = ArrayList<JsonObject>();
 	}
 	
 	"Instatiates new builder and copy data from `other`."
 	shared new fromBuilder( "Builder to copy data from." UnionBuilder other ) {
-		union = ArrayList<JSON>{ for( item in other.union ) item.clone() };
+		union = ArrayList<JsonObject>{ for( item in other.union ) item.clone() };
 	}
 	
 	
 	"Builds the timer."
-	shared JSON build()
-		=> JSON {
+	shared JsonObject build()
+		=> JsonObject {
 			Chime.key.type -> Chime.type.union,
-			Chime.key.timers -> JSONArray( union )
+			Chime.key.timers -> JsonArray( union )
 		};
 
 	
-	"Adds timer by its JSON description."
-	shared void timer( "Timer description to be added." JSON timer ) => union.add( timer );
+	"Adds timer by its `JSON` description."
+	shared void timer( "Timer description to be added." JsonObject timer ) => union.add( timer );
 	
 	"Fires at the given date / time with year taken into account.
 	 So, this timer will fire just a once."
 	shared void at( "Date / time to fire at." DateTime time )
 		=> union.add (
-			JSON {
+			JsonObject {
 				Chime.key.type -> Chime.type.cron,
 				Chime.date.seconds -> time.seconds.string,
 				Chime.date.minutes -> time.minutes.string,
@@ -79,7 +79,7 @@ shared class UnionBuilder
 		 > Sunday is the first day of week."
 		{Integer|String|DayOfWeek+} daysOfWeek = 1..7
 	) => union.add (
-		JSON {
+		JsonObject {
 			Chime.key.type -> Chime.type.cron,
 			Chime.date.seconds -> time.seconds.string,
 			Chime.date.minutes -> time.minutes.string,
@@ -100,7 +100,7 @@ shared class UnionBuilder
 		 > Sunday is the first day of week."
 		{Integer|String|DayOfWeek+} daysOfWeek = 1..7
 	) => union.add (
-		JSON {
+		JsonObject {
 			Chime.key.type -> Chime.type.cron,
 			Chime.date.seconds -> time.seconds.string,
 			Chime.date.minutes -> time.minutes.string,
@@ -120,7 +120,7 @@ shared class UnionBuilder
 		 > Sunday is the first day of week."
 		Integer|String|DayOfWeek dayOfWeek
 	) => union.add (
-		JSON {
+		JsonObject {
 			Chime.key.type -> Chime.type.cron,
 			Chime.date.seconds -> time.seconds.string,
 			Chime.date.minutes -> time.minutes.string,
@@ -140,7 +140,7 @@ shared class UnionBuilder
 		 > Sunday is the first day of week."
 		Integer|String|DayOfWeek dayOfWeek
 	) => union.add (
-		JSON {
+		JsonObject {
 			Chime.key.type -> Chime.type.cron,
 			Chime.date.seconds -> time.seconds.string,
 			Chime.date.minutes -> time.minutes.string,
@@ -161,7 +161,7 @@ shared class UnionBuilder
 		Integer|String|DayOfWeek dayOfWeek,
 		"Theorder of the day of week to fire at." Integer order
 	) => union.add (
-		JSON {
+		JsonObject {
 			Chime.key.type -> Chime.type.cron,
 			Chime.date.seconds -> time.seconds.string,
 			Chime.date.minutes -> time.minutes.string,
@@ -181,7 +181,7 @@ shared class UnionBuilder
 		 > Sunday is the first day of week."
 		{Integer|String|DayOfWeek+} daysOfWeek = 1..7
 	) => union.add (
-		JSON {
+		JsonObject {
 			Chime.key.type -> Chime.type.cron,
 			Chime.date.seconds -> time.seconds.string,
 			Chime.date.minutes -> time.minutes.string,
@@ -201,7 +201,7 @@ shared class UnionBuilder
 		"Timer interval has to be positive, while given is ``interval``."
 		assert( interval > 0 );
 		union.add (
-			JSON {
+			JsonObject {
 				Chime.key.type -> Chime.type.interval,
 				Chime.key.delay -> interval * timeUnit.secondsIn
 			}

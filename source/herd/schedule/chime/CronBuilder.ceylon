@@ -1,6 +1,6 @@
 import ceylon.json {
 	
-	JSON = Object
+	JsonObject
 }
 import herd.schedule.chime.cron {
 	cron,
@@ -13,19 +13,19 @@ import ceylon.time.base {
 }
 
 
-"Builds cron timer JSON description.  
+"Builds cron timer `JsonObject` description.  
  
  The builder has a number of function to add particular cron record to the description.
  The function may be called in any order and any number of times.  
- Finally, [[CronBuilder.build]] has to be called to build the timer JSON description.  
+ Finally, [[CronBuilder.build]] has to be called to build the timer `JsonObject` description.  
  
   > Note that 'seconds', 'minutes', 'hours', 'days of month' and 'month' are required fields.
    While 'years' and 'days of week' are optional.  
 
  Example:  
- 	JSON cron = CronBuilder().withSeconds(3).withMinutes(0).withHours(1).withAllDays().withAllMonths().build();	
+ 	JsonObject cron = CronBuilder().withSeconds(3).withMinutes(0).withHours(1).withAllDays().withAllMonths().build();	
  Leads to the following cron description:
-  		JSON {  
+  		JsonObject {  
  			\"type\" -> \"cron\",  
  			\"seconds\" -> \"3\",  
  			\"minutes\" -> \"0\",  
@@ -73,7 +73,7 @@ shared class CronBuilder {
 	}
 	
 	
-	"Builds JSON description of cron timer.  
+	"Builds `JsonObject` description of cron timer.  
 	 > Seconds, minutes, hours, days of month and months are required fields and to be set before building.  
 	 > Days of week aand years are optional fields.  
 	 "
@@ -81,7 +81,7 @@ shared class CronBuilder {
 		`class AssertionError`,
 		"Invalid cron expression, generally when one of seconds, minutes, hours, days of month or months are not defined."
 	)
-	shared JSON build() {
+	shared JsonObject build() {
 		"Invalid cron expression."
 		assert (
 			exists cronExpr = parseCron (
@@ -89,7 +89,7 @@ shared class CronBuilder {
 				months.string, daysOfWeek.string, years.string
 			)
 		);
-		JSON ret = JSON {
+		JsonObject ret = JsonObject {
 			Chime.type.key -> Chime.type.cron,
 			Chime.date.seconds -> seconds.string,
 			Chime.date.minutes -> minutes.string,

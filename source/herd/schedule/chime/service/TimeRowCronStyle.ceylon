@@ -440,4 +440,6 @@ class TimeRowCronStyle (
 		}
 	}
 	
+	shared actual String string => "cron time row";
+	
 }

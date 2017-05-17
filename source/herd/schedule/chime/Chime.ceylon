@@ -1,25 +1,16 @@
 import io.vertx.ceylon.core {
 
-	Verticle
+	Verticle,
+	Future
 }
 import ceylon.json {
 	
-	JSON = Object
+	JsonObject
 }
-import herd.schedule.chime.timer {
-
-	StandardTimeRowFactory
-}
-import java.util {
-	JavaTimeZone=TimeZone
-}
-
 
 "Chime scheduler verticle. Starts scheduling.  
  
- > Ensure that just a one instance of the verticle is started!  
- 
- Static objects contain keys of the JSON messages and some possible values."
+ Static objects contain keys of the `JSON` messages and some possible values."
 since( "0.1.0" ) by( "Lis" )
 shared class Chime extends Verticle
 {
@@ -32,12 +23,18 @@ shared class Chime extends Verticle
 		shared String defaultAddress = "chime";
 		"Configuration key for the listening address."
 		shared String address = "address";
-		"Configuration key for the max year period limit."
-		shared String maxYearPeriodLimit = "max year period limit"; 
 		"Configuration key for the tolerance to compare fire time and current time in milliseconds."
 		shared String tolerance = "tolerance";
-		"Separator of scheduler manager and timer names."
-		shared String nameSeparator = ":";
+		"Separator of scheduler and timer names."
+		shared Character nameSeparatorChar = ':';
+		"Separator of scheduler and timer names."
+		shared String nameSeparator => nameSeparatorChar.string;
+		"Key for the  `JsonArray` of modules to search extensions as service providers."
+		shared String services = "services";
+		"Key for the local mark.  
+		 Local mark is `Boolean` shows if _Chime_ address is not propagated across the cluster (when the mark is `true`)
+		 or _Chime_ has to listen all nodes (when the mark is `false`)."
+		shared String local = "local";
 	}
 	
 	"Fields for messages keys."
@@ -68,21 +65,51 @@ shared class Chime extends Verticle
 		shared String endTime = "end time";
 		"Key for the time zone."
 		shared String timeZone = "time zone";
+		"Key for the time zone provider."
+		shared String timeZoneProvider = "time zone provider";
 		"Key for the delay."
 		shared String delay = "delay";
-		"Key for the imer description type."
+		"Key for the timer description type."
 		shared String type = "type";
-		"Key for the fieldcontaining timer event."
+		"Key for the field containing timer event."
 		shared String event = "event";
+		"Key for the type of message source provider."
+		shared String messageSource = "message source";
+		"Key for the configuration passed to message source provider when message source asked."
+		shared String messageSourceConfig = "message source configuration";
 		"Key for a message to be sent with fire event."
 		shared String message = "message";
 		"Key for a message delivery options to be sent with fire event."
 		shared String deliveryOptions = "delivery options";
 	}
 	
+	
+	"Keys for the extension info.  
+	 Extension info is returned as part of the _Chime_ info response:
+	 		\"services\" -> JsonObject {
+	 			\"timer providers\" -> JsonObject {
+	 				\"type\"->\"declaration\"
+	 			},
+	 			\"time zone providers\" -> JsonObject {
+	 				\"type\"->\"declaration\"
+	 			}
+	 		}  
+	 "
+	shared static object extension {
+		"Key at whic extension info returned within info response."
+		shared String services => Chime.configuration.services;
+		"Key for the timer extensions info. i.e. installed [[herd.schedule.chime.service::TimeRowFactory]]."
+		shared String timers = "timer providers";
+		"Key for the time zone extensions info. i.e. installed [[herd.schedule.chime.service::TimeZoneFactory]]"
+		shared String timeZones = "time zone providers";
+		"Key for the message source extensions info. i.e. installed [[herd.schedule.chime.service::MessageSourceFactory]]"
+		shared String messageSources = "message source providers";
+	}
+	
+	
 	"Timer types."
 	shared static object type {
-		"Key for the imer description type."
+		"Key for the timer description type."
 		shared String key => Chime.key.type;
 		"Cron timer type."
 		shared String cron = "cron";
@@ -90,9 +117,28 @@ shared class Chime extends Verticle
 		shared String interval = "interval";
 		"Union timer type."
 		shared String union = "union";
-	}	
+	}
 	
 	
+	"Time zone provider types."
+	shared static object timeZoneProvider {
+		"Key for the time zone provider."
+		shared String key => Chime.key.timeZoneProvider;
+		"Provides time zones available on JVM.  
+		 This is default provider."
+		shared String jvm = "jvm";
+	}
+	
+	shared static object messageSource {
+		"Key for the message source provider."
+		shared String key => Chime.key.messageSource;
+		"Key for the configuration passed to message source provider when message source asked."
+		shared String messageSourceConfig => Chime.key.messageSourceConfig;
+		"Direct source - returns message given in timer create request.  
+		 This is default provider."
+		shared String direct => "direct";
+	}
+		
 	"Event constants."
 	shared static object event {
 		"Key for the field containing timer event."
@@ -271,74 +317,46 @@ shared class Chime extends Verticle
 		"Message of 'timer description has to be in JSON' error."
 		shared String notJSONTimerDescription = "timer description has to be in JSON";
 		
+		"Code of 'unsupported time zone provider' error."
+		shared Integer codeUnsupportedTimeZoneProviderType = 23;
+		"Message of 'unsupported time zone provider' error."
+		shared String unsupportedTimeZoneProviderType = "unsupported time zone provider";
+		
+		"Code of 'unsupported message source provider' error."
+		shared Integer codeUnsupportedMessageSourceProviderType = 24;
+		"Message of 'unsupported message source provider' error."
+		shared String unsupportedMessageSourceProviderType = "unsupported message source provider";
+		
 	}
 
 	
-	"Applies JVM time zones for the converters."
-	static object jvmConverterFactory satisfies TimeConverterFactory {
-		shared actual TimeConverter? getConverter( String timeZone ) {
-			JavaTimeZone tz = JavaTimeZone.getTimeZone( timeZone );
-			if ( tz.id == timeZone ) {
-				return ConverterWithTimezone( tz );
-			}
-			else {
-				return null;
-			}
-		}
-	}
-	
-
 	"Scheduler manager."
 	variable SchedulerManager? scheduler = null;
-	
-	"Address to listen on event buss."
-	variable String actualAddress = configuration.defaultAddress;
-	
-	"Max year limitation."
-	variable Integer maxYearPeriod = 10; 
-	
-	"Tolerance to compare fire time and current time in milliseconds."
-	variable Integer actualTolerance = 10; 
+
 
 	"Instantiates _Chime_.  
 	 > Ensure that the _Chime_ verticle is started just a once!"
 	shared new() extends Verticle() {}
 	
-
-	"Reads configuration from json."
-	void readConfiguration( "Configuration in JSON format." JSON config ) {
-		// read listening address
-		if ( is String addr = config[Chime.configuration.address] ) {
-			actualAddress = addr;
-		}
-		// year period limitation
-		if ( is Integer maxYear = config[Chime.configuration.maxYearPeriodLimit] ) {
-			if ( maxYear < 100 ) { maxYearPeriod = maxYear; }
-			else { maxYearPeriod = 100; }
-		}
-		// tolerance to compare times
-		if ( is Integer tol = config[Chime.configuration.tolerance] ) {
-			if ( tol > 0 ) { actualTolerance = tol; }
-		}
-	}
-	
 	
 	"Starts _Chime_. Called by Vert.x during deployement."
-	shared actual void start() {
-		// read configuration
-		if ( exists c = config ) {
-			readConfiguration( c );
-		}
-		
+	shared actual void startAsync( Future<Anything> startFuture ) {
 		// create scheduler
 		SchedulerManager sch = SchedulerManager (
-			actualAddress, vertx,
-			StandardTimeRowFactory( maxYearPeriod ).initialize(),
-			jvmConverterFactory,
-			actualTolerance
+			// Chime address
+			if ( is String addr = config?.get( Chime.configuration.address ) )
+				then addr else Chime.configuration.defaultAddress,
+			// tolerance to compare times
+			if ( is Integer tol = config?.get( Chime.configuration.tolerance ) )
+				then tol else 10,
+			// true if local event bus consumer has to be used and false otherwise
+			if ( is Boolean local = config?.get( Chime.configuration.local ) )
+				then local else false,
+			// vertx instance
+			vertx
 		);
 		scheduler = sch;
-		sch.connect();
+		sch.initialize( config else JsonObject{}, startFuture );
 	}
 	
 	"Stops the _Chime_ verticle."

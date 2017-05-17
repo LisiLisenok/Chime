@@ -19,6 +19,7 @@ shared class TimeRowUnion satisfies TimeRow {
 		shared actual DateTime? start( DateTime current ) {
 			return ( currentDate_ = row.start( current ) );
 		}
+		shared actual String string => row.string;
 	}
 	
 	static object emptyInternalRow extends InternalRow( emptyTimeRow ) {}
@@ -82,5 +83,7 @@ shared class TimeRowUnion satisfies TimeRow {
 		removeCompleted();
 		return ret;
 	}
+	
+	shared actual String string => "union time row: ``timeRows``";
 	
 }

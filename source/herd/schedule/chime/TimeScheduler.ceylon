@@ -4,12 +4,13 @@ import io.vertx.ceylon.core {
 }
 import io.vertx.ceylon.core.eventbus {
 
-	Message
+	Message,
+	DeliveryOptions
 }
 import ceylon.json {
 
-	JSON=Object,
-	JSONArray=Array
+	JsonObject,
+	JsonArray
 }
 import ceylon.collection {
 
@@ -26,6 +27,10 @@ import ceylon.time.timezone {
 
 	timeZone
 }
+import herd.schedule.chime.service {
+	TimeZone,
+	MessageSource
+}
 
 
 "Scheduler - listen address of scheduler [[address]] on event bus and manages timers.
@@ -33,7 +38,7 @@ import ceylon.time.timezone {
  
  ### Requests
  
- Requests are send in [[JSON]] format on scheduler name address    
+ Requests are send in `JSON` format on scheduler name address    
  	{  
  		\"operation\" -> String // operation code, mandatory  
  		\"name\" -> String // timer short or full name, mandatory  
@@ -43,7 +48,7 @@ import ceylon.time.timezone {
  		\"maximum count\" -> Integer // maximum number of fires, default - unlimited  
  		\"publish\" -> Boolean // if true message to be published and send otherwise, nonmandatory  
  
- 		\"start time\" -> `JSON` // start time, nonmadatory, if doesn't exists timer will start immediately  
+ 		\"start time\" -> `JsonObject` // start time, nonmadatory, if doesn't exists timer will start immediately  
  		{  
  			\"seconds\" -> Integer // seconds, mandatory  
  			\"minutes\" -> Integer // minutes, mandatory  
@@ -53,7 +58,7 @@ import ceylon.time.timezone {
  			\"year\" -> Integer // year, Integer, mandatory  
  		}  
  
- 		\"end time\" -> `JSON` // end time, nonmadatory, default no end time  
+ 		\"end time\" -> `JsonObject` // end time, nonmadatory, default no end time  
  		{  
  			\"seconds\" -> Integer // seconds, mandatory  
  			\"minutes\" -> Integer // minutes, mandatory  
@@ -65,7 +70,7 @@ import ceylon.time.timezone {
  
  		\"time zone\" -> String // time zone name, nonmandatory, default server local  
 
- 		\"description\" -> JSON // timer desciption, mandatoty for create operation  
+ 		\"description\" -> JsonObject // timer desciption, mandatoty for create operation  
  	}  
  
  timer full name is *'scheduler name':'timer short name'*
@@ -108,36 +113,39 @@ import ceylon.time.timezone {
   
  ### Response.
  
- Scheduler responses on each request in [[JSON]] format:  
+ Scheduler responses on each request in `JSON` format:  
  	{  
  		\"response\" -> String // response code - one of `ok` or `error`  
  		\"name\" -> String //  timer name  
  		\"state\" -> String // state  
  		
  		\"error\" -> String // error description, exists only if response == `error`
- 		\"timers\" -> JSONArray // list of timer names currently scheduled - response on info operation with no name field specified
+ 		\"timers\" -> JsonArray // list of timer names currently scheduled - response on info operation with no name field specified
  		
  		// Info operation returns fields from create operation also
  	}  
  
  "
 since( "0.1.0" ) by( "Lis" )
-class TimeScheduler(
-	"Scheduler name." String address,
+class TimeScheduler (
+	"Scheduler name." String name,
 	"Removes schedulerwhen delete operation requested." TimeScheduler?(String) removeScheduler,
 	"Vertx the scheduler operates on." Vertx vertx,
 	"Factory to create timers." TimerCreator factory,
 	"Tolerance to compare fire time and current time in miliseconds." Integer tolerance,
-	"Default time converter or time zone if not specified at timer level." TimeConverter defaultConverter
-	)
-		extends Operator( address, vertx.eventBus() )
+	"Default time zone if not specified at timer level." TimeZone defaultTimeZone,
+	"Default message source used if no one specified at timer." MessageSource defaultMessageSource,
+	"Default message delivery options applied to timer if no one given at timer create request."
+	DeliveryOptions? defaultOptions
+)
+		extends Operator( name, vertx.eventBus() )
 {
 	
 	"Next ID used when no timer name specified."
 	variable Integer nextID = 0;
-		
-	String nameWithSeparator = address + Chime.configuration.nameSeparator;
-		
+	
+	String nameWithSeparator = name + Chime.configuration.nameSeparator;
+	
 	"Tolerance to compare fire time."
 	variable Period tolerancePeriod = zero.plusMilliseconds( tolerance );
 	
@@ -153,20 +161,23 @@ class TimeScheduler(
 	"Scheduler state - running, paused or completed."
 	shared State state => schedulerState;
 	
-	"Scheduler `JSON` short info (name and state)."
-	shared JSON shortInfo
-			=> JSON {
+	"Scheduler `JsonObject` short info (name and state)."
+	shared JsonObject shortInfo
+			=> JsonObject {
 				Chime.key.name -> address,
 				Chime.key.state -> schedulerState.string
 			};
 	
-	"Scheduler full info in `JSON`"
-	shared JSON fullInfo => JSON {
-		Chime.key.name -> address,
-		Chime.key.state -> state.string,
-		Chime.key.timeZone -> defaultConverter.timeZoneID,
-		Chime.key.timers -> JSONArray( [ for ( timer in timers.items ) timer.fullDescription() ] )
-	};
+	"Scheduler full info in `JsonObject`"
+	shared JsonObject fullInfo {
+		value ret = JsonObject {
+			Chime.key.name -> address,
+			Chime.key.state -> state.string,
+			Chime.key.timeZone -> defaultTimeZone.timeZoneID,
+			Chime.key.timers -> JsonArray( [ for ( timer in timers.items ) timer.fullDescription() ] )
+		};
+		return ret;
+	}
 	
 	
 	"Generates unique name for the timer."
@@ -174,17 +185,6 @@ class TimeScheduler(
 		while ( timers.contains( ( ++ nextID ).string ) ) {}
 		return nextID.string;
 	}
-	
-// timers map methods
-	
-	"`true` if timer is completed."
-	Boolean selectCompleted( TimerContainer timer ) => timer.state == State.completed;
-	
-	"Name of the given timer."
-	String timerName( TimerContainer timer ) => timer.name;
-	
-	"Remove completed timers."
-	void removeCompleted() => timers.removeAll( timers.items.filter( selectCompleted ).map( timerName ) );
 	
 	
 	"Minimum timer delay."
@@ -212,7 +212,6 @@ class TimeScheduler(
 	
 	"Fire timers, returns `true` if some timer has been fired and `false` if no one timer has been fired."
 	void fireTimers() {
-		variable Boolean completed = false;
 		DateTime current = localTime().plus( tolerancePeriod );
 		for ( timer in timers.items ) {
 			if ( timer.state == State.running,
@@ -221,49 +220,32 @@ class TimeScheduler(
 			) {
 				if ( localDate < current ) {
 					timer.shiftTime();
-					sendFireEvent( timer, remoteDate );
-					if ( timer.state == State.completed ) {
-						publishCompleteEvent( timer );
-						completed = true;
-					}
+					timer.timerFireEvent( remoteDate, sendTimerFireEvent );
 				}
 			}
 		}
-		if ( completed ) {
-			removeCompleted();
-		}
 	}
 	
-	"Sends fire event in standard Chime format."
-	shared void sendFireEvent( TimerContainer timer, DateTime date ) {
-		JSON message = JSON {
-			Chime.key.event -> Chime.event.fire,
-			Chime.key.name -> timer.name,
-			Chime.key.time -> date.string,
-			Chime.key.count -> timer.count,
-			Chime.date.seconds -> date.seconds,
-			Chime.date.minutes -> date.minutes,
-			Chime.date.hours -> date.hours,
-			Chime.date.dayOfMonth -> date.day,
-			Chime.date.month -> date.month.integer,
-			Chime.date.year -> date.year,
-			Chime.key.timeZone -> timer.timeZoneID
-		};
-		if ( exists msg = timer.message ) {
-			message.put( Chime.key.message, msg );
-		}
-		// send message
+	"Sends or publishes timer fire event in standard Chime format."
+	void sendTimerFireEvent( TimerContainer timer, JsonObject event, Map<String,String>? headers ) {
+		DeliveryOptions? options = if ( exists opt = timer.options ) then if ( exists headers ) 
+			then DeliveryOptions( opt.codecName, map( (opt.headers else {}).chain( headers ) ), opt.sendTimeout )
+			else opt else if ( exists headers ) then DeliveryOptions( null, headers ) else null;
 		if ( timer.publish ) {
-			if ( exists options = timer.options ) { eventBus.publish( timer.name, message, options ); }
-			else { eventBus.publish( timer.name, message ); }
+			if ( exists options ) { eventBus.publish( timer.name, event, options ); }
+			else { eventBus.publish( timer.name, event ); }
 		}
 		else {
-			if ( exists options = timer.options ) { eventBus.send( timer.name, message, options ); }
-			else { eventBus.send( timer.name, message ); }
+			if ( exists options ) { eventBus.send( timer.name, event, options ); }
+			else { eventBus.send( timer.name, event ); }
+		}
+		if ( timer.state == State.completed ) {
+			timers.remove( timer.name );
+			publishCompleteEvent( timer );
 		}
 	}
 	
-	"Publish complete event in standard Chime format.
+	"Publishes timer complete event in standard Chime format.
 	 
 	 message format:  
 	 {  
@@ -274,10 +256,10 @@ class TimeScheduler(
 	 
 	 > Completed message is always published.
 	 "
-	shared void publishCompleteEvent( TimerContainer timer ) {
+	void publishCompleteEvent( TimerContainer timer ) {
 		eventBus.publish (
 			timer.name,
-			JSON {
+			JsonObject {
 				Chime.key.event -> Chime.event.complete,
 				Chime.key.name -> timer.name,
 				Chime.key.count -> timer.count
@@ -331,8 +313,8 @@ class TimeScheduler(
 	 If timer has been added previously it will be replaced."
 	void addTimer (
 		"timer to be added" TimerContainer timer,
-		"timer state" State state )
-	{
+		"timer state" State state
+	) {
 		if ( state == State.running ) {
 			timer.start( localTime() );
 			if ( timer.state == State.running ) {
@@ -350,8 +332,8 @@ class TimeScheduler(
 
 	
 	"Creates operators map."
-	shared actual Map<String, Anything(Message<JSON?>)> createOperators()
-			=> map<String, Anything(Message<JSON?>)> {
+	shared actual Map<String, Anything(Message<JsonObject?>)> createOperators()
+			=> map<String, Anything(Message<JsonObject?>)> {
 				Chime.operation.create -> operationCreate,
 				Chime.operation.delete -> operationDelete,
 				Chime.operation.state -> operationState,
@@ -359,7 +341,7 @@ class TimeScheduler(
 			};
 
 	"Creates new timer."
-	shared void operationCreate( Message<JSON?> msg ) {
+	shared void operationCreate( Message<JsonObject?> msg ) {
 		if ( exists request = msg.body(), request.defines( Chime.key.description ) ) {
 			String timerName;
 			if ( is String tName = request[Chime.key.name], !tName.empty ) {
@@ -382,7 +364,7 @@ class TimeScheduler(
 				msg.fail( Chime.errors.codeTimerAlreadyExists, Chime.errors.timerAlreadyExists );
 			}
 			else {
-				value timer = factory.createTimer( timerName, request, defaultConverter );
+				value timer = factory.createTimer( timerName, request, defaultTimeZone, defaultMessageSource, defaultOptions );
 				if ( is TimerContainer timer ) {
 					addTimer( timer, extractState( request ) else State.running );
 					// timer successfully added
@@ -415,7 +397,7 @@ class TimeScheduler(
 	}
 	
 	"'delete' timer request."
-	shared void operationDelete( Message<JSON?> msg ) {
+	shared void operationDelete( Message<JsonObject?> msg ) {
 		value nn = msg.body()?.get( Chime.key.name );
 		if ( is String tName = nn ) {
 			if ( tName.empty || tName == address ) {
@@ -432,8 +414,8 @@ class TimeScheduler(
 				msg.fail( Chime.errors.codeTimerNotExists, Chime.errors.timerNotExists );
 			}
 		}
-		else if ( is JSONArray arr = nn, nonempty names = arr.narrow<String>().sequence() ) {
-			JSONArray ret = JSONArray();
+		else if ( is JsonArray arr = nn, nonempty names = arr.narrow<String>().sequence() ) {
+			JsonArray ret = JsonArray{};
 			for ( item in names ) {
 				if ( exists t = timers.remove( timerFullName( item ) ) ) {
 					// delete timer
@@ -442,7 +424,7 @@ class TimeScheduler(
 					ret.add( t.name );
 				}
 			}
-			msg.reply( JSON{ Chime.key.timers -> ret } );
+			msg.reply( JsonObject{ Chime.key.timers -> ret } );
 		}
 		else {
 			// timer name to be specified
@@ -451,7 +433,7 @@ class TimeScheduler(
 	}
 	
 	"Replies on the state request of this scheduler."
-	shared void replyWithSchedulerState( String state, Message<JSON?> msg ) {
+	shared void replyWithSchedulerState( String state, Message<JsonObject?> msg ) {
 		if ( state == Chime.state.get ) {
 			// return state
 			msg.reply( shortInfo );
@@ -473,7 +455,7 @@ class TimeScheduler(
 	}
 	
 	"Processes 'timer state' operation."
-	shared void operationState( Message<JSON?> msg ) {
+	shared void operationState( Message<JsonObject?> msg ) {
 		if ( exists request = msg.body(), is String tName = request[Chime.key.name] ) {
 			 if ( is String state = request[Chime.key.state] ) {
 				if ( tName.empty || tName == address ) {
@@ -527,11 +509,11 @@ class TimeScheduler(
 
 
 	"Return info on a given timer."
-	shared JSON? timerInfo( String name ) => timers[timerFullName( name )]?.fullDescription();
+	shared JsonObject? timerInfo( String name ) => timers[timerFullName( name )]?.fullDescription();
 
 	
 	"Replies with scheduler info - array of timer names."
-	shared void operationInfo( Message<JSON?> msg ) {
+	shared void operationInfo( Message<JsonObject?> msg ) {
 		value nn = msg.body()?.get( Chime.key.name );
 		if ( is String tName = nn ) {
 			if ( tName.empty || tName == address ) {
@@ -547,14 +529,14 @@ class TimeScheduler(
 				msg.fail( Chime.errors.codeTimerNotExists, Chime.errors.timerNotExists );
 			}
 		}
-		else if ( is JSONArray arr = nn, nonempty names = arr.narrow<String>().sequence() ) {
-			JSONArray ret = JSONArray();
+		else if ( is JsonArray arr = nn, nonempty names = arr.narrow<String>().sequence() ) {
+			JsonArray ret = JsonArray{};
 			for ( item in names ) {
 				if ( exists t = timerInfo( item ) ) {
 					ret.add( t );
 				}
 			}
-			msg.reply( JSON{ Chime.key.timers -> ret } );
+			msg.reply( JsonObject{ Chime.key.timers -> ret } );
 		}
 		else {
 			// reply with info on this scheduler
@@ -580,7 +562,10 @@ class TimeScheduler(
 					}
 				}
 			}
-			removeCompleted();
+			value toRemove= [for ( item in timers.items ) if ( item.state == State.completed ) item.name];
+			if ( !toRemove.empty ) {
+				timers.removeAll( toRemove );
+			}
 			buildVertxTimer();
 		}
 	}

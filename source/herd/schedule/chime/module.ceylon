@@ -1,7 +1,7 @@
 
 "
- _Chime_ is time scheduler verticle which works on _Vert.x_ event bus and provides:  
- * scheduling with _cron-style_, _interval_ or _union_ timers:
+ _Chime_ is time scheduler verticle which works on [Vert.x](http://vertx.io/) event bus and provides:  
+ * scheduling with _cron-style_, _interval_, _union_ or _custom_ timers:
  	* at a certain time of day (to the second);  
  	* on certain days of the week, month or year;  
  	* with a given time interval;  
@@ -37,6 +37,7 @@
  		* [Supported timers.](#supported-timers)  
  		* [Events.](#timer-events)  
  		* [Time zones.](#time-zones)  
+ 		* [Message source](#timer-message-source)
  		* [Example.](#timer-example)  
  	* [Scheduler and timer interfaces.](#scheduler-timer-interfaces)  
  	* [Error messages.](#error-messages)  
@@ -60,15 +61,26 @@
  
  ## <a name =\"configuration\"></a> Configuration.
  
- Following parameters could be specified in `JSON` verticle configuration:  
+ Following parameters could be specified in `JsonObject` verticle configuration:  
  		JsonObject {
- 			// address _Chime_ is listen to, default is \"chime\"
+ 			
+ 			// Address _Chime_ listens to, default is \"chime\".
  			\"address\" -> String,
- 			// limiting scheduling period in years, default is 10 years
- 			\"max year period limit\" -> Integer,
- 			// tolerance in milliseconds used to compare actual and requested times
- 			// default is 10 milliseconds
- 			\"tolerance\" -> Integer
+ 			
+ 			// Tolerance in milliseconds used to compare actual and requested times.
+ 			// Default is 10 milliseconds.
+ 			\"tolerance\" -> Integer,
+ 			
+ 			// If `true` _Chime_ and schedulers event bus addresses have not to propagate across the cluster,
+ 			// i.e. _Chime_ has to listen only messages from this local node.
+ 			// If `false` _Chime_ has to listen all nodes in the cluster.
+ 			// Default is false.
+ 			\"local\" -> Boolean,
+ 			
+ 			// A list of modules with version to look the extensions as service providers. 
+ 			\"services\" -> JsonArray {
+ 				\"module name/module version\"
+ 			}
  		};
  
  
@@ -88,7 +100,7 @@
  
  ### <a name =\"requests-and-responses\"></a> Requests and responses.  
  
- _Chime_ communicates over event bus with `Json` messages.
+ _Chime_ communicates over event bus with `JsonObject` messages.
  Complete list of requests and responses is available
  at [Github](https://github.com/LisiLisenok/Chime/blob/master/howto.md).  
  
@@ -116,22 +128,31 @@
  
  #### <a name =\"scheduler-request\"></a> Scheduler request.  
  
- In order to maintain schedulers send `JSON` message to _Chime_ address (specified in configuration, \"chime\" is default)
+ In order to maintain schedulers send `JsonObject` message to _Chime_ address (specified in configuration, \"chime\" is default)
  in the following format:
  		JsonObject {
  			// operation code, mandatory
- 			\"operation\" -> String,  
+ 			\"operation\" -> String,
  			// scheduler name, mandatory
- 			\"name\" -> String|JsonArray,   
+ 			\"name\" -> String|JsonArray,
  			// state, mandatory only if operation = 'state' otherwise optional
- 			\"state\" -> String,  
+ 			\"state\" -> String,
  			// default time zone ID, overriden by timer time zone, optional
- 			\"time zone\" -> String   
+ 			\"time zone\" -> String,
+ 			// default message source type, optional
+ 			\"message source\" -> String,
+ 			// message source configuration passed to message source factory, optional
+ 			\"message source configuration\" -> JsonValue,
+ 			// default delivery options, applied if no one given at a timer create request, optional  
+ 			\"delivery options\" -> JsonObject
  		};
  
  > _Chime_ listens event bus at **scheduler name** address with messages for the given scheduler.  
  
  > Complete list of messages is available at [Github](https://github.com/LisiLisenok/Chime/blob/master/howto.md).  
+ 
+ > `delivery options` field specifies event bus delivery options a timer fire event is to be sent with,
+   see details in [timer.](#timer-request). Scheduler may contain default options, which used if no one given at timer level.  
  
  There are two limitations for the scheduler name:  
  1. Scheduler name must not be equal to _Chime_ address. Since both addresses are registered at event bus.  
@@ -202,7 +223,7 @@
  > Complete list of requests and responses is available
    at [Github](https://github.com/LisiLisenok/Chime/blob/master/howto.md).  
   
- Request has to be sent in `JSON` format to **scheduler name** address with _timer short name_
+ Request has to be sent in `JsonObject` format to **scheduler name** address with _timer short name_
  or to **Chime** address with _timer full name_.  
  
  Request format:  
@@ -259,8 +280,15 @@
  		// or server local if not given at both scheduler and timer
  		\"time zone\" -> String,   
 
- 		// message which is attached to timer fire event, optional
- 		\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray
+ 		// message which passed to message source
+ 		// in order to extract final message to be attached to fire event
+ 		// optional
+ 		\"message\" -> JsonValue
+ 		// message source type, optional, default is direct
+ 		\"message source\" -> String,
+ 		// message source configuration passed to message source factory, optional
+ 		\"message source configuration\" -> JsonValue,
+
  		// delivery options the timer fire event is sent with, optional  
  		\"delivery options\" -> JsonObject,  
  
@@ -270,8 +298,8 @@
  
  Notes: 
  * `message` field is to be attached to [timer fire event](#timer-events).  
- * `delivery options` field provides event bus delivery options the fire event is to be sent with.  
- * To get JSON delivery options apply `deliveryOptions.toJSON()`.  
+ * `delivery options` field specifies event bus delivery options the fire event is to be sent with.  
+ * `deliveryOptions.toJSON()` provides `JsonObject` of delivery options.  
  * _Chime_ address could be specified in verticle configuration, default is \"chime\".  
  * If `create` request is sent to Chime address with full timer name and corresponding scheduler
    hasn't been created before then Chime creates both new scheduler and new timer.  
@@ -301,8 +329,7 @@
  * __Cron style timer__ is defined with cron-style:  
  		JsonObject {
  			// timer type, mandatory
- 			\"type\" -> \"cron\",  	
- 
+ 			\"type\" -> \"cron\",
  			// seconds in cron style, mandatory, nonempty
  			\"seconds\" -> String,
  			// minutes in cron style, mandatory, nonempty  
@@ -325,7 +352,7 @@
  > Names are case insensitive and might be either short or full.  
  > Sunday is the first day of week.  
  
- > [[CronBuilder]] may help to build JSON description of a cron timer.  
+ > [[CronBuilder]] may help to build `JsonObject` description of a cron timer.  
  
  ------------------------------------------  
    
@@ -375,7 +402,12 @@
   			}  
  		};  
  
- > [[UnionBuilder]] may help to build JSON description of a union timer.  
+ > [[UnionBuilder]] may help to build `JsonObject` description of a union timer.  
+ 
+ ------------------------------------------
+ 
+ * __Custom timer__  
+   Custom timer may be instantiated using service provider. See details in [[package herd.schedule.chime.service]].  
  
 
  #### <a name =\"timer-events\"></a> Events
@@ -405,8 +437,8 @@
  			\"year\" -> Integer,
  			// time zone the timer works in
  			\"time zone\" -> String,
- 			// message given at a timer create request
- 			\"message\" -> String|Boolean|Integer|Float|JsonObject|JsonArray
+ 			// message provided by message source
+ 			\"message\" -> JsonValue
  		};  
  * complete event  
  		JsonObject {  
@@ -442,6 +474,15 @@
  If no time zone is set at timer then scheduler time zone is applied
  otherwise timer timezone is used. If no timezone is given at all
  then time zone local for the machine is used.  
+ 
+ By default, time zones are extracted from JVM. This may be overriden by creating a custom time zone provider.
+ See details in [[package herd.schedule.chime.service]].   
+ 
+ 
+ #### <a name =\"timer-message-source\"></a> Message source.  
+ 
+ Message attached to the timerfire event may be extracted from some source.
+ The source is provided by service provider. See details in [[package herd.schedule.chime.service]].  
  
  
  #### <a name =\"timer-example\"></a> Example.
@@ -508,7 +549,7 @@
  ### <a name =\"scheduler-timer-interfaces\"></a> Scheduler and Timer interfaces.  
  
  [[Scheduler]] interface provides a convenient way to exchange messages with particular scheduler.  
- In order to connect to already existed scheduler or to create new one [[connectToScheduler]]
+ In order to connect to already existed scheduler or to create new one [[connectScheduler]]
  function can be used. The function sends [create scheduler request.](#scheduler-request) to the _Chime_ and wraps
  the event bus with implementation of [[Scheduler]] interface.  
  
@@ -631,10 +672,10 @@
  
  #### <a name =\"cron-expression-builder\"></a> Cron expression builder.  
  
- [[CronBuilder]] may help to build JSON description of a cron timer.
+ [[CronBuilder]] may help to build `JsonObject` description of a cron timer.
  The builder has a number of function to add particular cron record to the description.
  The function may be called in any order and any number of times.  
- Finally, [[CronBuilder.build]] has to be called to build the timer JSON description.  
+ Finally, [[CronBuilder.build]] has to be called to build the timer `JsonObject` description.  
  
  Example:  
  		JsonObject cron = CronBuilder().withSeconds(3).withMinutes(0).withHours(1).withAllDays().withAllMonths().build();
@@ -666,7 +707,7 @@ license (
 )
 by( "Lis" )
 native( "jvm" )
-module herd.schedule.chime "0.2.2" {
+module herd.schedule.chime "0.3.0" {
 	shared import io.vertx.ceylon.core "3.4.1";
 	shared import ceylon.time "1.3.2";
 	import ceylon.json "1.3.0";

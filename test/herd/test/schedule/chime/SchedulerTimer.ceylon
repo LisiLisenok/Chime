@@ -14,7 +14,7 @@ import io.vertx.ceylon.core {
 import herd.schedule.chime {
 	Chime,
 	Scheduler,
-	connectToScheduler,
+	createScheduler,
 	schedulerInfo,
 	delete,
 	Timer,
@@ -35,7 +35,7 @@ import herd.asynctest.match {
 	SizeOf
 }
 import ceylon.json {
-	JSON=Object
+	JsonObject
 }
 
 
@@ -70,18 +70,18 @@ shared class SchedulerTimer()
 	
 	test shared void createDeleteScheduler( AsyncTestContext context ) {
 		String schedulerName = "createDeleteScheduler";
-		connectToScheduler (
+		createScheduler (
 			( Throwable|Scheduler msg ) {
 				if ( is Scheduler msg ) {
 					context.assertThat( msg.name, EqualTo( schedulerName ) );
 					msg.delete();
 					eventBus.send (
 						chime,
-						JSON {
+						JsonObject {
 							Chime.key.operation -> Chime.operation.info,
 							Chime.key.name -> schedulerName
 						},
-						( Throwable|Message<JSON?> msg ) {
+						( Throwable|Message<JsonObject?> msg ) {
 							context.assertThat( msg, PassType( ExceptionHasMessage( Chime.errors.schedulerNotExists ) ) );
 							context.complete();
 						}
@@ -99,7 +99,7 @@ shared class SchedulerTimer()
 	
 	test shared void createDeleteTimer( AsyncTestContext context ) {
 		String schedulerName = "createDeleteTimer";
-		connectToScheduler (
+		createScheduler (
 			( Throwable|Scheduler msg ) {
 				if ( is Scheduler msg ) {
 					msg.createIntervalTimer (
@@ -142,12 +142,12 @@ shared class SchedulerTimer()
 	void createTimer( String schedulerName, String timerName, Integer delay ) {
 		eventBus.send(
 			chime,
-			JSON {
+			JsonObject {
 				Chime.key.operation -> Chime.operation.create,
 				Chime.key.name -> schedulerName + Chime.configuration.nameSeparator + timerName,
 				Chime.key.state -> Chime.state.running,
 				Chime.key.publish -> false,
-				Chime.key.description -> JSON {
+				Chime.key.description -> JsonObject {
 					Chime.key.type -> Chime.type.interval,
 					Chime.key.delay -> delay
 				}
@@ -279,7 +279,7 @@ shared class SchedulerTimer()
 	test shared void timerMessage( AsyncTestContext context ) {
 		String schedulerName = "TimerMessage";
 		String timerMessage = "message";
-		connectToScheduler (
+		createScheduler (
 			( Throwable|Scheduler msg ) {
 				if ( is Scheduler msg ) {
 					msg.createIntervalTimer {

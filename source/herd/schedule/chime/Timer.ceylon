@@ -39,7 +39,7 @@ shared interface Timer {
 	"Sets the handler for the timer events. Replaces previous one if has been set."
 	shared formal void handler( Anything(TimerEvent) handler );
 	
-	"Unregister the handler from the event bus, while keep timer alive."
+	"Unregister the handler from the event bus, while keep the timer alive."
 	shared formal void unregister();
 	
 }

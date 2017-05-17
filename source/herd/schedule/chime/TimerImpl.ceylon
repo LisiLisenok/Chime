@@ -1,31 +1,48 @@
 import io.vertx.ceylon.core.eventbus {
 	EventBus,
 	MessageConsumer,
-	Message,
-	deliveryOptions
+	Message
 }
 import ceylon.json {
-	JSON=Object
+	JsonObject
 }
 
 
 "Internal implementation of [[Timer]]."
 see( `interface Scheduler`, `class SchedulerImpl` )
 since( "0.2.0" ) by( "Lis" )
-class TimerImpl (
-	shared actual String name,
-	String schedulerAddress,
-	EventBus eventBus
-)
-		satisfies Timer
+class TimerImpl extends Sender satisfies Timer
 {
 	
+	shared static void replyWithInfo( Anything(Throwable|TimerInfo[]) info )
+		( Throwable|Message<JsonObject?> msg )
+	{
+		if ( is Message<JsonObject?> msg ) {
+			"Reply from scheduler request has not to be null."
+			assert( exists ret = msg.body() );
+			info( ret.getArray( Chime.key.timers ).narrow<JsonObject>().map( TimerInfo.fromJSON ).sequence() );
+		}
+		else {
+			info( msg );
+		}
+	}
+	
+	
 	variable Anything(TimerEvent)? eventHandler = null;
-	MessageConsumer<JSON?> consumer = eventBus.consumer<JSON>( name );
+	MessageConsumer<JsonObject?> consumer;
 	variable Boolean alive = true;
+	shared actual String name;
+	
+	shared new ( String name, String schedulerAddress, EventBus eventBus, Integer? sendTimeout )
+			extends Sender( schedulerAddress, eventBus, sendTimeout )
+	{
+		this.name = name;
+		consumer = eventBus.consumer<JsonObject>( name );
+	}
+	
 	
 	"Redirects message to `eventHandler`."
-	void onMessage( Message<JSON?> message ) {
+	void onMessage( Message<JsonObject?> message ) {
 		if ( exists h = eventHandler ) {
 			"Message from timer has to containe body."
 			assert( exists body = message.body() );
@@ -33,11 +50,10 @@ class TimerImpl (
 			if ( eventType == Chime.event.fire ) {
 				h (
 					TimerFire (
-						name, body.getInteger( Chime.key.count ), body.getString( Chime.key.time ),
-						body.getString( Chime.key.timeZone ), dateTimeFromJSON( body ),
-						body.get( Chime.key.message ),
-						if ( exists options = body.getObjectOrNull( Chime.key.deliveryOptions ) )
-						then deliveryOptions.fromJson( options ) else null
+						name, body.getInteger( Chime.key.count ),
+						body.getString( Chime.key.timeZone ),
+						dateTimeFromJSON( body ),
+						body.get( Chime.key.message )
 					)
 				);
 			}
@@ -72,28 +88,17 @@ class TimerImpl (
 			unregister();
 			alive = false;
 			if ( exists reply ) {
-				eventBus.send (
-					schedulerAddress,
-					JSON {
+				sendRepliedRequest (
+					JsonObject {
 						Chime.key.operation -> Chime.operation.delete,
 						Chime.key.name -> name
 					},
-					( Throwable|Message<JSON?> msg ) {
-						if ( is Message<JSON?> msg ) {
-							"Reply from scheduler request has not to be null."
-							assert( exists ret = msg.body() );
-							reply( ret.getString( Chime.key.name ) );
-						}
-						else {
-							reply( msg );
-						}
-					}
+					SchedulerImpl.replyWithName( reply )
 				);
 			}
 			else {
-				eventBus.send (
-					schedulerAddress,
-					JSON {
+				sendRequest (
+					JsonObject {
 						Chime.key.operation -> Chime.operation.delete,
 						Chime.key.name -> name
 					}
@@ -105,31 +110,18 @@ class TimerImpl (
 	shared actual void pause( Anything(Throwable|State)? reply ) {
 		if ( alive ) {
 			if ( exists reply ) {
-				eventBus.send (
-					schedulerAddress,
-					JSON {
+				sendRepliedRequest (
+					JsonObject {
 						Chime.key.operation -> Chime.operation.state,
 						Chime.key.name -> name,
 						Chime.key.state -> Chime.state.paused
 					},
-					( Throwable|Message<JSON?> msg ) {
-						if ( is Message<JSON?> msg ) {
-							"Reply from scheduler request has not to be null."
-							assert( exists ret = msg.body() );
-							"Timer info replied from scheduler has to contain state field."
-							assert( exists state = stateByName( ret.getString( Chime.key.state ) ) );
-							reply( state );
-						}
-						else {
-							reply( msg );
-						}
-					}
-				);
+					SchedulerImpl.replyWithState( reply )
+				);				
 			}
 			else {
-				eventBus.send (
-					schedulerAddress,
-					JSON {
+				sendRequest (
+					JsonObject {
 						Chime.key.operation -> Chime.operation.state,
 						Chime.key.name -> name,
 						Chime.key.state -> Chime.state.paused
@@ -142,31 +134,18 @@ class TimerImpl (
 	shared actual void resume( Anything(Throwable|State)? reply ) {
 		if ( alive ) {
 			if ( exists reply ) {
-				eventBus.send (
-					schedulerAddress,
-					JSON {
+				sendRepliedRequest (
+					JsonObject {
 						Chime.key.operation -> Chime.operation.state,
 						Chime.key.name -> name,
 						Chime.key.state -> Chime.state.running
 					},
-					( Throwable|Message<JSON?> msg ) {
-						if ( is Message<JSON?> msg ) {
-							"Reply from scheduler request has not to be null."
-							assert( exists ret = msg.body() );
-							"Timer info replied from scheduler has to contain state field."
-							assert( exists state = stateByName( ret.getString( Chime.key.state ) ) );
-							reply( state );
-						}
-						else {
-							reply( msg );
-						}
-					}
+					SchedulerImpl.replyWithState( reply )
 				);
 			}
 			else {
-				eventBus.send (
-					schedulerAddress,
-					JSON {
+				sendRequest (
+					JsonObject {
 						Chime.key.operation -> Chime.operation.state,
 						Chime.key.name -> name,
 						Chime.key.state -> Chime.state.running
@@ -177,14 +156,13 @@ class TimerImpl (
 	}
 	
 	shared actual void info( "Info handler." Anything(Throwable|TimerInfo) info ) {
-		eventBus.send (
-			schedulerAddress,
-			JSON {
+		sendRepliedRequest (
+			JsonObject {
 				Chime.key.operation -> Chime.operation.info,
 				Chime.key.name -> name
 			},
-			( Throwable|Message<JSON?> msg ) {
-				if ( is Message<JSON?> msg ) {
+			( Throwable|Message<JsonObject?> msg ) {
+				if ( is Message<JsonObject?> msg ) {
 					"Reply from scheduler request has not to be null."
 					assert( exists ret = msg.body() );
 					info( TimerInfo.fromJSON( ret ) );
@@ -195,5 +173,7 @@ class TimerImpl (
 			}
 		);
 	}
+	
+	shared actual String string => "Timer ``name``";
 	
 }
