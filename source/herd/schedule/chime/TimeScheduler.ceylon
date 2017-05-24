@@ -182,8 +182,12 @@ class TimeScheduler (
 	
 	"Generates unique name for the timer."
 	String generateUniqueName() {
-		while ( timers.contains( ( ++ nextID ).string ) ) {}
-		return nextID.string;
+		while (true) {
+			String name = "chime-" + system.nanoseconds.string + "-" + ( ++ nextID ).string;
+			if (!timers.contains(name)) {
+				return name;
+			}
+		}
 	}
 	
 	
