@@ -23,6 +23,9 @@ import herd.schedule.chime.service {
 	MessageSource,
 	DirectMessageSourceFactory
 }
+import ceylon.time {
+	now
+}
 
 
 "manages shcedulers - [[TimeScheduler]]:
@@ -87,16 +90,23 @@ import herd.schedule.chime.service {
  or fail message with corresponding error, see [[Chime.errors]].  
 
  "
-since( "0.1.0" ) by( "Lis" )
+since("0.1.0") by("Lis")
 see(`class TimeScheduler`)
 class SchedulerManager extends Operator
 {
 	
-	static String schedulerNameFromFullName( String fullName )
-			=> fullName[... ( fullName.firstOccurrence( Chime.configuration.nameSeparatorChar ) else 0 ) - 1];
+	static String schedulerNameFromFullName(String fullName)
+			=> fullName[... (fullName.firstOccurrence(Chime.configuration.nameSeparatorChar) else 0) - 1];
 	
 	"Time schedulers."
 	HashMap<String, TimeScheduler> schedulers = HashMap<String, TimeScheduler>();
+	
+	"Generated scheduler name if requested."
+	late String generatedSchedulerName = let
+		(value dt = now().dateTime(), String delim = "-")
+		"sdr-" + dt.year.string + delim + dt.month.string + delim + dt.day.string
+		+ delim + dt.hours.string + delim + dt.minutes.string + delim + dt.seconds.string
+		+ delim + dt.milliseconds.string;
 	
 	
 	"Tolerance to compare fire time and current time in miliseconds." Integer tolerance;
@@ -113,17 +123,17 @@ class SchedulerManager extends Operator
 		"Mark shows if address is not propagated across the cluster." Boolean local,
 		"Vetrx the scheduler is running on." Vertx vertx 
 	)
-			extends Operator( address, vertx.eventBus() )
+			extends Operator(address, vertx.eventBus())
 	{
 		this.tolerance = tolerance;
 		this.local = local;
-		this.providers = ChimeServiceProvider( vertx, address );
-		this.creator = TimerCreator( providers );
-		this.defaultMessageSource = DirectMessageSourceFactory().create( providers, null );
+		this.providers = ChimeServiceProvider(vertx, address);
+		this.creator = TimerCreator(providers);
+		this.defaultMessageSource = DirectMessageSourceFactory().create(providers, null);
 	}
 	
 	
-	"Initializesthe scheduler. When initialized `complete` is called.
+	"Initializes the scheduler. When initialized `complete` is called.
 	 Calls `connect` if successfully initialized.  "
 	shared void initialize (
 		"Configuration." JsonObject config,
@@ -131,12 +141,12 @@ class SchedulerManager extends Operator
 	) => providers.initialize (
 			config,
 			(Throwable|CompositeFuture result) {
-				if ( is CompositeFuture result ) {
-					connect( local );
+				if (is CompositeFuture result) {
+					connect(local);
 					startFuture.complete();
 				}
 				else {
-					startFuture.fail( result );
+					startFuture.fail(result);
 				}
 			}
 		);
@@ -153,194 +163,205 @@ class SchedulerManager extends Operator
 				Chime.operation.info -> operationInfo
 			};
 	
+	"Extracts name from request."
+	String? extractNameFromRequest(JsonObject request) {
+		if (is String name = request[Chime.key.name], !name.empty && name != address) {
+			return name;
+		}
+		else {
+			return null;
+		}
+	}
+	
 	"Processes 'create new scheduler or timer' operation."
-	void operationCreate( Message<JsonObject?> msg ) {
-		if ( exists request = msg.body(), is String name = request[Chime.key.name], !name.empty && name != address ) {
+	void operationCreate(Message<JsonObject?> msg) {
+		if (exists request = msg.body()) {
+			String name = extractNameFromRequest(request) else generatedSchedulerName;
 			String schedulerName =
-				if ( exists inc = name.firstOccurrence( Chime.configuration.nameSeparatorChar ) )
+				if (exists inc = name.firstOccurrence(Chime.configuration.nameSeparatorChar))
 				then name.spanTo( inc - 1 ) else name;
 			
-			if ( exists scheduler = schedulers.get( schedulerName ) ) {
+			if (exists scheduler = schedulers.get(schedulerName)) {
 				// scheduler already exists
-				if ( request.defines( Chime.key.description ) ) {
+				if (request.defines(Chime.key.description)) {
 					// add timer to scheduler
-					scheduler.operationCreate( msg );
+					scheduler.operationCreate(msg);
 				}
 				else {
 					// timer description is not specified - reply with info on scheduler
-					msg.reply( scheduler.shortInfo );
+					msg.reply(scheduler.shortInfo);
 				}
 			}
 			else {
-				value exactServices = servicesFromRequest( request, providers, providers.localTimeZone, defaultMessageSource );
-				if ( is [TimeZone, MessageSource] exactServices ) {
+				value exactServices = servicesFromRequest(request, providers, providers.localTimeZone, defaultMessageSource);
+				if (is [TimeZone, MessageSource] exactServices) {
 					// create new scheduler
 					TimeScheduler scheduler = TimeScheduler (
 						schedulerName, schedulers.remove, providers.vertx, creator,
 						tolerance, exactServices[0], exactServices[1],
-						if ( exists options = request.getObjectOrNull( Chime.key.deliveryOptions ) )
-						then deliveryOptions.fromJson( options ) else null
+						if (exists options = request.getObjectOrNull(Chime.key.deliveryOptions))
+						then deliveryOptions.fromJson(options) else null
 					);
-					schedulers.put( schedulerName, scheduler );
-					scheduler.connect( local );
-					value state = extractState( request ) else State.running;
-					if ( state == State.running ) {
+					schedulers.put(schedulerName, scheduler);
+					scheduler.connect(local);
+					value state = extractState(request) else State.running;
+					if (state == State.running) {
 						scheduler.start();
 					}
-					if ( request.defines( Chime.key.description ) ) {
+					if (request.defines(Chime.key.description)) {
 						// add timer to scheduler
-						scheduler.operationCreate( msg );
+						scheduler.operationCreate(msg);
 					}
 					else {
 						// timer description is not specified - reply with info on scheduler
-						msg.reply( scheduler.shortInfo );
+						msg.reply(scheduler.shortInfo);
 					}
 				}
 				else {
-					msg.fail( exactServices.key, exactServices.item );
+					msg.fail(exactServices.key, exactServices.item);
 				}
 			}
 		}
 		else {
 			// response with wrong format error
-			msg.fail( Chime.errors.codeSchedulerNameHasToBeSpecified, Chime.errors.schedulerNameHasToBeSpecified );
+			msg.fail(Chime.errors.codeSchedulerNameHasToBeSpecified, Chime.errors.schedulerNameHasToBeSpecified);
 		}
 	}
 	
 	"Processes 'delete scheduler or timer' operation."
-	void operationDelete( Message<JsonObject?> msg ) {
-		value nn = msg.body()?.get( Chime.key.name );
-		if ( is String name = nn ) {
-			if ( name.empty || name == address ) {
+	void operationDelete(Message<JsonObject?> msg) {
+		value nn = msg.body()?.get(Chime.key.name);
+		if (is String name = nn) {
+			if (name.empty || name == address) {
 				// remove all schedulers
 				JsonArray ret = JsonArray{};
-				for ( scheduler in schedulers.items ) {
+				for (scheduler in schedulers.items) {
 					scheduler.stop();
-					ret.add( scheduler.address );
+					ret.add(scheduler.address);
 				}
-				msg.reply( JsonObject{ Chime.key.schedulers -> ret } );
+				msg.reply(JsonObject{Chime.key.schedulers -> ret});
 				schedulers.clear();
 			}
-			else if ( exists sch = schedulers.remove( name ) ) {
+			else if (exists sch = schedulers.remove(name)) {
 				// delete scheduler
 				sch.stop();
 				// scheduler successfully removed
-				msg.reply( sch.shortInfo );
+				msg.reply(sch.shortInfo);
 			}
 			else {
 				// scheduler doesn't exists - look if name is full timer name
-				value schedulerName = schedulerNameFromFullName( name );
-				if ( !schedulerName.empty, exists sch = schedulers[schedulerName] ) {
+				value schedulerName = schedulerNameFromFullName(name);
+				if (!schedulerName.empty, exists sch = schedulers[schedulerName]) {
 					// scheduler has to remove timer
-					sch.operationDelete( msg );
+					sch.operationDelete(msg);
 				}
 				else {
 					// scheduler doesn't exist
-					msg.fail( Chime.errors.codeSchedulerNotExists, Chime.errors.schedulerNotExists );
+					msg.fail(Chime.errors.codeSchedulerNotExists, Chime.errors.schedulerNotExists);
 				}
 			}
 		}
-		else if ( is JsonArray arr = nn, nonempty names = arr.narrow<String>().sequence() ) {
+		else if (is JsonArray arr = nn, nonempty names = arr.narrow<String>().sequence()) {
 			JsonArray retSchedulers = JsonArray{};
 			JsonArray retTimers = JsonArray{};
-			for ( item in names ) {
-				if ( exists sch = schedulers.remove( item ) ) {
+			for (item in names) {
+				if (exists sch = schedulers.remove(item)) {
 					// delete scheduler
 					sch.stop();
-					retSchedulers.add( sch.address );
+					retSchedulers.add(sch.address);
 				}
 				else {
 					// delete timer
-					value schedulerName = schedulerNameFromFullName( item );
-					if ( !schedulerName.empty, exists sch = schedulers[schedulerName] ) {
-						if ( exists t = sch.deleteTimer( item ) ) {
-							retTimers.add( t.name );
+					value schedulerName = schedulerNameFromFullName(item);
+					if (!schedulerName.empty, exists sch = schedulers[schedulerName]) {
+						if (exists t = sch.deleteTimer(item)) {
+							retTimers.add(t.name);
 						}
 					}
 				}
 			}
-			msg.reply( JsonObject{ Chime.key.schedulers -> retSchedulers, Chime.key.timers -> retTimers } );
+			msg.reply(JsonObject{Chime.key.schedulers -> retSchedulers, Chime.key.timers -> retTimers});
 		}
 		else {
 			// response with wrong format error
-			msg.fail( Chime.errors.codeSchedulerNameHasToBeSpecified, Chime.errors.schedulerNameHasToBeSpecified );
+			msg.fail(Chime.errors.codeSchedulerNameHasToBeSpecified, Chime.errors.schedulerNameHasToBeSpecified);
 		}
 	}
 	
 	"Processes 'scheduler state' operation."
-	void operationState( Message<JsonObject?> msg ) {
-		if ( exists request = msg.body(), is String name = request[Chime.key.name] ) {
-			if ( is String state = request[Chime.key.state] ) {
-				if ( exists sch = schedulers[name] ) {
-					sch.replyWithSchedulerState( state, msg );
+	void operationState(Message<JsonObject?> msg) {
+		if (exists request = msg.body(), is String name = request[Chime.key.name]) {
+			if (is String state = request[Chime.key.state]) {
+				if (exists sch = schedulers[name]) {
+					sch.replyWithSchedulerState(state, msg);
 				}
 				else {
 					// scheduler doesn't exists - look if name is full timer name
-					value schedulerName = schedulerNameFromFullName( name );
-					if ( !schedulerName.empty, exists sch = schedulers[schedulerName] ) {
+					value schedulerName = schedulerNameFromFullName(name);
+					if (!schedulerName.empty, exists sch = schedulers[schedulerName]) {
 						// scheduler has to provide timer state
-						sch.operationState( msg );
+						sch.operationState(msg);
 					}
 					else {
 						// scheduler or timer doesn't exist
-						msg.fail( Chime.errors.codeSchedulerNotExists, Chime.errors.schedulerNotExists );
+						msg.fail(Chime.errors.codeSchedulerNotExists, Chime.errors.schedulerNotExists);
 					}
 				}
 			}
 			else {
 				// scheduler state to be specified
-				msg.fail( Chime.errors.codeStateToBeSpecified, Chime.errors.stateToBeSpecified );
+				msg.fail(Chime.errors.codeStateToBeSpecified, Chime.errors.stateToBeSpecified);
 			}
 		}
 		else {
 			// scheduler name to be specified
-			msg.fail( Chime.errors.codeSchedulerNameHasToBeSpecified, Chime.errors.schedulerNameHasToBeSpecified );
+			msg.fail(Chime.errors.codeSchedulerNameHasToBeSpecified, Chime.errors.schedulerNameHasToBeSpecified);
 		}
 	}
 	
 	"Replies with Chime or particular scheduler or timer info."
-	void operationInfo( Message<JsonObject?> msg ) {
-		value nn = msg.body()?.get( Chime.key.name );
-		if ( is String name = nn, !name.empty, name != address ) {
-			if ( exists sch = schedulers[name] ) {
+	void operationInfo(Message<JsonObject?> msg) {
+		value nn = msg.body()?.get(Chime.key.name);
+		if (is String name = nn, !name.empty, name != address) {
+			if (exists sch = schedulers[name]) {
 				// reply with scheduler info
-				msg.reply( sch.fullInfo );
+				msg.reply(sch.fullInfo);
 			}
 			else {
 				// scheduler doesn't exists - look if name is full timer name
-				value schedulerName = schedulerNameFromFullName( name );
-				if ( !schedulerName.empty, exists sch = schedulers[schedulerName] ) {
+				value schedulerName = schedulerNameFromFullName(name);
+				if (!schedulerName.empty, exists sch = schedulers[schedulerName]) {
 					// scheduler has to reply for timer info
-					sch.operationInfo( msg );
+					sch.operationInfo(msg);
 				}
 				else {
 					// scheduler or timer doesn't exist
-					msg.fail( Chime.errors.codeSchedulerNotExists, Chime.errors.schedulerNotExists );
+					msg.fail(Chime.errors.codeSchedulerNotExists, Chime.errors.schedulerNotExists);
 				}
 			}
 		}
-		else if ( is JsonArray arr = nn, nonempty names = arr.narrow<String>().sequence() ) {
+		else if (is JsonArray arr = nn, nonempty names = arr.narrow<String>().sequence()) {
 			JsonArray retSchedulers = JsonArray{};
 			JsonArray retTimers = JsonArray{};
-			for ( item in names ) {
-				if ( exists sch = schedulers[item] ) {
-					retSchedulers.add( sch.fullInfo );
+			for (item in names) {
+				if (exists sch = schedulers[item]) {
+					retSchedulers.add(sch.fullInfo);
 				}
 				else {
-					value schedulerName = schedulerNameFromFullName( item );
-					if ( !schedulerName.empty, exists sch = schedulers[schedulerName] ) {
-						if ( exists t = sch.timerInfo( item ) ) {
-							retTimers.add( t );
+					value schedulerName = schedulerNameFromFullName(item);
+					if (!schedulerName.empty, exists sch = schedulers[schedulerName]) {
+						if (exists t = sch.timerInfo(item)) {
+							retTimers.add(t);
 						}
 					}
 				}
 			}
-			msg.reply( JsonObject{ Chime.key.schedulers -> retSchedulers, Chime.key.timers -> retTimers } );
+			msg.reply(JsonObject{Chime.key.schedulers -> retSchedulers, Chime.key.timers -> retTimers});
 		}
 		else {
 			msg.reply (
 				JsonObject {
-					Chime.key.schedulers -> JsonArray( [ for ( scheduler in schedulers.items ) scheduler.fullInfo ] ),
+					Chime.key.schedulers -> JsonArray([for (scheduler in schedulers.items) scheduler.fullInfo]),
 					Chime.extension.services -> providers.extensionsInfo()
 				}
 			);

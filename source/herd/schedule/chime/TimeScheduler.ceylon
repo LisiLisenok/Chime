@@ -21,7 +21,8 @@ import ceylon.time {
 	systemTime,
 	Period,
 	zero,
-	DateTime
+	DateTime,
+	now
 }
 import ceylon.time.timezone {
 
@@ -126,7 +127,7 @@ import herd.schedule.chime.service {
  	}  
  
  "
-since( "0.1.0" ) by( "Lis" )
+since("0.1.0") by("Lis")
 class TimeScheduler (
 	"Scheduler name." String name,
 	"Removes schedulerwhen delete operation requested." TimeScheduler?(String) removeScheduler,
@@ -138,7 +139,7 @@ class TimeScheduler (
 	"Default message delivery options applied to timer if no one given at timer create request."
 	DeliveryOptions? defaultOptions
 )
-		extends Operator( name, vertx.eventBus() )
+		extends Operator(name, vertx.eventBus())
 {
 	
 	"Next ID used when no timer name specified."
@@ -147,7 +148,7 @@ class TimeScheduler (
 	String nameWithSeparator = name + Chime.configuration.nameSeparator;
 	
 	"Tolerance to compare fire time."
-	variable Period tolerancePeriod = zero.plusMilliseconds( tolerance );
+	variable Period tolerancePeriod = zero.plusMilliseconds(tolerance);
 	
 	"Timers sorted by next fire time."
 	HashMap<String, TimerContainer> timers = HashMap<String, TimerContainer>();
@@ -174,7 +175,7 @@ class TimeScheduler (
 			Chime.key.name -> address,
 			Chime.key.state -> state.string,
 			Chime.key.timeZone -> defaultTimeZone.timeZoneID,
-			Chime.key.timers -> JsonArray( [ for ( timer in timers.items ) timer.fullDescription() ] )
+			Chime.key.timers -> JsonArray{for (timer in timers.items) timer.fullDescription()}
 		};
 		return ret;
 	}
@@ -182,8 +183,13 @@ class TimeScheduler (
 	
 	"Generates unique name for the timer."
 	String generateUniqueName() {
+		value dt = now().dateTime();
+		String delim = "-";
+		String prefix = "tmr-" + dt.year.string + delim + dt.month.string + delim + dt.day.string
+				+ delim + dt.hours.string + delim + dt.minutes.string + delim + dt.seconds.string
+				+ delim + dt.milliseconds.string + delim;
 		while (true) {
-			String name = "chime-" + system.nanoseconds.string + "-" + ( ++ nextID ).string;
+			String name = prefix + (++ nextID).string;
 			if (!timers.contains(name)) {
 				return name;
 			}
@@ -195,15 +201,15 @@ class TimeScheduler (
 	Integer minDelay() {
 		DateTime current = localTime();
 		variable Integer delay = 0;
-		for ( timer in timers.items ) {
-			if ( timer.state == State.running, exists localDate = timer.localFireTime ) {
-				Integer offset = localDate.offset( current );
-				if ( offset <= 0 ) {
-					if ( delay > 500 || delay == 0 ) {
+		for (timer in timers.items) {
+			if (timer.state == State.running, exists localDate = timer.localFireTime) {
+				Integer offset = localDate.offset(current);
+				if (offset <= 0) {
+					if (delay > 500 || delay == 0) {
 						delay = 500;
 					}
 				}
-				else if ( offset < delay || delay == 0 ) {
+				else if (offset < delay || delay == 0) {
 					delay = offset;
 				}
 			}
@@ -212,40 +218,40 @@ class TimeScheduler (
 	}
 	
 	"Current local time."
-	DateTime localTime() => systemTime.instant().dateTime( timeZone.system );
+	DateTime localTime() => systemTime.instant().dateTime(timeZone.system);
 	
 	"Fire timers, returns `true` if some timer has been fired and `false` if no one timer has been fired."
 	void fireTimers() {
-		DateTime current = localTime().plus( tolerancePeriod );
-		for ( timer in timers.items ) {
-			if ( timer.state == State.running,
-				 exists localDate = timer.localFireTime,
-				 exists remoteDate = timer.remoteFireTime
+		DateTime current = localTime().plus(tolerancePeriod);
+		for (timer in timers.items) {
+			if (timer.state == State.running,
+				exists localDate = timer.localFireTime,
+				exists remoteDate = timer.remoteFireTime
 			) {
-				if ( localDate < current ) {
+				if (localDate < current) {
 					timer.shiftTime();
-					timer.timerFireEvent( remoteDate, sendTimerFireEvent );
+					timer.timerFireEvent(remoteDate, sendTimerFireEvent);
 				}
 			}
 		}
 	}
 	
 	"Sends or publishes timer fire event in standard Chime format."
-	void sendTimerFireEvent( TimerContainer timer, JsonObject event, Map<String,String>? headers ) {
-		DeliveryOptions? options = if ( exists opt = timer.options ) then if ( exists headers ) 
-			then DeliveryOptions( opt.codecName, map( (opt.headers else {}).chain( headers ) ), opt.sendTimeout )
-			else opt else if ( exists headers ) then DeliveryOptions( null, headers ) else null;
-		if ( timer.publish ) {
-			if ( exists options ) { eventBus.publish( timer.name, event, options ); }
-			else { eventBus.publish( timer.name, event ); }
+	void sendTimerFireEvent(TimerContainer timer, JsonObject event, Map<String,String>? headers) {
+		DeliveryOptions? options = if (exists opt = timer.options) then if (exists headers) 
+			then DeliveryOptions(opt.codecName, map((opt.headers else {}).chain(headers)), opt.sendTimeout)
+			else opt else if (exists headers) then DeliveryOptions( null, headers) else null;
+		if (timer.publish) {
+			if (exists options) { eventBus.publish(timer.name, event, options); }
+			else { eventBus.publish(timer.name, event); }
 		}
 		else {
-			if ( exists options ) { eventBus.send( timer.name, event, options ); }
-			else { eventBus.send( timer.name, event ); }
+			if (exists options) { eventBus.send(timer.name, event, options); }
+			else { eventBus.send(timer.name, event); }
 		}
-		if ( timer.state == State.completed ) {
-			timers.remove( timer.name );
-			publishCompleteEvent( timer );
+		if (timer.state == State.completed) {
+			timers.remove(timer.name);
+			publishCompleteEvent(timer);
 		}
 	}
 	
@@ -260,7 +266,7 @@ class TimeScheduler (
 	 
 	 > Completed message is always published.
 	 "
-	void publishCompleteEvent( TimerContainer timer ) {
+	void publishCompleteEvent(TimerContainer timer) {
 		eventBus.publish (
 			timer.name,
 			JsonObject {
@@ -276,9 +282,9 @@ class TimeScheduler (
 
 	"Cancels current vertx timer."
 	void cancelCurrentVertxTimer() {
-		if ( exists id = timerID ) {
+		if (exists id = timerID) {
 			timerID = null;
-			vertx.cancelTimer( id );
+			vertx.cancelTimer(id);
 		}
 	}
 	
@@ -287,13 +293,13 @@ class TimeScheduler (
 		cancelCurrentVertxTimer();
 		Integer delay = minDelay();
 		if ( delay > 0 ) {
-			timerID = vertx.setTimer( delay, vertxTimerFired );
+			timerID = vertx.setTimer(delay, vertxTimerFired);
 		}
 	}
 	
 	"Vertx timer has been fired - send message and use next vertx timer."
 	void vertxTimerFired( Integer id ) {
-		if ( state == State.running, exists currentID = timerID, currentID == id ) {
+		if (state == State.running, exists currentID = timerID, currentID == id) {
 			timerID = null;
 			fireTimers();
 			buildVertxTimer();
@@ -304,8 +310,8 @@ class TimeScheduler (
 // operations	
 
 	"Returns timer full name from short name."
-	String timerFullName( String timerShortName ) {
-		if ( timerShortName.startsWith( nameWithSeparator ) && timerShortName.size > nameWithSeparator.size ) {
+	String timerFullName(String timerShortName) {
+		if (timerShortName.startsWith(nameWithSeparator) && timerShortName.size > nameWithSeparator.size) {
 			return timerShortName;
 		}
 		else {
@@ -319,18 +325,18 @@ class TimeScheduler (
 		"timer to be added" TimerContainer timer,
 		"timer state" State state
 	) {
-		if ( state == State.running ) {
-			timer.start( localTime() );
-			if ( timer.state == State.running ) {
-				timers.put( timer.name, timer );
+		if (state == State.running) {
+			timer.start(localTime());
+			if (timer.state == State.running) {
+				timers.put(timer.name, timer);
 				buildVertxTimer();
 			}
 			else {
-				publishCompleteEvent( timer );
+				publishCompleteEvent(timer);
 			}
 		}
-		else if ( state == State.paused ) {
-			timers.put( timer.name, timer );
+		else if (state == State.paused) {
+			timers.put(timer.name, timer);
 		}
 	}
 
@@ -345,14 +351,14 @@ class TimeScheduler (
 			};
 
 	"Creates new timer."
-	shared void operationCreate( Message<JsonObject?> msg ) {
-		if ( exists request = msg.body(), request.defines( Chime.key.description ) ) {
+	shared void operationCreate(Message<JsonObject?> msg) {
+		if (exists request = msg.body(), request.defines(Chime.key.description)) {
 			String timerName;
-			if ( is String tName = request[Chime.key.name], !tName.empty ) {
-				if ( tName == address ) {
+			if (is String tName = request[Chime.key.name], !tName.empty) {
+				if (tName == address) {
 					timerName = nameWithSeparator + generateUniqueName();
 				}
-				else if ( tName.startsWith( nameWithSeparator ) && tName.size > nameWithSeparator.size ) {
+				else if (tName.startsWith(nameWithSeparator) && tName.size > nameWithSeparator.size) {
 					timerName = tName;
 				}
 				else {
@@ -363,36 +369,36 @@ class TimeScheduler (
 				// timer name is not specified - generate unique name
 				timerName = nameWithSeparator + generateUniqueName();
 			}
-			if ( timers.defines( timerName ) ) {
+			if (timers.defines(timerName)) {
 				// timer already exists
-				msg.fail( Chime.errors.codeTimerAlreadyExists, Chime.errors.timerAlreadyExists );
+				msg.fail(Chime.errors.codeTimerAlreadyExists, Chime.errors.timerAlreadyExists);
 			}
 			else {
-				value timer = factory.createTimer( timerName, request, defaultTimeZone, defaultMessageSource, defaultOptions );
-				if ( is TimerContainer timer ) {
-					addTimer( timer, extractState( request ) else State.running );
+				value timer = factory.createTimer(timerName, request, defaultTimeZone, defaultMessageSource, defaultOptions);
+				if (is TimerContainer timer) {
+					addTimer(timer, extractState(request) else State.running);
 					// timer successfully added
-					msg.reply( timer.stateDescription() );
+					msg.reply(timer.stateDescription());
 				}
 				else {
 					// wrong description
-					msg.fail( timer.key, timer.item );
+					msg.fail(timer.key, timer.item);
 				}
 			}
 		}
 		else {
 			// timer name to be specified
-			msg.fail( Chime.errors.codeTimerDescriptionHasToBeSpecified, Chime.errors.timerDescriptionHasToBeSpecified );
+			msg.fail(Chime.errors.codeTimerDescriptionHasToBeSpecified, Chime.errors.timerDescriptionHasToBeSpecified);
 		}
 		
 	}
 	
 	"Deletes existing timer."
-	shared TimerContainer? deleteTimer( String name ) {
-		if ( exists t = timers.remove( timerFullName( name ) ) ) {
+	shared TimerContainer? deleteTimer(String name) {
+		if (exists t = timers.remove(timerFullName(name))) {
 			// delete timer
 			t.complete(); // mark timer as complete
-			publishCompleteEvent( t ); // send timer complete message
+			publishCompleteEvent(t); // send timer complete message
 			return t;
 		}
 		else {
@@ -401,150 +407,150 @@ class TimeScheduler (
 	}
 	
 	"'delete' timer request."
-	shared void operationDelete( Message<JsonObject?> msg ) {
-		value nn = msg.body()?.get( Chime.key.name );
+	shared void operationDelete(Message<JsonObject?> msg) {
+		value nn = msg.body()?.get(Chime.key.name);
 		if ( is String tName = nn ) {
-			if ( tName.empty || tName == address ) {
+			if (tName.empty || tName == address) {
 				// delete this scheduler
-				removeScheduler( address );
+				removeScheduler(address);
 				stop();
-				msg.reply( shortInfo );
+				msg.reply(shortInfo);
 			}
-			else if ( exists t = deleteTimer( tName ) ) {
-				msg.reply( t.stateDescription() ); // timer successfully removed
+			else if (exists t = deleteTimer(tName)) {
+				msg.reply(t.stateDescription()); // timer successfully removed
 			}
 			else {
 				// timer doesn't exist
-				msg.fail( Chime.errors.codeTimerNotExists, Chime.errors.timerNotExists );
+				msg.fail(Chime.errors.codeTimerNotExists, Chime.errors.timerNotExists);
 			}
 		}
-		else if ( is JsonArray arr = nn, nonempty names = arr.narrow<String>().sequence() ) {
+		else if (is JsonArray arr = nn, nonempty names = arr.narrow<String>().sequence()) {
 			JsonArray ret = JsonArray{};
-			for ( item in names ) {
-				if ( exists t = timers.remove( timerFullName( item ) ) ) {
+			for (item in names) {
+				if (exists t = timers.remove(timerFullName(item))) {
 					// delete timer
 					t.complete(); // mark timer as complete
-					publishCompleteEvent( t ); // send timer complete message
-					ret.add( t.name );
+					publishCompleteEvent(t); // send timer complete message
+					ret.add(t.name);
 				}
 			}
-			msg.reply( JsonObject{ Chime.key.timers -> ret } );
+			msg.reply(JsonObject{Chime.key.timers -> ret});
 		}
 		else {
 			// timer name to be specified
-			msg.fail( Chime.errors.codeTimerNameHasToBeSpecified, Chime.errors.timerNameHasToBeSpecified );
+			msg.fail(Chime.errors.codeTimerNameHasToBeSpecified, Chime.errors.timerNameHasToBeSpecified);
 		}
 	}
 	
 	"Replies on the state request of this scheduler."
-	shared void replyWithSchedulerState( String state, Message<JsonObject?> msg ) {
-		if ( state == Chime.state.get ) {
+	shared void replyWithSchedulerState(String state, Message<JsonObject?> msg) {
+		if (state == Chime.state.get) {
 			// return state
-			msg.reply( shortInfo );
+			msg.reply(shortInfo);
 		}
-		else if ( state == State.paused.string ){
+		else if (state == State.paused.string){
 			// set paused state
 			pause();
-			msg.reply( shortInfo );
+			msg.reply(shortInfo);
 		}
-		else if ( state == State.running.string ){
+		else if (state == State.running.string){
 			// set running state
 			start();
-			msg.reply( shortInfo );
+			msg.reply(shortInfo);
 		}
 		else {
 			// state to be one of - get, paused, running
-			msg.fail( Chime.errors.codeIncorrectTimerState, Chime.errors.incorrectTimerState );
+			msg.fail(Chime.errors.codeIncorrectTimerState, Chime.errors.incorrectTimerState);
 		}
 	}
 	
 	"Processes 'timer state' operation."
-	shared void operationState( Message<JsonObject?> msg ) {
-		if ( exists request = msg.body(), is String tName = request[Chime.key.name] ) {
-			 if ( is String state = request[Chime.key.state] ) {
-				if ( tName.empty || tName == address ) {
+	shared void operationState(Message<JsonObject?> msg) {
+		if (exists request = msg.body(), is String tName = request[Chime.key.name]) {
+			 if (is String state = request[Chime.key.state]) {
+				if (tName.empty || tName == address) {
 					// this scheduler state is requested
-					replyWithSchedulerState( state, msg );
+					replyWithSchedulerState(state, msg);
 				}
-				else if ( exists t = timers[timerFullName( tName )] ) {
-					if ( state == Chime.state.get ) {
+				else if (exists t = timers[timerFullName(tName)]) {
+					if (state == Chime.state.get) {
 						// return state
-						msg.reply( t.stateDescription() );
+						msg.reply(t.stateDescription());
 					}
-					else if ( state == State.paused.string ){
+					else if (state == State.paused.string) {
 						// set paused state
 						t.state = State.paused;
-						msg.reply( t.stateDescription() );
+						msg.reply(t.stateDescription());
 					}
-					else if ( state == State.running.string ) {
+					else if (state == State.running.string) {
 						// set running state
-						if ( t.state == State.paused ) {
-							t.start( localTime() );
-							if ( t.state == State.running ) {
+						if (t.state == State.paused) {
+							t.start(localTime());
+							if (t.state == State.running) {
 								buildVertxTimer();
 							}
 							else {
-								timers.remove( t.name );
-								publishCompleteEvent( t );
+								timers.remove(t.name);
+								publishCompleteEvent(t);
 							}
 						}
-						msg.reply( t.stateDescription() );
+						msg.reply(t.stateDescription());
 					}
 					else {
 						// state to be one of - get, paused, running
-						msg.fail( Chime.errors.codeIncorrectTimerState, Chime.errors.incorrectTimerState );
+						msg.fail(Chime.errors.codeIncorrectTimerState, Chime.errors.incorrectTimerState);
 					}
 				}
 				else {
 					// timer doesn't exist
-					msg.fail( Chime.errors.codeTimerNotExists, Chime.errors.timerNotExists );
+					msg.fail(Chime.errors.codeTimerNotExists, Chime.errors.timerNotExists);
 				}
 			}
 			else {
 				// timer state to be specified
-				msg.fail( Chime.errors.codeStateToBeSpecified, Chime.errors.stateToBeSpecified );
+				msg.fail(Chime.errors.codeStateToBeSpecified, Chime.errors.stateToBeSpecified);
 			}
 		}
 		else {
 			// timer name to be specified
-			msg.fail( Chime.errors.codeTimerNameHasToBeSpecified, Chime.errors.timerNameHasToBeSpecified );
+			msg.fail(Chime.errors.codeTimerNameHasToBeSpecified, Chime.errors.timerNameHasToBeSpecified);
 		}
 	}
 
 
 	"Return info on a given timer."
-	shared JsonObject? timerInfo( String name ) => timers[timerFullName( name )]?.fullDescription();
+	shared JsonObject? timerInfo(String name) => timers[timerFullName(name)]?.fullDescription();
 
 	
 	"Replies with scheduler info - array of timer names."
-	shared void operationInfo( Message<JsonObject?> msg ) {
-		value nn = msg.body()?.get( Chime.key.name );
-		if ( is String tName = nn ) {
-			if ( tName.empty || tName == address ) {
+	shared void operationInfo(Message<JsonObject?> msg) {
+		value nn = msg.body()?.get(Chime.key.name);
+		if (is String tName = nn) {
+			if (tName.empty || tName == address) {
 				// reply with info on this scheduler
 				msg.reply( fullInfo );
 			}
-			else if ( exists t = timerInfo( tName ) ) {
+			else if (exists t = timerInfo(tName)) {
 				// reply with timer info
-				msg.reply( t );
+				msg.reply(t);
 			}
 			else {
 				// timer doesn't exist
-				msg.fail( Chime.errors.codeTimerNotExists, Chime.errors.timerNotExists );
+				msg.fail(Chime.errors.codeTimerNotExists, Chime.errors.timerNotExists);
 			}
 		}
-		else if ( is JsonArray arr = nn, nonempty names = arr.narrow<String>().sequence() ) {
+		else if (is JsonArray arr = nn, nonempty names = arr.narrow<String>().sequence()) {
 			JsonArray ret = JsonArray{};
-			for ( item in names ) {
-				if ( exists t = timerInfo( item ) ) {
-					ret.add( t );
+			for (item in names) {
+				if (exists t = timerInfo(item)) {
+					ret.add(t);
 				}
 			}
-			msg.reply( JsonObject{ Chime.key.timers -> ret } );
+			msg.reply(JsonObject{Chime.key.timers -> ret});
 		}
 		else {
 			// reply with info on this scheduler
-			msg.reply( fullInfo );
+			msg.reply(fullInfo);
 		}
 	}
 
@@ -552,30 +558,30 @@ class TimeScheduler (
 // scheduler methods
 	
 	"Starts scheduling."
-	see( `function pause` )
-	see( `function stop` )
+	see(`function pause`)
+	see(`function stop`)
 	shared void start() {
-		if ( state != State.running ) {
+		if (state != State.running) {
 			schedulerState = State.running;
 			DateTime current = localTime();
-			for ( timer in timers.items ) {
-				if ( timer.state == State.running ) {
-					timer.start( current );
-					if ( timer.state == State.completed ) {
-						publishCompleteEvent( timer );
+			for (timer in timers.items) {
+				if (timer.state == State.running) {
+					timer.start(current);
+					if (timer.state == State.completed) {
+						publishCompleteEvent(timer);
 					}
 				}
 			}
-			value toRemove= [for ( item in timers.items ) if ( item.state == State.completed ) item.name];
-			if ( !toRemove.empty ) {
-				timers.removeAll( toRemove );
+			value toRemove= [for (item in timers.items) if (item.state == State.completed) item.name];
+			if (!toRemove.empty) {
+				timers.removeAll(toRemove);
 			}
 			buildVertxTimer();
 		}
 	}
 	
 	"Pauses scheduling - all fires to be missed while start not called."
-	see( `function start` )
+	see(`function start`)
 	shared void pause() {
 		schedulerState = State.paused;
 		cancelCurrentVertxTimer();
@@ -586,10 +592,10 @@ class TimeScheduler (
 		super.stop();
 		schedulerState = State.completed;
 		// fire completed on all timers
-		for ( timer in timers.items ) {
-			if ( timer.state != State.completed ) {
+		for (timer in timers.items) {
+			if (timer.state != State.completed) {
 				timer.complete();
-				publishCompleteEvent( timer );
+				publishCompleteEvent(timer);
 			}
 		}
 		timers.clear();

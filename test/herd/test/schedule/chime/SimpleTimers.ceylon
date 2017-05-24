@@ -26,7 +26,9 @@ import ceylon.json {
 }
 import herd.asynctest.match {
 
-	EqualTo
+	EqualTo,
+	PassType,
+	NotEmpty
 }
 import herd.schedule.chime {
 
@@ -159,6 +161,38 @@ shared class SimpleTimers()
 		};
 	}
 	
+	
+	test shared void generateTimerID(AsyncTestContext context) {
+		eventBus.send<JsonObject> (
+			chime,
+			JsonObject {
+				Chime.key.operation -> Chime.operation.create,
+				Chime.key.maxCount -> 1,
+				Chime.key.description -> JsonObject {
+					Chime.key.type -> Chime.type.interval,
+					Chime.key.delay -> 1
+				}
+			},
+			(Throwable | Message<JsonObject?> msg) {
+				if ( is Throwable msg ) {
+					context.fail(msg, "Automatic timer ID generation");
+					context.complete();
+				}
+				else {
+					if ( exists resp = msg.body() ) {
+						context.assertThat (
+							resp[Chime.key.name], PassType<String>(NotEmpty()), "", true
+						);
+						context.complete();
+					}
+					else {
+						context.fail(Exception("Chime rejects to setup timer"));
+						context.complete();
+					}
+				}
+			}
+		);		
+	}
 	
 	test shared void intervalTimer( AsyncTestContext context ) {
 
