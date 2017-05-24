@@ -59,7 +59,9 @@ Provided with verticle deploy configuration.
 	"local": "Boolean, If 'true' _Chime_ and schedulers event bus addresses have not to propagate across the cluster",
 	"services": [
 		"module name/module version"
-	]
+	],
+	"schedulers": ["list of schedulers as JsonObjects"],
+	"timers": ["list of timers as JsonObjects"],
 }
 ```  
 
@@ -71,12 +73,45 @@ i.e. _Chime_ has to listen only messages from this local node.
 If `false` _Chime_ has to listen all nodes in the cluster.  
 Default is `false`.  
 
+`schedulers` is a list of schedulers to be instantiated at start.
+Each scheduler is in format as described in [create scheduler](#create-scheduler) section.  
+
+`timers` is a list of timers to be instantiated at start.
+Each timer is in format as described in [create timer](#create-timer).  
+
 Additional options may be specified to be available to extensions during initialization.  
 
 
 ### Info on installed extensions.
 
-see [get info on all schedulers](#get-info-on-all-schedulers).
+To be sent to _Chime_ address.  
+
+##### Request.  
+```json
+{
+	"operation": "info",
+	"name": ""
+}
+```  
+
+##### Response.
+```json
+{
+	"schedulers": [],
+	"services": {
+		"timer providers": {
+			"provider type, returned by 'Extension.type'": "declaration"
+		},
+		"time zone providers": {
+			"provider type, returned by 'Extension.type'": "declaration"
+		},
+		"message source providers": {
+			"provider type, returned by 'Extension.type'": "declaration"
+		}
+	}
+}
+```  
+Where `schedulers` array contains `JsonObject`'s of [scheduler info](#get-scheduler-info).
 
 -------------
 
@@ -213,31 +248,7 @@ Where `timers` array contains `JsonObject`'s of [timer info](#get-timer-info).
 
 ### Get info on all schedulers.  
 
-To be sent to _Chime_ address.  
-
-##### Request.  
-```json
-{
-	"operation": "info",
-	"name": ""
-}
-```  
-
-##### Response.
-```json
-{
-	"schedulers": [],
-	"services": {
-		"timer providers": {
-			"provider type, returned by 'Extension.type'": "declaration"
-		},
-		"time zone providers": {
-			"provider type, returned by 'Extension.type'": "declaration"
-		}
-	}
-}
-```  
-Where `schedulers` array contains `JsonObject`'s of [scheduler info](#get-scheduler-info).  
+see [info on installed extensions](#info-on-installed-extensions)
 
 -------------
 
@@ -392,8 +403,14 @@ Other fields are optional, default values are:
 * `message source configuration` = used only if `message source` is given  
 * `delivery options` = given at scheduler level or unused  
 
-> If name field is 'scheduler name', i.e. timer name is omitted then
-  unique timer name is generated and returned with response.  
+> If name field is empty then unique timer name is generated,
+  created timer is attached to default scheduler and timer full name
+  (i.e. address to listen timer fire events) is returned with response in `name` field.  
+
+> If only scheduler name is given in name field (i.e. timer name is omitted) then
+  unique timer name is generated, created timer is attached to the given scheduler
+  and timer full name (i.e. address to listen timer fire events) is returned with response
+  in `name` field.  
 
 > If scheduler with 'scheduler name' hasn't been [created](#create-scheduler) before 
   then new scheduler with 'scheduler name' will be created.  

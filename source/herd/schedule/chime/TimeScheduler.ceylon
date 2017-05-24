@@ -350,47 +350,67 @@ class TimeScheduler (
 				Chime.operation.info -> operationInfo
 			};
 
-	"Creates new timer."
-	shared void operationCreate(Message<JsonObject?> msg) {
-		if (exists request = msg.body(), request.defines(Chime.key.description)) {
-			String timerName;
-			if (is String tName = request[Chime.key.name], !tName.empty) {
-				if (tName == address) {
-					timerName = nameWithSeparator + generateUniqueName();
-				}
-				else if (tName.startsWith(nameWithSeparator) && tName.size > nameWithSeparator.size) {
-					timerName = tName;
-				}
-				else {
-					timerName = nameWithSeparator + tName;
-				}
+	"Extracts timer full name from request or generates that."
+	String timerNamerFromRequest(JsonObject request) {
+		if (is String tName = request[Chime.key.name], !tName.empty) {
+			if (tName == address) {
+				return nameWithSeparator + generateUniqueName();
+			}
+			else if (tName.startsWith(nameWithSeparator) && tName.size > nameWithSeparator.size) {
+				return tName;
 			}
 			else {
-				// timer name is not specified - generate unique name
-				timerName = nameWithSeparator + generateUniqueName();
+				return nameWithSeparator + tName;
 			}
+		}
+		else {
+			// timer name is not specified - generate unique name
+			return nameWithSeparator + generateUniqueName();
+		}
+	}
+
+	"Create timer with request."
+	shared TimerContainer|<Integer->String> createTimer(JsonObject request) {
+		if (request.defines(Chime.key.description)) {
+			String timerName = timerNamerFromRequest(request);
 			if (timers.defines(timerName)) {
 				// timer already exists
-				msg.fail(Chime.errors.codeTimerAlreadyExists, Chime.errors.timerAlreadyExists);
+				return Chime.errors.codeTimerAlreadyExists -> Chime.errors.timerAlreadyExists;
 			}
 			else {
 				value timer = factory.createTimer(timerName, request, defaultTimeZone, defaultMessageSource, defaultOptions);
 				if (is TimerContainer timer) {
 					addTimer(timer, extractState(request) else State.running);
 					// timer successfully added
-					msg.reply(timer.stateDescription());
+					return timer;
 				}
 				else {
 					// wrong description
-					msg.fail(timer.key, timer.item);
+					return timer.key -> timer.item;
 				}
 			}
 		}
 		else {
-			// timer name to be specified
+			// timer description have to be specified
+			return Chime.errors.codeTimerDescriptionHasToBeSpecified -> Chime.errors.timerDescriptionHasToBeSpecified;
+		}
+	}
+
+	"Creates new timer."
+	shared void operationCreate(Message<JsonObject?> msg) {
+		if (exists request = msg.body()) {
+			value ret = createTimer(request);
+			if (is TimerContainer ret) {
+				msg.reply(ret.stateDescription());
+			}
+			else {
+				msg.fail(ret.key, ret.item);
+			}
+		}
+		else {
+			// timer description have to be specified
 			msg.fail(Chime.errors.codeTimerDescriptionHasToBeSpecified, Chime.errors.timerDescriptionHasToBeSpecified);
 		}
-		
 	}
 	
 	"Deletes existing timer."

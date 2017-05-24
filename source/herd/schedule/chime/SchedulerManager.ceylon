@@ -143,6 +143,8 @@ class SchedulerManager extends Operator
 			(Throwable|CompositeFuture result) {
 				if (is CompositeFuture result) {
 					connect(local);
+					instantiateFromArray(config, Chime.key.schedulers);
+					instantiateFromArray(config, Chime.key.timers);
 					startFuture.complete();
 				}
 				else {
@@ -151,10 +153,29 @@ class SchedulerManager extends Operator
 			}
 		);
 
+	"Instantiates schedulers or timers from `request[key]`."
+	void instantiateFromArray(JsonObject request, String key) {
+		if (is JsonArray arr = request[key]) {
+			for (item in arr.narrow<JsonObject>()) {
+				value ret = createSchedulerOrTimer(item);
+				switch (ret)
+				case (is TimeScheduler) {
+					// TODO: log
+				}
+				case (is TimerContainer) {
+					// TODO: log
+				}
+				case (is Integer->String) {
+					// TODO: log
+				}
+			}
+		}
+	}
+
 	
 // operation methods
 	
-	"Creates operators map"
+	"Creates operators map."
 	shared actual Map<String, Anything(Message<JsonObject?>)> createOperators()
 			=> map<String, Anything(Message<JsonObject?>)> {
 				Chime.operation.create -> operationCreate,
@@ -173,54 +194,63 @@ class SchedulerManager extends Operator
 		}
 	}
 	
-	"Processes 'create new scheduler or timer' operation."
-	void operationCreate(Message<JsonObject?> msg) {
-		if (exists request = msg.body()) {
-			String name = extractNameFromRequest(request) else generatedSchedulerName;
-			String schedulerName =
+	"Creates scheduler or timer as defined in request."
+	TimeScheduler|TimerContainer|<Integer->String> createSchedulerOrTimer(JsonObject request) {
+		String name = extractNameFromRequest(request) else generatedSchedulerName;
+		String schedulerName =
 				if (exists inc = name.firstOccurrence(Chime.configuration.nameSeparatorChar))
 				then name.spanTo( inc - 1 ) else name;
-			
-			if (exists scheduler = schedulers.get(schedulerName)) {
-				// scheduler already exists
+		
+		if (exists scheduler = schedulers.get(schedulerName)) {
+			// scheduler already exists
+			if (request.defines(Chime.key.description)) {
+				// add timer to scheduler
+				return scheduler.createTimer(request);
+			}
+			else {
+				// timer description is not specified - reply with info on scheduler
+				return scheduler;
+			}
+		}
+		else {
+			value exactServices = servicesFromRequest(request, providers, providers.localTimeZone, defaultMessageSource);
+			if (is [TimeZone, MessageSource] exactServices) {
+				// create new scheduler
+				TimeScheduler scheduler = TimeScheduler (
+					schedulerName, schedulers.remove, providers.vertx, creator,
+					tolerance, exactServices[0], exactServices[1],
+					if (exists options = request.getObjectOrNull(Chime.key.deliveryOptions))
+					then deliveryOptions.fromJson(options) else null
+				);
+				schedulers.put(schedulerName, scheduler);
+				scheduler.connect(local);
+				value state = extractState(request) else State.running;
+				if (state == State.running) {
+					scheduler.start();
+				}
 				if (request.defines(Chime.key.description)) {
 					// add timer to scheduler
-					scheduler.operationCreate(msg);
+					return scheduler.createTimer(request);
 				}
 				else {
 					// timer description is not specified - reply with info on scheduler
-					msg.reply(scheduler.shortInfo);
+					return scheduler;
 				}
 			}
 			else {
-				value exactServices = servicesFromRequest(request, providers, providers.localTimeZone, defaultMessageSource);
-				if (is [TimeZone, MessageSource] exactServices) {
-					// create new scheduler
-					TimeScheduler scheduler = TimeScheduler (
-						schedulerName, schedulers.remove, providers.vertx, creator,
-						tolerance, exactServices[0], exactServices[1],
-						if (exists options = request.getObjectOrNull(Chime.key.deliveryOptions))
-						then deliveryOptions.fromJson(options) else null
-					);
-					schedulers.put(schedulerName, scheduler);
-					scheduler.connect(local);
-					value state = extractState(request) else State.running;
-					if (state == State.running) {
-						scheduler.start();
-					}
-					if (request.defines(Chime.key.description)) {
-						// add timer to scheduler
-						scheduler.operationCreate(msg);
-					}
-					else {
-						// timer description is not specified - reply with info on scheduler
-						msg.reply(scheduler.shortInfo);
-					}
-				}
-				else {
-					msg.fail(exactServices.key, exactServices.item);
-				}
+				return exactServices.key -> exactServices.item;
 			}
+		}
+	}
+	
+	"Processes 'create new scheduler or timer' operation."
+	void operationCreate(Message<JsonObject?> msg) {
+		if (exists request = msg.body()) {
+			value ret = createSchedulerOrTimer(request);
+			switch (ret)
+			case (is TimeScheduler) {msg.reply(ret.shortInfo);}
+			case (is TimerContainer) {msg.reply(ret.stateDescription());}
+			case (is Integer->String) {msg.fail(ret.key, ret.item);}
 		}
 		else {
 			// response with wrong format error

@@ -92,6 +92,9 @@ shared class Chime extends Verticle
 	 			},
 	 			\"time zone providers\" -> JsonObject {
 	 				\"type\"->\"declaration\"
+	 			},
+	 			\"message source providers\" -> JsonObject {
+	 				\"type\"->\"declaration\"
 	 			}
 	 		}  
 	 "
