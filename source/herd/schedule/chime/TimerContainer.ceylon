@@ -19,7 +19,7 @@ import herd.schedule.chime.service {
 
 
 "Posses timer."
-since( "0.1.0" ) by( "Lis" )
+since("0.1.0") by("Lis")
 class TimerContainer (
 	"Timer full name, which is **scheduler name:timer name**." shared String name,
 	"Timer `JsonObject` description" JsonObject description,
@@ -47,7 +47,7 @@ class TimerContainer (
 	shared DateTime? remoteFireTime => nextRemoteFireTime;
 	
 	"Next fire timer in machine local TZ or null if completed."
-	shared DateTime? localFireTime => if ( exists d = nextRemoteFireTime ) then timeZone.toLocal( d ) else null;
+	shared DateTime? localFireTime => if (exists d = nextRemoteFireTime) then timeZone.toLocal(d) else null;
 	
 	"Time zone ID."
 	shared String timeZoneID => timeZone.timeZoneID;
@@ -72,11 +72,11 @@ class TimerContainer (
 			Chime.key.timeZone -> timeZoneID
 		};
 		
-		if ( exists d = maxCount ) {
-			descr.put( Chime.key.maxCount, d );
+		if (exists d = maxCount) {
+			descr.put(Chime.key.maxCount, d);
 		}
 		
-		if ( exists d = startTime ) {
+		if (exists d = startTime) {
 			descr.put (
 				Chime.key.startTime,
 				JsonObject {
@@ -90,7 +90,7 @@ class TimerContainer (
 			);
 		}
 		
-		if ( exists d = endTime ) {
+		if (exists d = endTime) {
 			descr.put (
 				Chime.key.endTime,
 				JsonObject {
@@ -104,37 +104,37 @@ class TimerContainer (
 			);
 		}
 		
-		if ( exists m = options ) {
-			descr.put( Chime.key.deliveryOptions, m.toJson() );
+		if (exists m = options) {
+			descr.put(Chime.key.deliveryOptions, m.toJson());
 		}
 		
 		return descr;
 	}
 	
 	"Creates timer fire event for the given date time and with extracted message."
-	shared void timerFireEvent( DateTime at, Anything(TimerContainer, JsonObject, Map<String,String>?) handler ) {
-		TimerFire event = TimerFire( name, count, timeZoneID, at, message );
+	shared void timerFireEvent(DateTime at, Anything(TimerContainer, JsonObject, Map<String,String>?) handler) {
+		TimerFire event = TimerFire(name, count, timeZoneID, at, message);
 		messageSource.extract (
 			event,
-			( ObjectValue? toSend, Map<String,String>? headers )
-					=> handler( this, event.toJsonWithMessage( toSend ), headers )
+			(ObjectValue? toSend, Map<String,String>? headers)
+					=> handler(this, event.toJsonWithMessage(toSend), headers)
 		);
 	}
 	
 	"Starts the timer."
-	shared void start( DateTime currentLocal ) {
-		DateTime currentRemote = timeZone.toRemote( currentLocal );
+	shared void start(DateTime currentLocal) {
+		DateTime currentRemote = timeZone.toRemote(currentLocal);
 		// check if max count has been reached before
-		if ( exists c = maxCount ) {
-			if ( count >= c ) {
+		if (exists c = maxCount) {
+			if (count >= c) {
 				complete();
 				return;
 			}
 		}
 		// check if start time is after current
 		DateTime beginning;
-		if ( exists st = startTime ) {
-			if ( st > currentRemote ) {
+		if (exists st = startTime) {
+			if (st > currentRemote) {
 				beginning = st;
 			}
 			else {
@@ -145,9 +145,9 @@ class TimerContainer (
 			beginning = currentRemote;
 		}
 		// start timer
-		if ( exists date = timer.start( beginning ) ) {
-			if ( exists ed = endTime ) {
-				if ( date > ed ) {
+		if (exists date = timer.start(beginning)) {
+			if (exists ed = endTime) {
+				if (date > ed) {
 					complete();
 					return;
 				}
@@ -168,23 +168,26 @@ class TimerContainer (
 	
 	"Shifts timer to the next time."
 	shared void shiftTime() {
-		if ( state == State.running ) {
+		if (state == State.running) {
 			count ++;
-			if ( exists date = timer.shiftTime() ) {
+			if ( exists date = timer.shiftTime()) {
 				// check on complete
-				if ( exists ed = endTime ) {
-					if ( date > ed ) {
+				if (exists ed = endTime) {
+					if (date > ed) {
 						complete();
 						return;
 					}
 				}
-				if ( exists c = maxCount ) {
-					if ( count >= c ) {
+				if (exists c = maxCount) {
+					if (count >= c) {
 						complete();
 						return;
 					}
 				}
 				nextRemoteFireTime = date;
+			}
+			else {
+				complete();
 			}
 		}
 	}
