@@ -18,8 +18,10 @@ import ceylon.collection {
 
 	HashMap
 }
-import herd.schedule.chime.service {
-	TimeZone,
+import herd.schedule.chime.service.timezone {
+	TimeZone
+}
+import herd.schedule.chime.service.message {
 	MessageSource,
 	DirectMessageSourceFactory
 }

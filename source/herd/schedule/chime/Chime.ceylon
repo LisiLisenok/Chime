@@ -101,11 +101,11 @@ shared class Chime extends Verticle
 	shared static object extension {
 		"Key at whic extension info returned within info response."
 		shared String services => Chime.configuration.services;
-		"Key for the timer extensions info. i.e. installed [[herd.schedule.chime.service::TimeRowFactory]]."
+		"Key for the timer extensions info. i.e. installed [[herd.schedule.chime.service.timer::TimeRowFactory]]."
 		shared String timers = "timer providers";
-		"Key for the time zone extensions info. i.e. installed [[herd.schedule.chime.service::TimeZoneFactory]]"
+		"Key for the time zone extensions info. i.e. installed [[herd.schedule.chime.service.timezone::TimeZoneFactory]]"
 		shared String timeZones = "time zone providers";
-		"Key for the message source extensions info. i.e. installed [[herd.schedule.chime.service::MessageSourceFactory]]"
+		"Key for the message source extensions info. i.e. installed [[herd.schedule.chime.service.message::MessageSourceFactory]]"
 		shared String messageSources = "message source providers";
 	}
 	

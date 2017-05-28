@@ -28,8 +28,10 @@ import ceylon.time.timezone {
 
 	timeZone
 }
-import herd.schedule.chime.service {
-	TimeZone,
+import herd.schedule.chime.service.timezone {
+	TimeZone
+}
+import herd.schedule.chime.service.message {
 	MessageSource
 }
 
@@ -226,13 +228,20 @@ class TimeScheduler (
 		for (timer in timers.items) {
 			if (timer.state == State.running,
 				exists localDate = timer.localFireTime,
-				exists remoteDate = timer.remoteFireTime
+				localDate < current
 			) {
-				if (localDate < current) {
-					timer.shiftTime();
-					timer.timerFireEvent(remoteDate, sendTimerFireEvent);
-				}
+				timer.timerFireEvent(sendTimerFireEvent);
+				timer.shiftTime();
 			}
+		}
+	}
+	
+	"Removes completed timers and pusblishes complete event."
+	void removeCompletedTimers() {
+		value timersToRemove = [for (timer in timers.items) if (timer.state == State.completed) timer];
+		for (item in timersToRemove) {
+			timers.remove(item.name);
+			publishCompleteEvent(item);
 		}
 	}
 	
@@ -248,10 +257,6 @@ class TimeScheduler (
 		else {
 			if (exists options) { eventBus.send(timer.name, event, options); }
 			else { eventBus.send(timer.name, event); }
-		}
-		if (timer.state == State.completed) {
-			timers.remove(timer.name);
-			publishCompleteEvent(timer);
 		}
 	}
 	
@@ -302,6 +307,7 @@ class TimeScheduler (
 		if (state == State.running, exists currentID = timerID, currentID == id) {
 			timerID = null;
 			fireTimers();
+			removeCompletedTimers();
 			buildVertxTimer();
 		}
 	}

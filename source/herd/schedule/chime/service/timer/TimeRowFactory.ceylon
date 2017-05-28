@@ -2,10 +2,14 @@ import ceylon.json {
 	
 	JsonObject
 }
+import herd.schedule.chime.service {
+	ChimeServices,
+	Extension
+}
 
 
 "Creates [[TimeRow]]."
-since( "0.1.0" ) by( "Lis" )
+since("0.1.0") by("Lis")
 shared interface TimeRowFactory satisfies Extension
 {
 	

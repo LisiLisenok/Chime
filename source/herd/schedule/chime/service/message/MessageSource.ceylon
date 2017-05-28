@@ -13,8 +13,8 @@ import ceylon.json {
  It is proposed that message attached to the timer create request contains some info for this source.  
  The message source may use this info to extract provided message.  
  "
-since( "0.3.0" ) by( "Lis" )
-see( `interface MessageSourceFactory` )
+since("0.3.0") by("Lis")
+see(`interface MessageSourceFactory`)
 shared interface MessageSource
 {
 	"Extracts message and message headers from this source.  

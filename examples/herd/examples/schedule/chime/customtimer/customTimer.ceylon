@@ -2,9 +2,11 @@ import ceylon.time {
 	dateTime,
 	DateTime
 }
-import herd.schedule.chime.service {
-	TimeRow,
+import herd.schedule.chime.service.timer {
 	TimeRowFactory,
+	TimeRow
+}
+import herd.schedule.chime.service {
 	ChimeServices,
 	Extension
 }

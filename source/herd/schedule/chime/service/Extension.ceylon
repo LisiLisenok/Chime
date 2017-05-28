@@ -5,10 +5,20 @@ import ceylon.json {
 	
 	JsonObject
 }
+import herd.schedule.chime.service.timer {
+	TimeRowFactory
+}
+import herd.schedule.chime.service.timezone {
+	TimeZoneFactory
+}
+import herd.schedule.chime.service.message {
+	MessageSourceFactory
+}
+
 
 "Mark interface for the extensions (given as service providers)."
-since( "0.3.0" ) by( "Lis" )
-shared interface Extension of TimeRowFactory | TimeZoneFactory | MessageSourceFactory
+since("0.3.0") by("Lis")
+shared interface Extension of TimeRowFactory|TimeZoneFactory|MessageSourceFactory
 {
 	"Type of service the extension provides."
 	shared formal String type;

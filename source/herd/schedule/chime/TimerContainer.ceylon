@@ -11,10 +11,14 @@ import ceylon.time {
 import io.vertx.ceylon.core.eventbus {
 	DeliveryOptions
 }
-import herd.schedule.chime.service {
-	TimeRow,
-	TimeZone,
+import herd.schedule.chime.service.timezone {
+	TimeZone
+}
+import herd.schedule.chime.service.message {
 	MessageSource
+}
+import herd.schedule.chime.service.timer {
+	TimeRow
 }
 
 
@@ -42,9 +46,6 @@ class TimerContainer (
 
 	"Next fire timer in remote TZ or null if completed."
 	variable DateTime? nextRemoteFireTime = null;
-	
-	"Next fire timer in remote TZ or null if completed."
-	shared DateTime? remoteFireTime => nextRemoteFireTime;
 	
 	"Next fire timer in machine local TZ or null if completed."
 	shared DateTime? localFireTime => if (exists d = nextRemoteFireTime) then timeZone.toLocal(d) else null;
@@ -111,14 +112,16 @@ class TimerContainer (
 		return descr;
 	}
 	
-	"Creates timer fire event for the given date time and with extracted message."
-	shared void timerFireEvent(DateTime at, Anything(TimerContainer, JsonObject, Map<String,String>?) handler) {
-		TimerFire event = TimerFire(name, count, timeZoneID, at, message);
-		messageSource.extract (
-			event,
-			(ObjectValue? toSend, Map<String,String>? headers)
-					=> handler(this, event.toJsonWithMessage(toSend), headers)
-		);
+	"Creates timer fire event for the next fire date time and using extracted message."
+	shared void timerFireEvent(Anything(TimerContainer, JsonObject, Map<String,String>?) handler) {
+		if (state == State.running, exists at = nextRemoteFireTime) {
+			TimerFire event = TimerFire(name, count, timeZoneID, at, message);
+			messageSource.extract (
+				event,
+				(ObjectValue? toSend, Map<String,String>? headers)
+						=> handler(this, event.toJsonWithMessage(toSend), headers)
+			);
+		}
 	}
 	
 	"Starts the timer."
@@ -153,6 +156,7 @@ class TimerContainer (
 				}
 			}
 			state = State.running;
+			count ++;
 			nextRemoteFireTime = date;
 		}
 		else {
@@ -169,7 +173,6 @@ class TimerContainer (
 	"Shifts timer to the next time."
 	shared void shiftTime() {
 		if (state == State.running) {
-			count ++;
 			if ( exists date = timer.shiftTime()) {
 				// check on complete
 				if (exists ed = endTime) {
@@ -184,6 +187,7 @@ class TimerContainer (
 						return;
 					}
 				}
+				count ++;
 				nextRemoteFireTime = date;
 			}
 			else {

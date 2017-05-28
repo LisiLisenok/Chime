@@ -1,6 +1,10 @@
 import herd.schedule.chime.service {
-	ChimeServices,
-	MessageSource,
+	ChimeServices
+}
+import herd.schedule.chime.service.message {
+	MessageSource
+}
+import herd.schedule.chime.service.timezone {
 	TimeZone
 }
 import ceylon.json {

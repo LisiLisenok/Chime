@@ -15,7 +15,7 @@ import herd.schedule.chime.cron {
 
 
 "Ccron-like timer."
-since( "0.1.0" ) by( "Lis" )
+since("0.1.0") by("Lis")
 class TimeRowCronStyle (
 	"Cron expression rules the timer." CronExpression expression
 )
@@ -47,7 +47,7 @@ class TimeRowCronStyle (
 	"Completes the timer."
 	void completeTimer() {
 		completed = true;
-		currentDate = dateTime( 0, 1, 1 );
+		currentDate = dateTime(0, 1, 1);
 		secondIndex = expression.seconds.iterator();
 		minuteIndex = expression.minutes.iterator();
 		hourIndex = expression.hours.iterator();
@@ -59,7 +59,7 @@ class TimeRowCronStyle (
 	"Starts seconds from beginning."
 	void resetSeconds() {
 		secondIndex = expression.seconds.iterator();
-		if ( is Integer val = secondIndex.next() ){
+		if (is Integer val = secondIndex.next()) {
 			currentSecond = val;
 		}
 		else {
@@ -70,7 +70,7 @@ class TimeRowCronStyle (
 	"Starts minutes from beginning and reset seconds."
 	void resetMinutes() {
 		minuteIndex = expression.minutes.iterator();
-		if ( is Integer val = minuteIndex.next() ){
+		if (is Integer val = minuteIndex.next()) {
 			currentMinute = val;
 		}
 		else {
@@ -82,7 +82,7 @@ class TimeRowCronStyle (
 	"Starts hours from beginning and reset minutes."
 	void resetHours() {
 		hourIndex = expression.hours.iterator();
-		if ( is Integer val = hourIndex.next() ){
+		if (is Integer val = hourIndex.next()) {
 			currentHour = val;
 		}
 		else {
@@ -94,7 +94,7 @@ class TimeRowCronStyle (
 	"Start. days from beginning and reset hours."
 	void resetDays() {
 		dayIndex = expression.daysOfMonth.iterator();
-		if ( is Integer val = dayIndex.next() ){
+		if (is Integer val = dayIndex.next()) {
 			currentDay = val;
 		}
 		else {
@@ -106,7 +106,7 @@ class TimeRowCronStyle (
 	"Starts days from beginning and reset and reset days."
 	void resetMonth() {
 		monthIndex = expression.months.iterator();
-		if ( is Integer val = monthIndex.next() ){
+		if (is Integer val = monthIndex.next()) {
 			currentMonth = val;
 		}
 		else {
@@ -126,8 +126,8 @@ class TimeRowCronStyle (
 	 Returns `true` if completed."
 	Boolean shiftYear() {
 		// shift to next year
-		if ( !expression.years.empty ) {
-			if ( is Integer item = yearIndex.next() ) {
+		if (!expression.years.empty) {
+			if (is Integer item = yearIndex.next()) {
 				currentYear = item;
 			}
 			else {
@@ -145,9 +145,9 @@ class TimeRowCronStyle (
 	 Returns `true` if completed and `false` otherwise."
 	Boolean shiftMonth() {
 		// shift to next month
-		if ( is Integer item = monthIndex.next() ) {
+		if (is Integer item = monthIndex.next()) {
 			currentMonth = item;
-			if ( isDateAcepted() ) {
+			if (isDateAcepted()) {
 				return false;
 			}
 			else {
@@ -166,9 +166,9 @@ class TimeRowCronStyle (
 	 Returns `true` if completed and `false` otherwise."
 	Boolean shiftDay() {
 		// shift to next day
-		if ( is Integer item = dayIndex.next() ) {
+		if (is Integer item = dayIndex.next()) {
 			currentDay = item;
-			if ( isDateAcepted() ) {
+			if (isDateAcepted()) {
 				return false;
 			}
 			else {
@@ -187,7 +187,7 @@ class TimeRowCronStyle (
 	 Returns `true` if completed and `false` otherwise."
 	Boolean shiftHour() {
 		// shift to next hour
-		if ( is Integer item = hourIndex.next() ) {
+		if (is Integer item = hourIndex.next()) {
 			currentHour = item;
 			return false;
 		}
@@ -202,7 +202,7 @@ class TimeRowCronStyle (
 	 Returns `true` if completed and `false` otherwise."
 	Boolean shiftMinute() {
 		// shift to next minute
-		if ( is Integer item = minuteIndex.next() ) {
+		if (is Integer item = minuteIndex.next()) {
 			currentMinute = item;
 			return false;
 		}
@@ -216,7 +216,7 @@ class TimeRowCronStyle (
 	 If all seconds scooped out shifts minutes - [[shiftMinute]]. 
 	 Returns `true` if completed and `false` otherwise."
 	Boolean shiftSecond() {
-		if ( is Integer item = secondIndex.next() ) {
+		if (is Integer item = secondIndex.next()) {
 			currentSecond = item;
 			return false;
 		}
@@ -231,21 +231,21 @@ class TimeRowCronStyle (
 	 Returns `false` if timer to be completed and `true` otherwise."
 	Boolean considerWeekdays() {
 		try {
-			variable DateTime date = dateTime( currentYear, currentMonth, currentDay, currentHour, currentMinute, currentSecond );
+			variable DateTime date = dateTime(currentYear, currentMonth, currentDay, currentHour, currentMinute, currentSecond);
 			// shift to appropriate day of week
 			variable Boolean reset = true;
-			while ( !expression.daysOfWeek.falls( date.date ) && date != currentDate ) {
+			while (!expression.daysOfWeek.falls(date.date) && date != currentDate) {
 				if ( reset ) {
 					resetHours();
 					reset = false;
 				}
-				if ( shiftDay() ) {
+				if (shiftDay()) {
 					completeTimer();
 					return false;
 				}
-				date = dateTime( currentYear, currentMonth, currentDay, currentHour, currentMinute, currentSecond );
+				date = dateTime(currentYear, currentMonth, currentDay, currentHour, currentMinute, currentSecond);
 			}
-			if ( date != currentDate ) {
+			if (date != currentDate) {
 				currentDate = date;
 				return true;
 			}
@@ -254,7 +254,7 @@ class TimeRowCronStyle (
 				return false;
 			}
 		}
-		catch ( Throwable err ) {
+		catch (Throwable err) {
 			completeTimer();
 			return false;
 		}
@@ -263,27 +263,27 @@ class TimeRowCronStyle (
 	
 	"Starts timing from specified UTC time. 
 	 Returns `true` if started and `false` if completed."
-	Boolean startCron( DateTime current ) {
+	Boolean startCron(DateTime current) {
 		// find nearest time
 		
 		// year
-		if ( expression.years.empty ) {
+		if (expression.years.empty) {
 			currentYear = current.year;
 		}
 		else {
 			currentYear = 0;
 			yearIndex = expression.years.iterator();
-			while ( is Integer item = yearIndex.next() ) {
-				if ( item >= current.year ) {
+			while (is Integer item = yearIndex.next()) {
+				if (item >= current.year) {
 					currentYear = item;
 					break;
 				}
 			}
-			if ( currentYear == 0 ) {
+			if (currentYear == 0) {
 				completeTimer();
 				return false;
 			}
-			else if ( currentYear > current.year ) {
+			else if (currentYear > current.year) {
 				resetMonth();
 				return considerWeekdays();
 			}
@@ -292,15 +292,15 @@ class TimeRowCronStyle (
 		// month
 		currentMonth = 0;
 		monthIndex = expression.months.iterator();
-		while ( is Integer item = monthIndex.next() ) {
-			if ( item >= current.month.integer ) {
+		while (is Integer item = monthIndex.next()) {
+			if (item >= current.month.integer) {
 				currentMonth = item;
 				break;
 			}
 		}
-		if ( currentMonth == 0 ) {
+		if (currentMonth == 0) {
 			resetMonth();
-			if ( shiftYear() ) {
+			if (shiftYear()) {
 				completeTimer();
 				return false;
 			}
@@ -308,7 +308,7 @@ class TimeRowCronStyle (
 				return considerWeekdays();
 			}
 		}
-		if ( currentMonth > current.month.integer ) {
+		if (currentMonth > current.month.integer) {
 			resetDays();
 			return considerWeekdays();
 		}
@@ -316,15 +316,15 @@ class TimeRowCronStyle (
 		// day
 		currentDay = 0;
 		dayIndex = expression.daysOfMonth.iterator();
-		while ( is Integer item = dayIndex.next() ) {
-			if ( item >= current.day ) {
+		while (is Integer item = dayIndex.next()) {
+			if (item >= current.day) {
 				currentDay = item;
 				break;
 			}
 		}
-		if ( currentDay == 0 ) {
+		if (currentDay == 0) {
 			resetDays();
-			if ( shiftMonth() ) {
+			if (shiftMonth()) {
 				completeTimer();
 				return false;
 			}
@@ -332,7 +332,7 @@ class TimeRowCronStyle (
 				return considerWeekdays();
 			}
 		}
-		if ( currentDay > current.day ) {
+		if (currentDay > current.day) {
 			resetHours();
 			return considerWeekdays();
 		}
@@ -340,15 +340,15 @@ class TimeRowCronStyle (
 		// hour
 		currentHour = -1;
 		hourIndex = expression.hours.iterator();
-		while ( is Integer item = hourIndex.next() ) {
-			if ( item >= current.hours ) {
+		while (is Integer item = hourIndex.next()) {
+			if (item >= current.hours) {
 				currentHour = item;
 				break;
 			}
 		}
-		if ( currentHour == -1 ) {
+		if (currentHour == -1) {
 			resetHours();
-			if ( shiftDay() ) {
+			if (shiftDay()) {
 				completeTimer();
 				return false;
 			}
@@ -356,7 +356,7 @@ class TimeRowCronStyle (
 				return considerWeekdays();
 			}
 		}
-		if ( currentHour > current.hours ) {
+		if (currentHour > current.hours) {
 			resetMinutes();
 			return considerWeekdays();
 		}
@@ -364,13 +364,13 @@ class TimeRowCronStyle (
 		// minutes
 		currentMinute = -1;
 		minuteIndex = expression.minutes.iterator();
-		while ( is Integer item = minuteIndex.next() ) {
-			if ( item >= current.minutes ) {
+		while (is Integer item = minuteIndex.next()) {
+			if (item >= current.minutes) {
 				currentMinute = item;
 				break;
 			}
 		}
-		if ( currentMinute == -1 ) {
+		if (currentMinute == -1) {
 			resetMinutes();
 			if ( shiftHour() ) {
 				completeTimer();
@@ -380,7 +380,7 @@ class TimeRowCronStyle (
 				return considerWeekdays();
 			}
 		}
-		if ( currentMinute > current.minutes ) {
+		if (currentMinute > current.minutes) {
 			resetSeconds();
 			return considerWeekdays();
 		}
@@ -388,15 +388,15 @@ class TimeRowCronStyle (
 		// seconds
 		currentSecond = -1;
 		secondIndex = expression.seconds.iterator();
-		while ( is Integer item = secondIndex.next() ) {
-			if ( item >= current.seconds ) {
+		while (is Integer item = secondIndex.next()) {
+			if (item >= current.seconds) {
 				currentSecond = item;
 				break;
 			}
 		}
-		if ( currentSecond == -1 ) {
+		if (currentSecond == -1) {
 			resetSeconds();
-			if ( shiftMinute() ) {
+			if (shiftMinute()) {
 				completeTimer();
 				return false;
 			}
@@ -410,7 +410,7 @@ class TimeRowCronStyle (
 	"Calculates next local time and stores it in [[currentDate]]. 
 	 Returns `true` if successfully shifted and `false` if to be completed."
 	Boolean shiftCronTime() {
-		if ( shiftSecond() ) {
+		if (shiftSecond()) {
 			completeTimer();
 			return false;
 		}
@@ -422,8 +422,8 @@ class TimeRowCronStyle (
 	
 	/* Timer interface */
 	
-	shared actual DateTime? start( DateTime current ) {
-		if ( startCron( current ) ) {
+	shared actual DateTime? start(DateTime current) {
+		if (startCron(current)) {
 			return currentDate;
 		}
 		else {
@@ -432,7 +432,7 @@ class TimeRowCronStyle (
 	}
 	
 	shared actual DateTime? shiftTime() {
-		if ( shiftCronTime() ) {
+		if (shiftCronTime()) {
 			return currentDate;
 		}
 		else {

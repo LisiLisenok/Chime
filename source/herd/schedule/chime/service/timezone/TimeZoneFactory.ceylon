@@ -1,7 +1,11 @@
+import herd.schedule.chime.service {
+	Extension,
+	ChimeServices
+}
 
 
 "Time zone provider - creates [[TimeZone]]."
-since( "0.3.0" ) by( "Lis" )
+since("0.3.0") by("Lis")
 shared interface TimeZoneFactory satisfies Extension
 {
 	"Creates new time zone with the given time zone name.  

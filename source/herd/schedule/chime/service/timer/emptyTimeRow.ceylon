@@ -4,7 +4,7 @@ import ceylon.time {
 
 
 "`TimeRow` which return `null`."
-since( "0.3.0" ) by( "Lis" )
+since("0.3.0") by("Lis")
 object emptyTimeRow satisfies TimeRow {
 	shared actual DateTime? shiftTime() => null;
 	shared actual DateTime? start(DateTime current) => null;

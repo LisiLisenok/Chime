@@ -10,11 +10,15 @@ import herd.schedule.chime {
 import io.vertx.ceylon.core {
 	Vertx
 }
+import herd.schedule.chime.service {
+	ChimeServices,
+	Extension
+}
 
 
 "Factory to create cron-style timers."
-service( `interface TimeRowFactory` )
-since( "0.3.0" ) by( "Lis" )
+service(`interface TimeRowFactory`)
+since("0.3.0") by("Lis")
 shared class CronFactory() satisfies TimeRowFactory
 {
 	
@@ -22,12 +26,12 @@ shared class CronFactory() satisfies TimeRowFactory
 	
 	shared actual String type => Chime.type.cron;
 	
-	shared actual void initialize( Vertx vertx, JsonObject config, Anything(Extension|Throwable) handle ) {
+	shared actual void initialize(Vertx vertx, JsonObject config, Anything(Extension|Throwable) handle) {
 		handle( this );
 	}
 	
-	shared actual TimeRow|<Integer->String> create( ChimeServices services, JsonObject description ) {	 		
-		if ( is String seconds = description[Chime.date.seconds],
+	shared actual TimeRow|<Integer->String> create(ChimeServices services, JsonObject description) {	 		
+		if (is String seconds = description[Chime.date.seconds],
 			is String minutes = description[Chime.date.minutes],
 			is String hours = description[Chime.date.hours],
 			is String daysOfMonth = description[Chime.date.daysOfMonth],
@@ -35,7 +39,7 @@ shared class CronFactory() satisfies TimeRowFactory
 		) {
 			// days of week - nonmandatory
 			String? daysOfWeek;
-			if ( is String str = description[Chime.date.daysOfWeek] ) {
+			if (is String str = description[Chime.date.daysOfWeek]) {
 				daysOfWeek = str;
 			}
 			else {
@@ -44,14 +48,14 @@ shared class CronFactory() satisfies TimeRowFactory
 			
 			// years - nonmandatory
 			String? years;
-			if ( is String str = description[Chime.date.years] ) {
+			if (is String str = description[Chime.date.years]) {
 				years = str;
 			}
 			else {
 				years = null;
 			}
 			
-			if ( exists cronExpr = parseCron( seconds, minutes, hours, daysOfMonth, months, daysOfWeek, years, maxYearPeriod ) ) {
+			if (exists cronExpr = parseCron(seconds, minutes, hours, daysOfMonth, months, daysOfWeek, years, maxYearPeriod)) {
 				return TimeRowCronStyle( cronExpr );
 			}
 			else {

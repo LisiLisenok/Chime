@@ -5,18 +5,29 @@ import io.vertx.ceylon.core {
 	
 	Vertx
 }
+import herd.schedule.chime.service.timer {
+	TimeRow,
+	TimeRowFactory
+}
+import herd.schedule.chime.service.timezone {
+	TimeZone
+}
+import herd.schedule.chime.service.message {
+	MessageSource
+}
 
 
 "Provides Chime services:  
  * creating [[TimeRow]] by the given timer description  
  * creating [[TimeZone]] with the given provider and the given time zone  
+ * creating [[MessageSource]] with the given provider and the given details of the source  
  "
-see( `interface TimeRowFactory` )
-since( "0.3.0" ) by( "Lis" )
+see(`interface TimeRowFactory`)
+since("0.3.0") by("Lis")
 shared interface ChimeServices
 {
 	"Creates time row by timer description.  See about description in [[module herd.schedule.chime]]."
-	shared formal TimeRow|<Integer->String> createTimeRow( "Timer description." JsonObject description );
+	shared formal TimeRow|<Integer->String> createTimeRow("Timer description." JsonObject description);
 	
 	"Creates time zone with given provider and for the given time zone name."
 	shared formal TimeZone|<Integer->String> createTimeZone (

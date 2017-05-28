@@ -1,10 +1,16 @@
 import herd.schedule.chime.service {
 	ChimeServices,
-	Extension,
-	TimeRowFactory,
+	Extension
+}
+import herd.schedule.chime.service.timer {
 	TimeRow,
+	TimeRowFactory
+}
+import herd.schedule.chime.service.timezone {
 	TimeZone,
-	TimeZoneFactory,
+	TimeZoneFactory
+}
+import herd.schedule.chime.service.message {
 	MessageSource,
 	MessageSourceFactory
 }
@@ -41,13 +47,13 @@ import io.vertx.ceylon.core {
 
 
 "Provides Chime services."
-since( "0.3.0" ) by( "Lis" )
+since("0.3.0") by("Lis")
 class ChimeServiceProvider satisfies ChimeServices
 {
 	
-	static String[2]? moduleNameAndVersion( String fullName ) {
-		value r = fullName.split( '/'.equals );
-		if ( r.size == 2 ) {
+	static String[2]? moduleNameAndVersion(String fullName) {
+		value r = fullName.split('/'.equals);
+		if (r.size == 2) {
 			return [r.first.normalized, r.last.normalized];
 		}
 		else {
@@ -57,8 +63,8 @@ class ChimeServiceProvider satisfies ChimeServices
 	
 	"Defines time converter which does no convertion."
 	static object emptyConverter satisfies TimeZone {
-		shared actual DateTime toLocal( DateTime remote ) => remote;
-		shared actual DateTime toRemote( DateTime local ) => local;
+		shared actual DateTime toLocal(DateTime remote) => remote;
+		shared actual DateTime toRemote(DateTime local) => local;
 		shared actual String timeZoneID => JavaTimeZone.default.id;
 	}
 	
@@ -68,10 +74,10 @@ class ChimeServiceProvider satisfies ChimeServices
 		"Interface represented service." ClassOrInterface<Provider> providerType,
 		"Map to collect providers. `key` is given with [[Extension.type]]." HashMap<String, Provider> map
 	) given Provider satisfies Extension {
-		value services = m.findServiceProviders<Provider>( providerType );
-		for ( serv in services ) {
-			if ( !map.contains( serv.type ) ) {
-				map.put( serv.type, serv );
+		value services = m.findServiceProviders<Provider>(providerType);
+		for (serv in services) {
+			if (!map.contains(serv.type)) {
+				map.put(serv.type, serv);
 			}
 			else {
 				// TODO: log the extension hasn't been added
@@ -87,13 +93,12 @@ class ChimeServiceProvider satisfies ChimeServices
 			given Provider satisfies Extension
 	{
 		HashMap<String, Provider> providers = HashMap<String, Provider>();
-		value thisModule = `module`;
-		collectFromModule( thisModule, providerType, providers );
-		for ( moduleName in moduleNames ) {
-			if ( exists splitName = moduleNameAndVersion( moduleName ),
-				exists m = modules.find( splitName[0], splitName[1] )
+		collectFromModule(`module`, providerType, providers);
+		for (moduleName in moduleNames) {
+			if (exists splitName = moduleNameAndVersion(moduleName),
+				exists m = modules.find(splitName[0], splitName[1])
 			) {
-				collectFromModule( m, providerType, providers );
+				collectFromModule(m, providerType, providers);
 			}
 			else {
 				// TODO: log the module hasn't been found
@@ -131,25 +136,25 @@ class ChimeServiceProvider satisfies ChimeServices
 			given Provider satisfies Extension
 	{
 		Integer total = uninitialized.size;
-		if ( total > 0 ) {
+		if (total > 0) {
 			variable Integer initialized = 0;
 			Future<Anything> ret = future.future<Anything>();
 		
 			value added = (Extension|Throwable provider) {
-				if ( is Provider provider ) {
-			  		toAddProviders.put( provider.type, provider );
+				if (is Provider provider) {
+			  		toAddProviders.put(provider.type, provider);
 				}
 				else {
 					// TODO: log the extension hasn't been initialized
 				}
 				initialized ++;
-				if ( initialized >= total ) {
+				if (initialized >= total) {
 					ret.complete();
 				}
 			};
 		
-			for ( provider in uninitialized ) {
-				provider.initialize( vertx, config, added );
+			for (provider in uninitialized) {
+				provider.initialize(vertx, config, added);
 			}
 			return ret;
 		}
@@ -163,34 +168,34 @@ class ChimeServiceProvider satisfies ChimeServices
 		"Configuration the _Chime_ is started with." JsonObject config,
 		"Completion handler." Anything(Throwable|CompositeFuture) complete
 	) {
-		{String*} services = if ( is JsonArray servicesArray = config.get( Chime.configuration.services ) )
+		{String*} services = if (is JsonArray servicesArray = config.get(Chime.configuration.services))
 			then servicesArray.narrow<String>() else {};
 		value c = compositeFuture.any (
-			initializeExtensions( config, collectServices( services, `TimeRowFactory` ), timeRowProviders ),
-			initializeExtensions( config, collectServices( services, `TimeZoneFactory` ), timeZoneProviders ),
-			initializeExtensions( config, collectServices( services, `MessageSourceFactory` ), messageSourceProviders )
+			initializeExtensions(config, collectServices(services, `TimeRowFactory`), timeRowProviders),
+			initializeExtensions(config, collectServices(services, `TimeZoneFactory`), timeZoneProviders),
+			initializeExtensions(config, collectServices(services, `MessageSourceFactory`), messageSourceProviders)
 		);
-		c.setHandler( complete );
+		c.setHandler(complete);
 	}
 
-	JsonObject providerInfo( {Extension*} providers )
+	JsonObject providerInfo({Extension*} providers)
 		=> JsonObject {
-			for ( item in providers ) item.type -> classDeclaration( item ).qualifiedName
+			for (item in providers) item.type -> classDeclaration(item).qualifiedName
 		};
 	
 	"Returns info on the extensions."
 	shared JsonObject extensionsInfo()
 		=> JsonObject {
-			Chime.extension.timers -> providerInfo( timeRowProviders.items ),
-			Chime.extension.timeZones -> providerInfo( timeZoneProviders.items ),
-			Chime.extension.messageSources -> providerInfo( messageSourceProviders.items )
+			Chime.extension.timers -> providerInfo(timeRowProviders.items),
+			Chime.extension.timeZones -> providerInfo(timeZoneProviders.items),
+			Chime.extension.messageSources -> providerInfo(messageSourceProviders.items)
 		};
 	
 	
-	shared actual TimeRow|<Integer->String> createTimeRow( JsonObject description ) {
-		if ( is String type = description[Chime.key.type] ) {
-			if ( exists service = timeRowProviders[type] ) {
-				return service.create( this, description );
+	shared actual TimeRow|<Integer->String> createTimeRow(JsonObject description) {
+		if (is String type = description[Chime.key.type]) {
+			if (exists service = timeRowProviders[type]) {
+				return service.create(this, description);
 			}
 			else {
 				return Chime.errors.codeUnsupportedTimerType->Chime.errors.unsupportedTimerType;
@@ -201,18 +206,18 @@ class ChimeServiceProvider satisfies ChimeServices
 		}		
 	}
 		
-	shared actual TimeZone|<Integer->String> createTimeZone( String providerType, String timeZone ) {
-		if ( exists service = timeZoneProviders[providerType] ) {
-			return service.create( this, timeZone );
+	shared actual TimeZone|<Integer->String> createTimeZone(String providerType, String timeZone) {
+		if (exists service = timeZoneProviders[providerType]) {
+			return service.create(this, timeZone);
 		}
 		else {
 			return Chime.errors.codeUnsupportedTimeZoneProviderType->Chime.errors.unsupportedTimeZoneProviderType;
 		}
 	}
 	
-	shared actual MessageSource|<Integer->String> createMessageSource( String providerType, JsonObject? config ) {
-		if ( exists service = messageSourceProviders[providerType] ) {
-			return service.create( this, config );
+	shared actual MessageSource|<Integer->String> createMessageSource(String providerType, JsonObject? config) {
+		if (exists service = messageSourceProviders[providerType]) {
+			return service.create(this, config);
 		}
 		else {
 			return Chime.errors.codeUnsupportedMessageSourceProviderType->Chime.errors.unsupportedMessageSourceProviderType;

@@ -1,10 +1,14 @@
 import ceylon.json {
 	JsonObject
 }
+import herd.schedule.chime.service {
+	Extension,
+	ChimeServices
+}
 
 
 "Creates message source."
-since( "0.3.0" ) by( "Lis" )
+since("0.3.0") by("Lis")
 shared interface MessageSourceFactory satisfies Extension
 {
 	"Creates new message source."

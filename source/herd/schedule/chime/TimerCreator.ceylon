@@ -8,10 +8,16 @@ import ceylon.time {
 	DateTime
 }
 import herd.schedule.chime.service {
-	ChimeServices,
+	ChimeServices
+}
+import herd.schedule.chime.service.timer {
 	TimeRowFactory,
-	TimeRow,
-	TimeZone,
+	TimeRow
+}
+import herd.schedule.chime.service.timezone {
+	TimeZone
+}
+import herd.schedule.chime.service.message {
 	MessageSource
 }
 import herd.schedule.chime.cron {
