@@ -12,8 +12,8 @@ since("0.3.0") by("Lis")
 shared interface MessageSourceFactory satisfies Extension
 {
 	"Creates new message source."
-	shared formal MessageSource create (
+	shared formal MessageSource|<Integer->String> create (
 		"Provides Chime services." ChimeServices services,
-		"Message source configuration came with scheduler or timer create request." JsonObject? config
+		"Message source configuration came with scheduler or timer create request." JsonObject config
 	);
 }

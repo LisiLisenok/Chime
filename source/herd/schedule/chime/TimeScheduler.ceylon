@@ -246,16 +246,13 @@ class TimeScheduler (
 	}
 	
 	"Sends or publishes timer fire event in standard Chime format."
-	void sendTimerFireEvent(TimerContainer timer, JsonObject event, Map<String,String>? headers) {
-		DeliveryOptions? options = if (exists opt = timer.options) then if (exists headers) 
-			then DeliveryOptions(opt.codecName, map((opt.headers else {}).chain(headers)), opt.sendTimeout)
-			else opt else if (exists headers) then DeliveryOptions( null, headers) else null;
+	void sendTimerFireEvent(TimerContainer timer, JsonObject event) {
 		if (timer.publish) {
-			if (exists options) { eventBus.publish(timer.name, event, options); }
+			if (exists options = timer.options) { eventBus.publish(timer.name, event, options); }
 			else { eventBus.publish(timer.name, event); }
 		}
 		else {
-			if (exists options) { eventBus.send(timer.name, event, options); }
+			if (exists options = timer.options) { eventBus.send(timer.name, event, options); }
 			else { eventBus.send(timer.name, event); }
 		}
 	}

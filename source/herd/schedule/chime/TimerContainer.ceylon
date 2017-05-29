@@ -113,13 +113,12 @@ class TimerContainer (
 	}
 	
 	"Creates timer fire event for the next fire date time and using extracted message."
-	shared void timerFireEvent(Anything(TimerContainer, JsonObject, Map<String,String>?) handler) {
+	shared void timerFireEvent(Anything(TimerContainer, JsonObject) handler) {
 		if (state == State.running, exists at = nextRemoteFireTime) {
 			TimerFire event = TimerFire(name, count, timeZoneID, at, message);
 			messageSource.extract (
 				event,
-				(ObjectValue? toSend, Map<String,String>? headers)
-						=> handler(this, event.toJsonWithMessage(toSend), headers)
+				(ObjectValue? toSend) => handler(this, event.toJsonWithMessage(toSend))
 			);
 		}
 	}

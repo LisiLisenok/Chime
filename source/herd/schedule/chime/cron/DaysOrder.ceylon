@@ -45,7 +45,7 @@ since("0.1.0") by("Lis")
 class DayOrderWeek("Set of accepted days of week, if empty all days are rejected." shared Set<DayOfWeek> daysOfWeek)
 		satisfies DayOrder
 {
-	shared actual Boolean falls(Date date) =>  daysOfWeek.contains(date.dayOfWeek);
+	shared actual Boolean falls(Date date) => daysOfWeek.contains(date.dayOfWeek);
 }
 
 "Checks if date is nth day of week."

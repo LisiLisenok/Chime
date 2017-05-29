@@ -215,7 +215,7 @@ class ChimeServiceProvider satisfies ChimeServices
 		}
 	}
 	
-	shared actual MessageSource|<Integer->String> createMessageSource(String providerType, JsonObject? config) {
+	shared actual MessageSource|<Integer->String> createMessageSource(String providerType, JsonObject config) {
 		if (exists service = messageSourceProviders[providerType]) {
 			return service.create(this, config);
 		}

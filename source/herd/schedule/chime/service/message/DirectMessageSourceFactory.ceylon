@@ -20,18 +20,21 @@ import herd.schedule.chime.service {
  This is default message source factory."
 service(`interface MessageSourceFactory`)
 since("0.3.0") by("Lis")
-shared class DirectMessageSourceFactory() satisfies MessageSourceFactory
+shared class DirectMessageSourceFactory satisfies MessageSourceFactory
 {
 	
-	object directMessageSource satisfies MessageSource {
-		shared actual void extract(TimerFire event, Anything(ObjectValue?, Map<String,String>?) onMessage)
-			=> onMessage(event.message, null);
+	shared static object directMessageSource satisfies MessageSource {
+		shared actual void extract(TimerFire event, Anything(ObjectValue?) onMessage)
+			=> onMessage(event.message);
 	}
+	
+	shared new () {}
+	
 	
 	shared actual void initialize(Vertx vertx, JsonObject config, Anything(Extension|Throwable) complete)
 		=> complete( this );
 	
-	shared actual MessageSource create(ChimeServices services, JsonObject? config)
+	shared actual MessageSource|<Integer->String> create(ChimeServices services, JsonObject config)
 		=> directMessageSource;
 	
 	shared actual String type => Chime.messageSource.direct;

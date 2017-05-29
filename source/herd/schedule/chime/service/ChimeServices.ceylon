@@ -37,7 +37,7 @@ shared interface ChimeServices
 	
 	shared formal MessageSource|<Integer->String> createMessageSource (
 		"Type of the message source provider." String providerType,
-		"Message source configuration came with scheduler or timer create request." JsonObject? config
+		"Message source configuration." JsonObject config
 	);
 	
 	"Time zone local to running machine."

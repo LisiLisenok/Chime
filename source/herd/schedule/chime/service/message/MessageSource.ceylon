@@ -24,8 +24,7 @@ shared interface MessageSource
 		 [[TimerFire.message]] is taken from timer or scheduler create request.  
 		 In the sent event the message is to be replaced with one the given to `onMessage` handler."
 		TimerFire event,
-		"Handler which takes the message and message headers when ready.  
-		 Headers are to be added to a timer delivery options."
-		Anything(ObjectValue?, Map<String,String>?) onMessage
+		"Handler which takes the message."
+		Anything(ObjectValue?) onMessage
 	);
 }

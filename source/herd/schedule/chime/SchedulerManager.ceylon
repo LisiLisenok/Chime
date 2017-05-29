@@ -131,7 +131,7 @@ class SchedulerManager extends Operator
 		this.local = local;
 		this.providers = ChimeServiceProvider(vertx, address);
 		this.creator = TimerCreator(providers);
-		this.defaultMessageSource = DirectMessageSourceFactory().create(providers, null);
+		this.defaultMessageSource = DirectMessageSourceFactory.directMessageSource;
 	}
 	
 	
