@@ -7,16 +7,13 @@ import ceylon.json {
 	JsonArray,
 	ObjectValue
 }
-import io.vertx.ceylon.core.eventbus {
-	DeliveryOptions
-}
 
 
 "Wraps event bus to provide exchanging messages with previously created scheduler.  
  The object implementing interface is returned by [[connectScheduler]]."
-see( `interface Timer`, `function connectScheduler`, `function createScheduler` )
-tagged( "Proxy" )
-since( "0.2.0" ) by( "Lis" )
+see(`interface Timer`, `function connectScheduler`, `function createScheduler`)
+tagged("Proxy")
+since("0.2.0") by("Lis")
 shared interface Scheduler {
 	
 	"Name of the scheduler.  
@@ -25,22 +22,22 @@ shared interface Scheduler {
 	shared formal String name;
 
 	"Removes this scheduler."
-	shared formal void delete( "Optional reply handler. Replied with scheduler name." Anything(Throwable|String)? reply = null );
+	shared formal void delete("Optional reply handler. Replied with scheduler name." Anything(Throwable|String)? reply = null);
 	
 	"Pauses this scheduler."
-	see( `function resume` )
-	shared formal void pause( "Optional reply handler. Replied with scheduler state." Anything(Throwable|State)? reply = null );
+	see(`function resume`)
+	shared formal void pause("Optional reply handler. Replied with scheduler state." Anything(Throwable|State)? reply = null);
 	
 	"Resumes this scheduler after pausing."
-	see( `function pause` )
-	shared formal void resume( "Optional reply handler. Replied with scheduler state." Anything(Throwable|State)? reply = null );
+	see(`function pause`)
+	shared formal void resume("Optional reply handler. Replied with scheduler state." Anything(Throwable|State)? reply = null);
 	
 	"Requests scheduler info."
-	see( `function schedulerInfo` )
-	shared formal void info( "Info handler." Anything(Throwable|SchedulerInfo) info );
+	see(`function schedulerInfo`)
+	shared formal void info("Info handler." Anything(Throwable|SchedulerInfo) info);
 	
 	"Requests info on a list of timers."
-	see( `function schedulerInfo` ) since( "0.2.1" )
+	see(`function schedulerInfo`) since("0.2.1")
 	shared formal void timersInfo (
 		"Names of timers info is requested for." {String+} timers,
 		"Info handler." Anything(Throwable|TimerInfo[]) info
@@ -48,7 +45,7 @@ shared interface Scheduler {
 	
 	"Deletes a list of timers.  
 	 `handler` is called with a list of actually deleted timers or with an error if occured. "
-	see( `function delete` ) since( "0.2.1" )
+	see(`function delete`) since("0.2.1")
 	shared formal void deleteTimers (
 		"Names of timers to be deleted." {String+} timers,
 		"Optional delete handler." Anything(Throwable|{String*})? handler = null
@@ -65,8 +62,6 @@ shared interface Scheduler {
 		String? timerName = null,
 		"`True` if timer is paused at initial and `false` if running."
 		Boolean paused = false,
-		"`True` if timer has to publish event and `false` if sends."
-		Boolean publish = false,
 		"Maximum number of fires or null if unlimited."
 		Integer? maxCount = null,
 		"Timer start date."
@@ -82,13 +77,15 @@ shared interface Scheduler {
 		"Optional message source type, default is \"direct\" which attaches `message` as is."
 		String? messageSource = null,
 		"Optional configuration passed to message source factory."
-		ObjectValue? messageSourceConfig = null,
-		"Delivery options the timer fire event has to be sent with."
-		DeliveryOptions? options = null
+		JsonObject? messageSourceOptions = null,
+		"Event producer provider."
+		String? eventProducer = null,
+		"Optional configuration passed to event producer factory."
+		JsonObject? eventProducerOptions = null
 	) => createTimer ( 
-			handler, JsonObject { Chime.key.type -> Chime.type.interval, Chime.key.delay -> delay },
-			timerName, paused, publish, maxCount, startDate, endDate, timeZone, timeZoneProvider,
-			message, messageSource, messageSourceConfig, options
+			handler, JsonObject {Chime.key.type -> Chime.type.interval, Chime.key.delay -> delay},
+			timerName, paused, maxCount, startDate, endDate, timeZone, timeZoneProvider,
+			message, messageSource, messageSourceOptions, eventProducer, eventProducerOptions
 		);
 	
 	"Creates a cron timer."
@@ -106,8 +103,6 @@ shared interface Scheduler {
 		String? timerName = null,
 		"`True` if timer is paused at initial and `false` if running."
 		Boolean paused = false,
-		"`True` if timer has to publish event and `false` if sends."
-		Boolean publish = false,
 		"Maximum number of fires or null if unlimited."
 		Integer? maxCount = null,
 		"Timer start date."
@@ -123,9 +118,11 @@ shared interface Scheduler {
 		"Optional message source type, default is \"direct\" which attaches `message` as is."
 		String? messageSource = null,
 		"Optional configuration passed to message source factory."
-		ObjectValue? messageSourceConfig = null,
-		"Delivery options the timer fire event has to be sent with."
-		DeliveryOptions? options = null
+		JsonObject? messageSourceOptions = null,
+		"Event producer provider."
+		String? eventProducer = null,
+		"Optional configuration passed to event producer factory."
+		JsonObject? eventProducerOptions = null
 	) {
 		JsonObject descr = JsonObject {
 			Chime.key.type -> Chime.type.cron,
@@ -135,15 +132,16 @@ shared interface Scheduler {
 			Chime.date.daysOfMonth -> daysOfMonth,
 			Chime.date.months -> months
 		};
-		if ( exists d = daysOfWeek, !d.empty ) {
-			descr.put( Chime.date.daysOfWeek, d );
+		if (exists d = daysOfWeek, !d.empty) {
+			descr.put(Chime.date.daysOfWeek, d);
 		}
-		if ( exists d = years, !d.empty ) {
-			descr.put( Chime.date.years, d );
+		if (exists d = years, !d.empty) {
+			descr.put(Chime.date.years, d);
 		}
 		createTimer ( 
-			handler, descr, timerName, paused, publish, maxCount, startDate, endDate, timeZone,
-			timeZoneProvider, message, messageSource, messageSourceConfig, options
+			handler, descr, timerName, paused, maxCount, startDate, endDate, timeZone,
+			timeZoneProvider, message, messageSource, messageSourceOptions,
+			eventProducer, eventProducerOptions
 		);
 	}
 	
@@ -159,8 +157,6 @@ shared interface Scheduler {
 		String? timerName = null,
 		"`True` if timer is paused at initial and `false` if running."
 		Boolean paused = false,
-		"`True` if timer has to publish event and `false` if sends."
-		Boolean publish = false,
 		"Maximum number of fires or null if unlimited."
 		Integer? maxCount = null,
 		"Timer start date."
@@ -176,14 +172,16 @@ shared interface Scheduler {
 		"Optional message source type, default is \"direct\" which attaches `message` as is."
 		String? messageSource = null,
 		"Optional configuration passed to message source factory."
-		ObjectValue? messageSourceConfig = null,
-		"Delivery options the timer fire event has to be sent with."
-		DeliveryOptions? options = null
+		JsonObject? messageSourceOptions = null,
+		"Event producer provider."
+		String? eventProducer = null,
+		"Optional configuration passed to event producer factory."
+		JsonObject? eventProducerOptions = null
 	) =>
 		createTimer ( 
-			handler, JsonObject { Chime.key.type -> Chime.type.union, Chime.key.timers -> JsonArray( timers ) },
-			timerName, paused, publish, maxCount, startDate, endDate, timeZone, timeZoneProvider,
-			message, messageSource, messageSourceConfig, options
+			handler, JsonObject {Chime.key.type -> Chime.type.union, Chime.key.timers -> JsonArray(timers)},
+			timerName, paused, maxCount, startDate, endDate, timeZone, timeZoneProvider,
+			message, messageSource, messageSourceOptions, eventProducer, eventProducerOptions
 		);
 
 	
@@ -197,8 +195,6 @@ shared interface Scheduler {
 		String? timerName = null,
 		"`True` if timer is paused at initial and `false` if running."
 		Boolean paused = false,
-		"`True` if timer has to publish event and `false` if sends."
-		Boolean publish = false,
 		"Maximum number of fires or null if unlimited."
 		Integer? maxCount = null,
 		"Timer start date."
@@ -214,9 +210,11 @@ shared interface Scheduler {
 		"Optional message source type, default is scheduler or \"direct\" which attaches `message` as is."
 		String? messageSource = null,
 		"Optional configuration passed to message source factory."
-		ObjectValue? messageSourceConfig = null,
-		"Delivery options the timer fire event has to be sent with."
-		DeliveryOptions? options = null
+		JsonObject? messageSourceOptions = null,
+		"Event producer provider."
+		String? eventProducer = null,
+		"Optional configuration passed to event producer factory."
+		JsonObject? eventProducerOptions = null
 	);
 	
 }

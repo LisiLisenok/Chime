@@ -4,14 +4,14 @@ import ceylon.json {
 
 
 "Info on the scheduler."
-see( `interface Scheduler`, `class TimerInfo`, `function schedulerInfo` )
-tagged( "Info" )
-since( "0.2.0" ) by( "Lis" )
+see(`interface Scheduler`, `class TimerInfo`, `function schedulerInfo`)
+tagged("Info")
+since("0.2.0") by("Lis")
 shared final class SchedulerInfo {
 	
 	"Scheduler name." shared String name;
 	"Scheduler state at the request moment." shared State state;
-	"Default time zone the scheduler." shared String timeZone;
+	"Default time zone." shared String timeZone;
 	"List of the timers. Actual at the request moment." shared TimerInfo[] timers;
 	
 	"Instantiates `SchedulerInfo` with the given parameters."
@@ -28,14 +28,14 @@ shared final class SchedulerInfo {
 	}
 	
 	"Instantiates `SchedulerInfo` from JSON description as send by _Chime_."
-	shared new fromJSON( "Scheduler info received from _Chime_." JsonObject schedulerInfo ) {
-		this.name = schedulerInfo.getString( Chime.key.name );
+	shared new fromJSON("Scheduler info received from _Chime_." JsonObject schedulerInfo) {
+		this.name = schedulerInfo.getString(Chime.key.name);
 		"Scheduler info replied from _Chime_ has to contain state field."
-		assert( exists state = stateByName( schedulerInfo.getString( Chime.key.state ) ) );
+		assert( exists state = stateByName(schedulerInfo.getString(Chime.key.state)));
 		this.state = state;
-		this.timeZone = schedulerInfo.getString( Chime.key.timeZone );
-		if ( exists arr = schedulerInfo.getArrayOrNull( Chime.key.timers ) ) {
-			timers = arr.narrow<JsonObject>().map( TimerInfo.fromJSON ).sequence();
+		this.timeZone = schedulerInfo.getString(Chime.key.timeZone);
+		if (exists arr = schedulerInfo.getArrayOrNull(Chime.key.timers)) {
+			timers = arr.narrow<JsonObject>().map(TimerInfo.fromJSON).sequence();
 		}
 		else {
 			timers = [];

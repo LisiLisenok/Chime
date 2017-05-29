@@ -15,6 +15,12 @@ import herd.schedule.chime.service.timezone {
 import herd.schedule.chime.service.message {
 	MessageSource
 }
+import herd.schedule.chime.service.producer {
+	EventProducer
+}
+import herd.schedule.chime {
+	Chime
+}
 
 
 "Provides Chime services:  
@@ -26,19 +32,39 @@ see(`interface TimeRowFactory`)
 since("0.3.0") by("Lis")
 shared interface ChimeServices
 {
+	
+	shared formal Service|<Integer->String> createService<Service> (
+		"Type of the service provider." String providerType,
+		"Options passed to service provider." JsonObject options
+	);
+	
 	"Creates time row by timer description.  See about description in [[module herd.schedule.chime]]."
-	shared formal TimeRow|<Integer->String> createTimeRow("Timer description." JsonObject description);
+	shared default TimeRow|<Integer->String> createTimeRow("Timer description." JsonObject description) {
+		if (is String type = description[Chime.key.type]) {
+			return createService<TimeRow>(type, description);
+		}
+		else {
+			return Chime.errors.codeTimerTypeHasToBeSpecified->Chime.errors.timerTypeHasToBeSpecified;
+		}		
+	}
 	
 	"Creates time zone with given provider and for the given time zone name."
-	shared formal TimeZone|<Integer->String> createTimeZone (
+	shared default TimeZone|<Integer->String> createTimeZone (
 		"Type of the time zone provider." String providerType,
-		"Time zone name." String timeZone
-	);
+		"Time zone options." JsonObject options
+	) => createService<TimeZone>(providerType, options);
 	
-	shared formal MessageSource|<Integer->String> createMessageSource (
+	"Creates new message source."
+	shared default MessageSource|<Integer->String> createMessageSource (
 		"Type of the message source provider." String providerType,
-		"Message source configuration." JsonObject config
-	);
+		"Message source options." JsonObject options
+	) => createService<MessageSource>(providerType, options);
+	
+	"Creates new event producer."
+	shared default EventProducer|<Integer->String> createEventProducer (
+		"Type of the event producer provider." String providerType,
+		"Event producer options." JsonObject options
+	) => createService<EventProducer>(providerType, options);
 	
 	"Time zone local to running machine."
 	shared formal TimeZone localTimeZone;

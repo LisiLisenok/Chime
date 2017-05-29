@@ -4,8 +4,7 @@ import io.vertx.ceylon.core {
 }
 import io.vertx.ceylon.core.eventbus {
 
-	Message,
-	DeliveryOptions
+	Message
 }
 import ceylon.json {
 
@@ -33,6 +32,9 @@ import herd.schedule.chime.service.timezone {
 }
 import herd.schedule.chime.service.message {
 	MessageSource
+}
+import herd.schedule.chime.service.producer {
+	EventProducer
 }
 
 
@@ -138,8 +140,8 @@ class TimeScheduler (
 	"Tolerance to compare fire time and current time in miliseconds." Integer tolerance,
 	"Default time zone if not specified at timer level." TimeZone defaultTimeZone,
 	"Default message source used if no one specified at timer." MessageSource defaultMessageSource,
-	"Default message delivery options applied to timer if no one given at timer create request."
-	DeliveryOptions? defaultOptions
+	"Default event producer applied if no one given at timer create request."
+	EventProducer defaultProducer
 )
 		extends Operator(name, vertx.eventBus())
 {
@@ -230,7 +232,7 @@ class TimeScheduler (
 				exists localDate = timer.localFireTime,
 				localDate < current
 			) {
-				timer.timerFireEvent(sendTimerFireEvent);
+				timer.timerFireEvent();
 				timer.shiftTime();
 			}
 		}
@@ -238,45 +240,7 @@ class TimeScheduler (
 	
 	"Removes completed timers and pusblishes complete event."
 	void removeCompletedTimers() {
-		value timersToRemove = [for (timer in timers.items) if (timer.state == State.completed) timer];
-		for (item in timersToRemove) {
-			timers.remove(item.name);
-			publishCompleteEvent(item);
-		}
-	}
-	
-	"Sends or publishes timer fire event in standard Chime format."
-	void sendTimerFireEvent(TimerContainer timer, JsonObject event) {
-		if (timer.publish) {
-			if (exists options = timer.options) { eventBus.publish(timer.name, event, options); }
-			else { eventBus.publish(timer.name, event); }
-		}
-		else {
-			if (exists options = timer.options) { eventBus.send(timer.name, event, options); }
-			else { eventBus.send(timer.name, event); }
-		}
-	}
-	
-	"Publishes timer complete event in standard Chime format.
-	 
-	 message format:  
-	 {  
-	 	\"name\": timer name, String   
-	 	\"event\": \"complete\"
-	 	\"count\": total number of fire times  
-	 }
-	 
-	 > Completed message is always published.
-	 "
-	void publishCompleteEvent(TimerContainer timer) {
-		eventBus.publish (
-			timer.name,
-			JsonObject {
-				Chime.key.event -> Chime.event.complete,
-				Chime.key.name -> timer.name,
-				Chime.key.count -> timer.count
-			}
-		);
+		timers.removeAll([for (timer in timers.items) if (timer.state == State.completed) timer.name]);
 	}
 
 
@@ -334,9 +298,6 @@ class TimeScheduler (
 				timers.put(timer.name, timer);
 				buildVertxTimer();
 			}
-			else {
-				publishCompleteEvent(timer);
-			}
 		}
 		else if (state == State.paused) {
 			timers.put(timer.name, timer);
@@ -381,7 +342,7 @@ class TimeScheduler (
 				return Chime.errors.codeTimerAlreadyExists -> Chime.errors.timerAlreadyExists;
 			}
 			else {
-				value timer = factory.createTimer(timerName, request, defaultTimeZone, defaultMessageSource, defaultOptions);
+				value timer = factory.createTimer(timerName, request, defaultTimeZone, defaultMessageSource, defaultProducer);
 				if (is TimerContainer timer) {
 					addTimer(timer, extractState(request) else State.running);
 					// timer successfully added
@@ -419,9 +380,7 @@ class TimeScheduler (
 	"Deletes existing timer."
 	shared TimerContainer? deleteTimer(String name) {
 		if (exists t = timers.remove(timerFullName(name))) {
-			// delete timer
-			t.complete(); // mark timer as complete
-			publishCompleteEvent(t); // send timer complete message
+			t.complete();
 			return t;
 		}
 		else {
@@ -451,9 +410,7 @@ class TimeScheduler (
 			JsonArray ret = JsonArray{};
 			for (item in names) {
 				if (exists t = timers.remove(timerFullName(item))) {
-					// delete timer
-					t.complete(); // mark timer as complete
-					publishCompleteEvent(t); // send timer complete message
+					t.complete();
 					ret.add(t.name);
 				}
 			}
@@ -514,7 +471,6 @@ class TimeScheduler (
 							}
 							else {
 								timers.remove(t.name);
-								publishCompleteEvent(t);
 							}
 						}
 						msg.reply(t.stateDescription());
@@ -590,15 +546,9 @@ class TimeScheduler (
 			for (timer in timers.items) {
 				if (timer.state == State.running) {
 					timer.start(current);
-					if (timer.state == State.completed) {
-						publishCompleteEvent(timer);
-					}
 				}
 			}
-			value toRemove= [for (item in timers.items) if (item.state == State.completed) item.name];
-			if (!toRemove.empty) {
-				timers.removeAll(toRemove);
-			}
+			removeCompletedTimers();
 			buildVertxTimer();
 		}
 	}
@@ -618,7 +568,6 @@ class TimeScheduler (
 		for (timer in timers.items) {
 			if (timer.state != State.completed) {
 				timer.complete();
-				publishCompleteEvent(timer);
 			}
 		}
 		timers.clear();

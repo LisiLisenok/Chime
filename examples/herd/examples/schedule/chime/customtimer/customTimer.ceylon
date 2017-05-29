@@ -16,13 +16,10 @@ import ceylon.json {
 import herd.schedule.chime {
 	Chime
 }
-import io.vertx.ceylon.core {
-	Vertx
-}
 
 
 // Custom timer factory
-service(`interface TimeRowFactory`)
+service(`interface Extension`)
 shared class CustomIntervalTimerFactory satisfies TimeRowFactory
 {
 	shared static String timerType = "custom interval";
@@ -37,11 +34,6 @@ shared class CustomIntervalTimerFactory satisfies TimeRowFactory
 		variable DateTime currentDate = dateTime(0, 1, 1);
 		shared actual DateTime? start(DateTime current) => currentDate = current.plusMilliseconds(intervalMilliseconds);
 		shared actual DateTime? shiftTime() => currentDate = currentDate.plusMilliseconds(intervalMilliseconds);
-	}
-	
-	
-	shared actual void initialize( Vertx vertx, JsonObject config, Anything(Extension|Throwable) complete ) {
-		complete( this );
 	}
 	
 	shared actual TimeRow|<Integer->String> create(ChimeServices services, JsonObject description) {

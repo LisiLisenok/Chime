@@ -8,10 +8,11 @@ import ceylon.json {
 	JsonObject
 }
 
+
 "Chime scheduler verticle. Starts scheduling.  
  
  Static objects contain keys of the `JSON` messages and some possible values."
-since( "0.1.0" ) by( "Lis" )
+since("0.1.0") by("Lis")
 shared class Chime extends Verticle
 {
 	
@@ -57,56 +58,37 @@ shared class Chime extends Verticle
 		shared String timers = "timers";
 		"Key for the max count."
 		shared String maxCount = "max count";
-		"Key for the publish field."
-		shared String publish = "publish";
 		"Key for the start time."
 		shared String startTime = "start time";
 		"Key for the end time."
 		shared String endTime = "end time";
+		
+		"Key for the service type."
+		shared String service = "service";
+		
 		"Key for the time zone."
 		shared String timeZone = "time zone";
 		"Key for the time zone provider."
 		shared String timeZoneProvider = "time zone provider";
+		
 		"Key for the delay."
 		shared String delay = "delay";
 		"Key for the timer description type."
 		shared String type = "type";
 		"Key for the field containing timer event."
 		shared String event = "event";
+		
 		"Key for the type of message source provider."
 		shared String messageSource = "message source";
-		"Key for the configuration passed to message source provider when message source asked."
-		shared String messageSourceConfig = "message source configuration";
+		"Key for the options passed to message source provider when message source asked."
+		shared String messageSourceOptions = "message source options";
 		"Key for a message to be sent with fire event."
 		shared String message = "message";
-		"Key for a message delivery options to be sent with fire event."
-		shared String deliveryOptions = "delivery options";
-	}
-	
-	
-	"Keys for the extension info.  
-	 Extension info is returned as part of the _Chime_ info response:
-	 		\"services\" -> JsonObject {
-	 			\"timer providers\" -> JsonObject {
-	 				\"type\"->\"declaration\"
-	 			},
-	 			\"time zone providers\" -> JsonObject {
-	 				\"type\"->\"declaration\"
-	 			},
-	 			\"message source providers\" -> JsonObject {
-	 				\"type\"->\"declaration\"
-	 			}
-	 		}  
-	 "
-	shared static object extension {
-		"Key at whic extension info returned within info response."
-		shared String services => Chime.configuration.services;
-		"Key for the timer extensions info. i.e. installed [[herd.schedule.chime.service.timer::TimeRowFactory]]."
-		shared String timers = "timer providers";
-		"Key for the time zone extensions info. i.e. installed [[herd.schedule.chime.service.timezone::TimeZoneFactory]]"
-		shared String timeZones = "time zone providers";
-		"Key for the message source extensions info. i.e. installed [[herd.schedule.chime.service.message::MessageSourceFactory]]"
-		shared String messageSources = "message source providers";
+		
+		"Key for the event producer provider."
+		shared String eventProducer = "event producer";
+		"Key for the options passed to event producer provider when event producing asked."
+		shared String eventProducerOptions = "event producer options";
 	}
 	
 	
@@ -132,14 +114,34 @@ shared class Chime extends Verticle
 		shared String jvm = "jvm";
 	}
 	
+	"Message source constants."
 	shared static object messageSource {
 		"Key for the message source provider."
 		shared String key => Chime.key.messageSource;
-		"Key for the configuration passed to message source provider when message source asked."
-		shared String messageSourceConfig => Chime.key.messageSourceConfig;
+		"Key for the options passed to message source provider when message source asked."
+		shared String messageSourceOptions => Chime.key.messageSourceOptions;
 		"Direct source - returns message given in timer create request.  
+		 See [[herd.schedule.chime.service.message::DirectMessageSourceFactory]].  
 		 This is default provider."
-		shared String direct => "direct";
+		shared String direct = "direct";
+	}
+	
+	"Event producer constants."
+	shared static object eventProducer {
+		"Key for the event producer provider."
+		shared String key => Chime.key.eventProducer;
+		"Key for the options passed to event producer provider when event producing asked."
+		shared String eventProducerOptions => Chime.key.eventProducerOptions;
+		"EventBus event producer.  
+		 See [[herd.schedule.chime.service.producer::EBProducerFactory]].  
+		 This is default provider."
+		shared String eventBus = "event bus";
+		"Key for a message delivery options to be sent with fire event."
+		shared String deliveryOptions = "delivery options";
+		"Key for the publish field.  
+		 Which is `true` if event has to be published and `false` if it has to be send.  
+		 Default is `false`."
+		shared String publish = "publish";
 	}
 		
 	"Event constants."
@@ -320,15 +322,10 @@ shared class Chime extends Verticle
 		"Message of 'timer description has to be in JSON' error."
 		shared String notJSONTimerDescription = "timer description has to be in JSON";
 		
-		"Code of 'unsupported time zone provider' error."
-		shared Integer codeUnsupportedTimeZoneProviderType = 23;
-		"Message of 'unsupported time zone provider' error."
-		shared String unsupportedTimeZoneProviderType = "unsupported time zone provider";
-		
-		"Code of 'unsupported message source provider' error."
-		shared Integer codeUnsupportedMessageSourceProviderType = 24;
-		"Message of 'unsupported message source provider' error."
-		shared String unsupportedMessageSourceProviderType = "unsupported message source provider";
+		"Code of 'unsupported service provider' error."
+		shared Integer codeUnsupportedServiceProviderType = 23;
+		"Message of 'unsupported service provider' error."
+		shared String unsupportedServiceProviderType = "unsupported service provider";
 		
 	}
 
@@ -337,29 +334,28 @@ shared class Chime extends Verticle
 	variable SchedulerManager? scheduler = null;
 
 
-	"Instantiates _Chime_.  
-	 > Ensure that the _Chime_ verticle is started just a once!"
+	"Instantiates _Chime_."
 	shared new() extends Verticle() {}
-	
+
 	
 	"Starts _Chime_. Called by Vert.x during deployement."
-	shared actual void startAsync( Future<Anything> startFuture ) {
+	shared actual void startAsync(Future<Anything> startFuture) {
 		// create scheduler
 		SchedulerManager sch = SchedulerManager (
 			// Chime address
-			if ( is String addr = config?.get( Chime.configuration.address ) )
+			if (is String addr = config?.get(Chime.configuration.address))
 				then addr else Chime.configuration.defaultAddress,
 			// tolerance to compare times
-			if ( is Integer tol = config?.get( Chime.configuration.tolerance ) )
+			if (is Integer tol = config?.get(Chime.configuration.tolerance))
 				then tol else 10,
 			// true if local event bus consumer has to be used and false otherwise
-			if ( is Boolean local = config?.get( Chime.configuration.local ) )
+			if (is Boolean local = config?.get(Chime.configuration.local))
 				then local else false,
 			// vertx instance
 			vertx
 		);
 		scheduler = sch;
-		sch.initialize( config else JsonObject{}, startFuture );
+		sch.initialize(config else JsonObject{}, startFuture);
 	}
 	
 	"Stops the _Chime_ verticle."

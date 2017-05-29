@@ -98,17 +98,12 @@ To be sent to _Chime_ address.
 ```json
 {
 	"schedulers": [],
-	"services": {
-		"timer providers": {
-			"provider type, returned by 'Extension.type'": "declaration"
-		},
-		"time zone providers": {
-			"provider type, returned by 'Extension.type'": "declaration"
-		},
-		"message source providers": {
+	"services": [
+		{
+			"type": "parameter declaration",
 			"provider type, returned by 'Extension.type'": "declaration"
 		}
-	}
+	]
 }
 ```  
 Where `schedulers` array contains `JsonObject`'s of [scheduler info](#get-scheduler-info).
@@ -128,10 +123,11 @@ To be sent to _Chime_ address.
 	"name": "scheduler name",
 	"state": "String, optional, one of running, paused or completed, default is running",
 	"time zone": "String, optional, default time zone, applied to timer if no one given at timer level",
-	"time zone provider": "String, optional.",
+	"time zone provider": "String, optional, extracts default time zone",
 	"message source": "String, optional, default message source",
-	"message source configuration": "String, optional, configuration to instantiate message source",
-	"delivery options": "JsonObject, optional, default delivery options, applied if no one given at a timer create request"
+	"message source options": "JsonObject, optional, options applied to instantiate message source",
+	"event producer": "String, optional, default event producer type",
+	"event producer options": "JsonObject, optional, default options applied to event producer factory"
 }
 ```  
 
@@ -141,8 +137,6 @@ To be sent to _Chime_ address.
 
 `time zone` field is optional. Time zone applied at scheduler level is default for timers [created](#create-timer) within this scheduler. If `time zone provider` then the given provider is used to extract time zone, otherwise default "jvm" provider is used.  
 [Available time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).  
-
-`delivery options` field specifies event bus delivery options a timer fire event is to be sent with, see details in [create timer.](#create-timer). Scheduler may contain default options, which used if no one given at timer level.  
 
 ##### Response.
 ```json
@@ -363,7 +357,6 @@ or to _scheduler_ address with either full or short timer name.
 	"description": {},
 	"state": "String, one of running, paused or completed, default is running",
 	"maximum count": "Integer, maximum number of fires, default is unlimited",
-	"publish": "Boolean, if true message to be published and to be sent otherwise, default is false",
 	"start time": {
  		"seconds": "Integer",
  		"minutes": "Integer",
@@ -381,27 +374,28 @@ or to _scheduler_ address with either full or short timer name.
  		"year": "Integer"
 	},
 	"time zone": "String, default is local time zone",
-	"time zone provider": "String",
+	"time zone provider": "String, extracts time zone, default is jvm",
 	"message": "any Json value",
-	"message source": "String, default message source",
-	"message source configuration": "String, configuration to instantiate message source",
-	"delivery options": {}
+	"message source": "String, source type applied to extract message, default is given at scheduler or empty",
+	"message source options": "String, options to instantiate message source",
+	"event producer": "String, optional, event producer type",
+	"event producer options": "JsonObject, optional, options applied to event producer factory"	
 }
 ```  
 Where `operation`, `name`, and `description` are mandatory fields.  
 `description` field contains `JsonObject` with [timer descriptions](#timer-descriptions).  
 Other fields are optional, default values are:  
 * `state` = "running"  
-* `maximum count` = unlimited  
-* `publish` = false  
+* `maximum count` = unlimited    
 * `start time` = right now  
 * `end time` = never  
 * `time zone` = given at scheduler level or local  
 * `time zone provider` = used only if `time zone` is given, default is "jvm"
 * `message` = unused  
 * `message source` = given at scheduler level or unused  
-* `message source configuration` = used only if `message source` is given  
-* `delivery options` = given at scheduler level or unused  
+* `message source options` = used only if `message source` is given  
+* `event producer` = given at scheduler level or event bus  
+* `event producer options` = given at scheduler level or empty  
 
 > If name field is empty then unique timer name is generated,
   created timer is attached to default scheduler and timer full name
@@ -493,6 +487,7 @@ or to _scheduler_ address with either full or short timer name.
 	"name": "scheduler name:timer name",
 	"state": "running, paused or completed",
 	"count": "Integer, total number of fires when request is received",
+	"max count": "Integer, maximum allowed number of fires",
 	"start time": {
 		"seconds": "Integer",
 		"minutes": "Integer",
@@ -510,15 +505,13 @@ or to _scheduler_ address with either full or short timer name.
 		"year": "Integer"
 	},
 	"time zone": "String, time zone the timer operates with",
-	"delivery options": {},
 	"description": {}
 }
 ```  
 Response contains all fields set at [timer create request](#create-timer).  
 `description` field contains `JsonObject` with [timer descriptions](#timer-descriptions).  
 
-`start time`, `end time`, `message`, `message source configuration` and
-`delivery options` are optional and may not be given if ignored in timer create request.  
+`start time`, `end time` and `max count` are optional and may not be given if ignored in timer create request.  
 
 -------------
 
@@ -710,8 +703,7 @@ Where `timers` array contains `JsonObject`'s of [timer descriptions](#timer-desc
 
 ### Fire event.  
 
-Sent or published (depending on `publish` option in [timer create request](#create-timer))
-by _Chime_ to timer full name ("scheduler name:timer name") address.  
+Sent or published by _Chime_ to timer full name ("scheduler name:timer name") address.  
 
 ```json
 {  

@@ -7,10 +7,6 @@ import ceylon.time {
 
 	DateTime
 }
-
-import io.vertx.ceylon.core.eventbus {
-	DeliveryOptions
-}
 import herd.schedule.chime.service.timezone {
 	TimeZone
 }
@@ -20,6 +16,9 @@ import herd.schedule.chime.service.message {
 import herd.schedule.chime.service.timer {
 	TimeRow
 }
+import herd.schedule.chime.service.producer {
+	EventProducer
+}
 
 
 "Posses timer."
@@ -27,7 +26,6 @@ since("0.1.0") by("Lis")
 class TimerContainer (
 	"Timer full name, which is **scheduler name:timer name**." shared String name,
 	"Timer `JsonObject` description" JsonObject description,
-	"`true` if message to be published and `false` if message to be send" shared Boolean publish,
 	"Timer within this container." TimeRow timer,
 	"Time zone for the timer." TimeZone timeZone,
 	"Max count or null if not specified." Integer? maxCount,
@@ -35,7 +33,7 @@ class TimerContainer (
 	"Timer end time or null if not specified." DateTime? endTime,
 	"Source to extract message." MessageSource messageSource,
 	"Message to be attached to the timer fire event." ObjectValue? message,
-	"Delivery options the message has to be sent with." shared DeliveryOptions? options
+	"Producer used to send timer events." shared EventProducer producer
 ) {
 	
 	"Timer fire counting."
@@ -69,7 +67,6 @@ class TimerContainer (
 			Chime.key.state -> state.string,
 			Chime.key.count -> count,
 			Chime.key.description -> description,
-			Chime.key.publish -> publish,
 			Chime.key.timeZone -> timeZoneID
 		};
 		
@@ -105,23 +102,20 @@ class TimerContainer (
 			);
 		}
 		
-		if (exists m = options) {
-			descr.put(Chime.key.deliveryOptions, m.toJson());
-		}
-		
 		return descr;
 	}
 	
 	"Creates timer fire event for the next fire date time and using extracted message."
-	shared void timerFireEvent(Anything(TimerContainer, JsonObject) handler) {
+	shared void timerFireEvent() {
 		if (state == State.running, exists at = nextRemoteFireTime) {
 			TimerFire event = TimerFire(name, count, timeZoneID, at, message);
-			messageSource.extract (
-				event,
-				(ObjectValue? toSend) => handler(this, event.toJsonWithMessage(toSend))
-			);
+			messageSource.extract(event, sendTimerFireEvent(event));
 		}
 	}
+	
+	void sendTimerFireEvent(TimerFire event)(ObjectValue? message)
+		=> producer.send(TimerFire(event.timerName, event.count, event.timeZone, event.date, message));
+	
 	
 	"Starts the timer."
 	shared void start(DateTime currentLocal) {
@@ -167,6 +161,7 @@ class TimerContainer (
 	shared void complete() {
 		nextRemoteFireTime = null;
 		state = State.completed;
+		producer.send(TimerCompleted(name, count));
 	}
 	
 	"Shifts timer to the next time."

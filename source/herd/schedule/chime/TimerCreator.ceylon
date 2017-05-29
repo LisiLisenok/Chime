@@ -24,16 +24,14 @@ import herd.schedule.chime.cron {
 
 	calendar
 }
-import io.vertx.ceylon.core.eventbus {
-
-	deliveryOptions,
-	DeliveryOptions
+import herd.schedule.chime.service.producer {
+	EventProducer
 }
 
 
 "Uses `JSON` description to creates [[TimerContainer]] with timer [[TimeRow]] created by timer factory."
-see( `interface TimeRowFactory`, `interface TimeRow`, `class TimerContainer` )
-since( "0.1.0" ) by( "Lis" )
+see(`interface TimeRowFactory`, `interface TimeRow`, `class TimerContainer`)
+since("0.1.0") by("Lis")
 class TimerCreator (
 	"Services Chime provides." ChimeServices services
 ) {
@@ -44,14 +42,14 @@ class TimerCreator (
 			"Request with timer description." JsonObject request,
 			"Default time zone applied if no time zone name is given." TimeZone defaultTimeZone,
 			"Default message source used if no one specified at timer." MessageSource defaultMessageSource,
-			"Default message delivery options applied to timer if no one given at timer create request."
-			DeliveryOptions? defaultOptions
+			"Default event producer applied to timer if no one given at timer create request."
+			EventProducer defaultProducer
 		) {
-		if ( is JsonObject description = request[Chime.key.description] ) {
-			value timer = services.createTimeRow( description );
-			if ( is TimeRow timer ) {
+		if (is JsonObject description = request[Chime.key.description]) {
+			value timer = services.createTimeRow(description);
+			if (is TimeRow timer) {
 				return createTimerContainer (
-					request, description, name, timer, defaultTimeZone, defaultMessageSource, defaultOptions
+					request, description, name, timer, defaultTimeZone, defaultMessageSource, defaultProducer
 				);
 			}
 			else {
@@ -73,13 +71,13 @@ class TimerCreator (
 		"Timer." TimeRow timer,
 		"Default time zone applied if no time zone name is given." TimeZone defaultTimeZone,
 		"Default message source used if no one specified at timer." MessageSource defaultMessageSource,
-		"Default message delivery options applied to timer if no one given at timer create request."
-		DeliveryOptions? defaultOptions
+		"Default event producer applied to timer if no one given at timer create request."
+		EventProducer defaultProducer
 	) {
 		// extract start date if exists
 		DateTime? startDate;
-		if ( is JsonObject startTime = request[Chime.key.startTime] ) {
-			if ( exists st = extractDate( startTime ) ) {
+		if (is JsonObject startTime = request[Chime.key.startTime]) {
+			if (exists st = extractDate(startTime)) {
 				startDate = st;
 			}
 			else {
@@ -92,8 +90,8 @@ class TimerCreator (
 		
 		// extract end date if exists
 		DateTime? endDate;
-		if ( is JsonObject endTime = request[Chime.key.endTime] ) {
-			if ( exists st = extractDate( endTime ) ) {
+		if (is JsonObject endTime = request[Chime.key.endTime]) {
+			if (exists st = extractDate(endTime)) {
 				endDate = st;
 			}
 			else {
@@ -105,20 +103,21 @@ class TimerCreator (
 		}
 		
 		// end date has to be after start!
-		if ( exists st = startDate, exists et = endDate ) {
-			if ( et <= st ) {
+		if (exists st = startDate, exists et = endDate) {
+			if (et <= st) {
 				return Chime.errors.codeEndDateToBeAfterStartDate->Chime.errors.endDateToBeAfterStartDate;
 			}
 		}
 		
-		value exactServices = servicesFromRequest( request, services, defaultTimeZone, defaultMessageSource );
-		if ( is [TimeZone, MessageSource] exactServices ) {
+		value exactServices = servicesFromRequest (
+			request, services, defaultTimeZone, defaultMessageSource, defaultProducer
+		);
+		if (is ExtractedServices exactServices) {
 			return TimerContainer (
-				name, description, extractPublish( request ), timer,
-				exactServices[0], extractMaxCount( request ), startDate, endDate,
-				exactServices[1], request.get( Chime.key.message ),
-				if ( exists options = request.getObjectOrNull( Chime.key.deliveryOptions ) )
-				then deliveryOptions.fromJson( options ) else defaultOptions
+				name, description, timer,
+				exactServices.timeZone, extractMaxCount(request), startDate, endDate,
+				exactServices.messageSource, request.get(Chime.key.message),
+				exactServices.eventProducer
 			);
 		}
 		else {
@@ -127,17 +126,17 @@ class TimerCreator (
 	}
 	
 	"Extracts month from field with key key. The field can be either integer or string (like JAN, FEB etc, see [[calendar]])."
-	Integer? extractMonth( JsonObject description, String key ) {
-		if ( is Integer val = description[key] ) {
-			if ( val > 0 && val < 13 ) {
+	Integer? extractMonth(JsonObject description, String key) {
+		if (is Integer val = description[key]) {
+			if (val > 0 && val < 13) {
 				return val;
 			}
 			else {
 				return null;
 			}
 		}
-		else if ( is String val = description[key] ) {
-			if ( exists ret = calendar.monthFullMap[val] ) {
+		else if (is String val = description[key]) {
+			if (exists ret = calendar.monthFullMap[val]) {
 				return ret;
 			}
 			return calendar.monthShortMap[val];
@@ -148,40 +147,28 @@ class TimerCreator (
 	}
 	
 	"Extracts date from `JSON`, key returns `JSON` object with date."
-	DateTime? extractDate( JsonObject date ) {
-		if ( is Integer seconds = date[Chime.date.seconds],
+	DateTime? extractDate(JsonObject date) {
+		if (is Integer seconds = date[Chime.date.seconds],
 			is Integer minutes = date[Chime.date.minutes],
 			is Integer hours = date[Chime.date.hours],
 			is Integer dayOfMonth = date[Chime.date.dayOfMonth],
 			is Integer year = date[Chime.date.year],
-			exists month = extractMonth( date, Chime.date.month )
+			exists month = extractMonth(date, Chime.date.month)
 		) {
 			try {
-				return dateTime( year, month, dayOfMonth, hours, minutes, seconds );
+				return dateTime(year, month, dayOfMonth, hours, minutes, seconds);
 			}
-			catch ( Throwable err ) {
+			catch (Throwable err) {
 				return null;
 			}
 		}
 		return null;
 	}
 	
-	"Extracts publish field from description.  
-	 `publish` or `send` are nonmandatory field.  
-	 If no field extracted - default to be send." 
-	Boolean extractPublish( JsonObject description ) {
-		if ( is Boolean b = description[Chime.key.publish] ) {
-			return b;
-		}
-		else {
-			return false;
-		}
-	}
-	
 	"`maxCount` - nonmandatory field, if not specified - infinitely."
-	Integer? extractMaxCount( JsonObject description ) {
-		if ( is Integer c = description[Chime.key.maxCount] ) {
-			if ( c > 0 ) {
+	Integer? extractMaxCount(JsonObject description) {
+		if (is Integer c = description[Chime.key.maxCount]) {
+			if (c > 0) {
 				return c;
 			}
 			else {

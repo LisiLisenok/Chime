@@ -137,14 +137,21 @@
  			\"name\" -> String|JsonArray,
  			// state, mandatory only if operation = 'state' otherwise optional
  			\"state\" -> String,
+ 			
+ 			// default time zone provider which applied to extract time zone, optional
+ 			\"time zone provider\" -> String,
  			// default time zone ID, overriden by timer time zone, optional
  			\"time zone\" -> String,
+ 			
  			// default message source type, optional
  			\"message source\" -> String,
  			// message source configuration passed to message source factory, optional
- 			\"message source configuration\" -> JsonValue,
- 			// default delivery options, applied if no one given at a timer create request, optional  
- 			\"delivery options\" -> JsonObject
+ 			\"message source configuration\" -> JsonObject,
+ 			
+ 			// default event producer type, optional  
+ 			\"event producer\" -> String,
+ 			// default options applied to event producer factory
+ 			\"eventProducerOptions\" -> JsonObject
  		};
  
  > _Chime_ listens event bus at **scheduler name** address with messages for the given scheduler.  
@@ -276,6 +283,9 @@
  			\"year\" -> Integer  
  		},
  
+		// time zone provider which applied to extract time zone, optional
+		// default is jvm
+		\"time zone provider\" -> String,
  		// time zone, optional, default is scheduler time zone
  		// or server local if not given at both scheduler and timer
  		\"time zone\" -> String,   
@@ -289,8 +299,12 @@
  		// message source configuration passed to message source factory, optional
  		\"message source configuration\" -> JsonValue,
 
- 		// delivery options the timer fire event is sent with, optional  
- 		\"delivery options\" -> JsonObject,  
+ 		// event producer type, optional  
+ 		// default is one given at scheduler or event bus producer
+ 		\"event producer\" -> String,
+ 		// options applied to event producer factory
+ 		// default is given at scheduler or empty options
+ 		\"eventProducerOptions\" -> JsonObject
  
  		// timer desciption, mandatoty for create operation
  		\"description\" -> JsonObject  
@@ -298,8 +312,6 @@
  
  Notes: 
  * `message` field is to be attached to [timer fire event](#timer-events).  
- * `delivery options` field specifies event bus delivery options the fire event is to be sent with.  
- * `deliveryOptions.toJSON()` provides `JsonObject` of delivery options.  
  * _Chime_ address could be specified in verticle configuration, default is \"chime\".  
  * If `create` request is sent to Chime address with full timer name and corresponding scheduler
    hasn't been created before then Chime creates both new scheduler and new timer.  
@@ -588,31 +600,8 @@
  
  ### <a name =\"error-messages\"></a> Error messages.  
  
- The error is sent using `Message.fail` with corresponding code and message, see [[Chime.errors]].  
- 
- possible errors (see [[Chime.errors]]):  
- * \"unsupported operation\"  
- * \"operation has to be specified\"  
- * \"scheduler doesn't exist\"  
- * \"scheduler name has to be specified\"  
- * \"scheduler state has to be one of - 'get', 'paused', 'running'\"  
- * \"state has to be specified\"  
- * \"timer already exists\"  
- * \"timer doesn't exist\"  
- * \"timer name has to be specified\"  
- * \"timer type has to be specified\"  
- * \"unsupported timer type\"  
- * \"incorrect start date\"  
- * \"incorrect end date\"  
- * \"end date has to be after start date\"  
- * \"unsupported time zone\"  
- * \"timer description has to be specified\"  
- * \"timer state has to be one of - 'get', 'paused', 'running'\"  
- * \"delay has to be specified\"  
- * \"delay has to be greater than zero\"  
- * \"incorrect cron timer description\"  
- * \"timers list has to be specified\"  
- * \"timer description has to be in JSON\"  
+ The error is sent using `Message.fail` with corresponding code and message.  
+ See [[Chime.errors]] for the complete list of errors.  
  
   
  ------------------------------------------  

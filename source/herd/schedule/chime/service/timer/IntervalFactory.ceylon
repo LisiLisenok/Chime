@@ -4,9 +4,6 @@ import ceylon.json {
 import herd.schedule.chime {
 	Chime
 }
-import io.vertx.ceylon.core {
-	Vertx
-}
 import herd.schedule.chime.service {
 	ChimeServices,
 	Extension
@@ -14,16 +11,12 @@ import herd.schedule.chime.service {
 
 
 "Factory to create interval timers."
-service(`interface TimeRowFactory`)
+service(`interface Extension`)
 since("0.3.0") by("Lis")
 shared class IntervalFactory() satisfies TimeRowFactory
 {
 	
 	shared actual String type => Chime.type.interval;
-	
-	shared actual void initialize(Vertx vertx, JsonObject config, Anything(Extension|Throwable) handle) {
-		handle( this );
-	}
 	
 	shared actual TimeRow|<Integer->String> create(ChimeServices services, JsonObject description) {
 		if (is Integer delay = description[Chime.key.delay]) {

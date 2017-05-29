@@ -11,7 +11,7 @@
  
  To build your own [[TimeRow]] (i.e. timer) follow the steps:  
  1. Implement [[TimeRowFactory]].  
- 2. Mark the class from 1. with `service(`\` `interface TimeRowFactory`\` `)`.  
+ 2. Mark the class from 1. with `service(`\` `interface Extension`\` `)`.  
  3. Deploy _Chime_ with configuration provided modules to serach the services:  
  		JsonObject {
  			\"services\" -> [\"module name/module version\"]

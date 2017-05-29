@@ -95,8 +95,6 @@ class Scheduler(Vertx v, String address = Chime.configuration.defaultAddress)
 			JsonObject {
 				Chime.key.operation -> Chime.operation.create,
 				Chime.key.name -> "scheduler:timer",
-				Chime.key.state -> Chime.state.running,
-				Chime.key.publish -> false,
 				Chime.key.maxCount -> 5,
 				//Chime.key.timeZone -> "Europe/Paris",
 				Chime.key.description -> JsonObject {

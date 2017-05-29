@@ -13,22 +13,6 @@ import io.vertx.ceylon.core {
 	vertx
 }
 
-void printExtensions(String type, JsonObject descr) {
-	if (exists providers = descr.getObjectOrNull(type)) {
-		print(type + " -> {");
-		variable Integer total = providers.size;
-		for ( item in providers ) {
-			if ( --total > 0 ) {
-				print("   ``item``,");											
-			}
-			else {
-				print("   ``item``");
-			}
-		}
-		print("}");
-	}
-}
-
 
 shared void run() {
 	String timerName = "scheduler:timer";
@@ -53,10 +37,10 @@ shared void run() {
 					},
 					(Throwable|Message<JsonObject?> msg) {
 						if (is Message<JsonObject?> msg, exists body = msg.body()) {
-							if ( exists services = body.getObjectOrNull(Chime.extension.services) ) {
-								printExtensions(Chime.extension.timers, services);
-								printExtensions(Chime.extension.timeZones, services);
-								printExtensions(Chime.extension.messageSources, services);
+							if (exists services = body.getArrayOrNull(Chime.configuration.services)) {
+								for (item in services) {
+									print(item);
+								}
 							}
 							else {
 								print("extensions are not given");
@@ -102,8 +86,6 @@ shared void run() {
 					JsonObject {
 						Chime.key.operation -> Chime.operation.create,
 						Chime.key.name -> timerName,
-						Chime.key.state -> Chime.state.running,
-						Chime.key.publish -> false,
 						Chime.key.maxCount -> 3,
 						Chime.key.description -> JsonObject {
 							// the same type as factory marked with

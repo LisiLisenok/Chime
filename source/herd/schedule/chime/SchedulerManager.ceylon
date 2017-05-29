@@ -1,13 +1,11 @@
 import io.vertx.ceylon.core {
 
 	Vertx,
-	CompositeFuture,
 	Future
 }
 import io.vertx.ceylon.core.eventbus {
 
-	Message,
-	deliveryOptions
+	Message
 }
 import ceylon.json {
 	
@@ -18,15 +16,15 @@ import ceylon.collection {
 
 	HashMap
 }
-import herd.schedule.chime.service.timezone {
-	TimeZone
-}
 import herd.schedule.chime.service.message {
-	MessageSource,
 	DirectMessageSourceFactory
 }
 import ceylon.time {
 	now
+}
+import herd.schedule.chime.service.producer {
+	EBProducerFactory,
+	EventProducer
 }
 
 
@@ -115,7 +113,7 @@ class SchedulerManager extends Operator
 	"Mark shows if address is not propagated across the cluster." Boolean local; 	
 	"Provides Chime services." ChimeServiceProvider providers; 
 	"Create timer with container." TimerCreator creator;
-	"Default message source used if no one specified at timer." MessageSource defaultMessageSource;
+	variable EventProducer? defaultProducerInst = null;
 	
 
 	"Instantiates new manager."
@@ -123,7 +121,7 @@ class SchedulerManager extends Operator
 		"Address Chime listens." String address,
 		"Tolerance to compare fire time and current time in miliseconds." Integer tolerance,
 		"Mark shows if address is not propagated across the cluster." Boolean local,
-		"Vetrx the scheduler is running on." Vertx vertx 
+		"Vetrx the scheduler is running on." Vertx vertx
 	)
 			extends Operator(address, vertx.eventBus())
 	{
@@ -131,7 +129,6 @@ class SchedulerManager extends Operator
 		this.local = local;
 		this.providers = ChimeServiceProvider(vertx, address);
 		this.creator = TimerCreator(providers);
-		this.defaultMessageSource = DirectMessageSourceFactory.directMessageSource;
 	}
 	
 	
@@ -142,15 +139,15 @@ class SchedulerManager extends Operator
 		"Future to indicate the _Chime_ is started." Future<Anything> startFuture
 	) => providers.initialize (
 			config,
-			(Throwable|CompositeFuture result) {
-				if (is CompositeFuture result) {
+			(Anything result) {
+				if (is Throwable result) {
+					startFuture.fail(result);
+				}
+				else {
 					connect(local);
 					instantiateFromArray(config, Chime.key.schedulers);
 					instantiateFromArray(config, Chime.key.timers);
 					startFuture.complete();
-				}
-				else {
-					startFuture.fail(result);
 				}
 			}
 		);
@@ -174,6 +171,16 @@ class SchedulerManager extends Operator
 		}
 	}
 
+	EventProducer defaultProducer() {
+		if (exists dp = defaultProducerInst) {
+			return dp;
+		}
+		else {
+			value dp = EBProducerFactory.createDefaultProducer(eventBus);
+			defaultProducerInst = dp;
+			return dp;
+		}
+	}
 	
 // operation methods
 	
@@ -215,14 +222,16 @@ class SchedulerManager extends Operator
 			}
 		}
 		else {
-			value exactServices = servicesFromRequest(request, providers, providers.localTimeZone, defaultMessageSource);
-			if (is [TimeZone, MessageSource] exactServices) {
+			value exactServices = servicesFromRequest (
+				request, providers, providers.localTimeZone,
+				DirectMessageSourceFactory.directMessageSource,
+				defaultProducer()
+			);
+			if (is ExtractedServices exactServices) {
 				// create new scheduler
 				TimeScheduler scheduler = TimeScheduler (
 					schedulerName, schedulers.remove, providers.vertx, creator,
-					tolerance, exactServices[0], exactServices[1],
-					if (exists options = request.getObjectOrNull(Chime.key.deliveryOptions))
-					then deliveryOptions.fromJson(options) else null
+					tolerance, exactServices.timeZone, exactServices.messageSource, exactServices.eventProducer
 				);
 				schedulers.put(schedulerName, scheduler);
 				scheduler.connect(local);
@@ -394,7 +403,7 @@ class SchedulerManager extends Operator
 			msg.reply (
 				JsonObject {
 					Chime.key.schedulers -> JsonArray([for (scheduler in schedulers.items) scheduler.fullInfo]),
-					Chime.extension.services -> providers.extensionsInfo()
+					Chime.configuration.services -> providers.extensionsInfo()
 				}
 			);
 		}

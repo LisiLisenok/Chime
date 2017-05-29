@@ -7,9 +7,6 @@ import ceylon.json {
 import herd.schedule.chime {
 	Chime
 }
-import io.vertx.ceylon.core {
-	Vertx
-}
 import herd.schedule.chime.service {
 	ChimeServices,
 	Extension
@@ -17,7 +14,7 @@ import herd.schedule.chime.service {
 
 
 "Factory to create cron-style timers."
-service(`interface TimeRowFactory`)
+service(`interface Extension`)
 since("0.3.0") by("Lis")
 shared class CronFactory() satisfies TimeRowFactory
 {
@@ -25,10 +22,6 @@ shared class CronFactory() satisfies TimeRowFactory
 	Integer maxYearPeriod = 100;
 	
 	shared actual String type => Chime.type.cron;
-	
-	shared actual void initialize(Vertx vertx, JsonObject config, Anything(Extension|Throwable) handle) {
-		handle( this );
-	}
 	
 	shared actual TimeRow|<Integer->String> create(ChimeServices services, JsonObject description) {	 		
 		if (is String seconds = description[Chime.date.seconds],

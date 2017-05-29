@@ -57,23 +57,23 @@ shared class SimpleTimers()
 		v.close();
 	}
 	
-	shared beforeTestRun void initialize( AsyncPrePostContext initContext ) {
+	shared beforeTestRun void initialize(AsyncPrePostContext initContext) {
 		Chime c = Chime();
 		c.deploy (
 			v, null, 
-			( String|Throwable res ) {
-				if ( is String res ) {
-					setupScheduler( initContext );
+			(String|Throwable res) {
+				if (is String res) {
+					setupScheduler(initContext);
 				}
 				else {
-					initContext.abort( res, "Chime starting" );
+					initContext.abort(res, "Chime starting");
 				}
 			}
 		); 
 		
 	}
 	
-	void setupScheduler( AsyncPrePostContext initContext ) {
+	void setupScheduler(AsyncPrePostContext initContext) {
 		eventBus.send<JsonObject> (
 			chime,
 			JsonObject {
@@ -81,12 +81,12 @@ shared class SimpleTimers()
 				Chime.key.name -> scheduler,
 				Chime.key.state -> Chime.state.running
 			},
-			( Throwable | Message<JsonObject?> msg ) {
-				if ( is Message<JsonObject?> msg ) {
+			(Throwable | Message<JsonObject?> msg) {
+				if (is Message<JsonObject?> msg) {
 					initContext.proceed();
 				}
 				else {
-					initContext.abort( msg, "Scheduler creation" );
+					initContext.abort(msg, "Scheduler creation");
 				}
 			}
 		);
@@ -94,26 +94,26 @@ shared class SimpleTimers()
 	}
 	
 	
-	Anything( Throwable | Message<JsonObject?> ) timerValidation (
+	Anything(Throwable | Message<JsonObject?>) timerValidation (
 		String timerName, Integer delay, Integer max, AsyncTestContext context
 	) {
 		variable Integer fireCount = 0;
 		variable Integer? previousTime = null;
 		variable Integer totalDelay = 0;
-		return ( Throwable | Message<JsonObject?> msg ) {
-			if ( is Message<JsonObject?> msg ) {
-				if ( exists body = msg.body() ) {
-					if ( is String event = body[Chime.key.event] ) {
-						if ( event == Chime.event.complete ) {
-							context.assertThat( fireCount, EqualTo( max ), "Total number of fires for ``timerName``" );
-							context.assertThat( totalDelay, EqualTo( delay * ( max - 1 ) ), "Total delay seconds for ``timerName``" );
+		return (Throwable | Message<JsonObject?> msg) {
+			if (is Message<JsonObject?> msg) {
+				if (exists body = msg.body()) {
+					if (is String event = body[Chime.key.event]) {
+						if (event == Chime.event.complete) {
+							context.assertThat(fireCount, EqualTo(max), "Total number of fires for ``timerName``");
+							context.assertThat(totalDelay, EqualTo(delay * (max - 1)), "Total delay seconds for ``timerName``");
 							context.complete();
 						}
-						else if ( event == Chime.event.fire ) {
+						else if (event == Chime.event.fire) {
 							fireCount ++;
-							if ( is Integer seconds = body[Chime.date.seconds] ) {
-								if ( exists prev = previousTime ) {
-									if ( seconds > prev ) {
+							if (is Integer seconds = body[Chime.date.seconds]) {
+								if (exists prev = previousTime) {
+									if (seconds > prev) {
 										totalDelay += seconds - prev; 
 									}
 									else {
@@ -124,7 +124,7 @@ shared class SimpleTimers()
 							}
 							else {
 								context.fail (
-									Exception( "Chime timer fires without timer seconds ('seconds' field)" ),
+									Exception("Chime timer fires without timer seconds ('seconds' field)"),
 									"Chime timer ``timerName`` fire"
 								);
 								context.complete();
@@ -132,7 +132,7 @@ shared class SimpleTimers()
 						}
 						else {
 							context.fail (
-								Exception( "Chime timer event has to be one of FIRE or COMPLETE" ),
+								Exception("Chime timer event has to be one of FIRE or COMPLETE"),
 								"Chime timer ``timerName`` fire"
 							);
 							context.complete();
@@ -140,7 +140,7 @@ shared class SimpleTimers()
 					}
 					else {
 						context.fail (
-							Exception( "Chime timer event without timer event specification ('event' field)" ),
+							Exception("Chime timer event without timer event specification ('event' field)"),
 							"Chime timer ``timerName`` event"
 						);
 						context.complete();
@@ -148,14 +148,14 @@ shared class SimpleTimers()
 				}
 				else {
 					context.fail (
-						Exception( "Chime timer fires with null message" ),
+						Exception("Chime timer fires with null message"),
 						"Chime timer ``timerName`` fire"
 					);
 					context.complete();
 				}
 			}
 			else {
-				context.fail( msg );
+				context.fail(msg);
 				context.complete();
 			}
 		};
@@ -173,13 +173,13 @@ shared class SimpleTimers()
 					Chime.key.delay -> 1
 				}
 			},
-			(Throwable | Message<JsonObject?> msg) {
-				if ( is Throwable msg ) {
+			(Throwable|Message<JsonObject?> msg) {
+				if (is Throwable msg) {
 					context.fail(msg, "Automatic timer ID generation");
 					context.complete();
 				}
 				else {
-					if ( exists resp = msg.body() ) {
+					if (exists resp = msg.body()) {
 						context.assertThat (
 							resp[Chime.key.name], PassType<String>(NotEmpty()), "", true
 						);
@@ -194,36 +194,34 @@ shared class SimpleTimers()
 		);		
 	}
 	
-	test shared void intervalTimer( AsyncTestContext context ) {
+	test shared void intervalTimer(AsyncTestContext context) {
 
 		Integer timerDelay = 1;
 
 		eventBus.consumer (
 			interval,
-			timerValidation( interval, timerDelay, 3, context )
+			timerValidation(interval, timerDelay, 3, context)
 		);
 		
-		eventBus.send<JsonObject>(
+		eventBus.send<JsonObject> (
 			chime,
 			JsonObject {
 				Chime.key.operation -> Chime.operation.create,
 				Chime.key.name -> interval,
-				Chime.key.state -> Chime.state.running,
-				Chime.key.publish -> false,
 				Chime.key.maxCount -> 3,
 				Chime.key.description -> JsonObject {
 					Chime.key.type -> Chime.type.interval,
 					Chime.key.delay -> timerDelay
 				}
 			},
-			( Throwable | Message<JsonObject?> msg ) {
-				if ( is Throwable msg ) {
-					context.fail( msg, "Interval timer setup" );
+			(Throwable|Message<JsonObject?> msg) {
+				if (is Throwable msg) {
+					context.fail(msg, "Interval timer setup");
 					context.complete();
 				}
 				else {
-					if ( !msg.body() exists ) {
-						context.fail( Exception( "Chime rejects to setup interval timer" ), "Interval timer setup" );
+					if (!msg.body() exists) {
+						context.fail(Exception("Chime rejects to setup interval timer"), "Interval timer setup");
 						context.complete();
 					}
 				}
@@ -232,20 +230,18 @@ shared class SimpleTimers()
 		
 	}
 	
-	test shared void cronTimer( AsyncTestContext context ) {
+	test shared void cronTimer(AsyncTestContext context) {
 		
 		eventBus.consumer (
 			cron,
-			timerValidation( cron, 1, 3, context )
+			timerValidation(cron, 1, 3, context)
 		);
 		
-		eventBus.send<JsonObject>(
+		eventBus.send<JsonObject> (
 			chime,
 			JsonObject {
 				Chime.key.operation -> Chime.operation.create,
 				Chime.key.name -> cron,
-				Chime.key.state -> Chime.state.running,
-				Chime.key.publish -> false,
 				Chime.key.maxCount -> 3,
 				Chime.key.description -> JsonObject {
 					Chime.key.type -> Chime.type.cron,
@@ -258,14 +254,14 @@ shared class SimpleTimers()
 					Chime.date.years -> "2015-2019"
 				}
 			},
-			( Throwable | Message<JsonObject?> msg ) {
-				if ( is Throwable msg ) {
-					context.fail( msg, "Cron timer setup" );
+			(Throwable|Message<JsonObject?> msg) {
+				if (is Throwable msg) {
+					context.fail(msg, "Cron timer setup");
 					context.complete();
 				}
 				else {
-					if ( !msg.body() exists ) {
-						context.fail( Exception( "Chime rejects to setup cron timer" ), "Cron timer setup" );
+					if (!msg.body() exists) {
+						context.fail(Exception("Chime rejects to setup cron timer"), "Cron timer setup");
 						context.complete();
 					}
 				}
@@ -274,20 +270,18 @@ shared class SimpleTimers()
 		
 	}
 
-	test shared void unionTimer( AsyncTestContext context ) {
+	test shared void unionTimer(AsyncTestContext context) {
 		
 		eventBus.consumer (
 			union,
-			timerValidation( union, 1, 3, context )
+			timerValidation(union, 1, 3, context)
 		);
 		
-		eventBus.send<JsonObject>(
+		eventBus.send<JsonObject> (
 			chime,
 			JsonObject {
 				Chime.key.operation -> Chime.operation.create,
 				Chime.key.name -> union,
-				Chime.key.state -> Chime.state.running,
-				Chime.key.publish -> false,
 				Chime.key.maxCount -> 3,
 				Chime.key.description -> JsonObject {
 					Chime.key.type -> Chime.type.union,
@@ -319,14 +313,14 @@ shared class SimpleTimers()
 					}
 				}
 			},
-			( Throwable | Message<JsonObject?> msg ) {
-				if ( is Throwable msg ) {
-					context.fail( msg, "Union timer setup" );
+			(Throwable|Message<JsonObject?> msg) {
+				if (is Throwable msg) {
+					context.fail(msg, "Union timer setup");
 					context.complete();
 				}
 				else {
-					if ( !msg.body() exists ) {
-						context.fail( Exception( "Chime rejects to setup union timer" ), "Union timer setup" );
+					if (!msg.body() exists) {
+						context.fail(Exception("Chime rejects to setup union timer"), "Union timer setup");
 						context.complete();
 					}
 				}

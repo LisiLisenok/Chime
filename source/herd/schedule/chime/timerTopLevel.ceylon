@@ -14,10 +14,10 @@ import io.vertx.ceylon.core.eventbus {
 
 "Creates a timer with the given description.  
  If scheduler hasn't been created yet then new scheduler is created."
-tagged( "Proxy" ) since( "0.3.0" ) by( "Lis ")
-see( `function Scheduler.createTimer`, `function Scheduler.createCronTimer`,
+tagged("Proxy") since("0.3.0") by("Lis")
+see(`function Scheduler.createTimer`, `function Scheduler.createCronTimer`,
 	`function Scheduler.createIntervalTimer`, `function Scheduler.createUnionTimer`,
-	`function createIntervalTimer`, `function createCronTimer`, `function createUnionTimer` )
+	`function createIntervalTimer`, `function createCronTimer`, `function createUnionTimer`)
 shared void createTimer (
 	"Address to call _Chime_." String chimeAddress,
 	"Event bus to send request over." EventBus eventBus,
@@ -31,8 +31,6 @@ shared void createTimer (
 	String? timerName = null,
 	"`True` if timer is paused at initial and `false` if running."
 	Boolean paused = false,
-	"`True` if timer has to publish event and `false` if sends."
-	Boolean publish = false,
 	"Maximum number of fires or null if unlimited."
 	Integer? maxCount = null,
 	"Timer start date."
@@ -49,25 +47,26 @@ shared void createTimer (
 	String? messageSource = null,
 	"Optional configuration passed to message source factory."
 	ObjectValue? messageSourceConfig = null,
-	"Delivery options the timer fire event has to be sent with."
-	DeliveryOptions? options = null,
+	"Event producer provider."
+	String? eventProducer = null,
+	"Optional configuration passed to event producer factory."
+	JsonObject? eventProducerOptions = null,
 	"Timeout to send the request with."
 	Integer? sendTimeout = null
 ) {
 	JsonObject timer = JsonObject {
-		Chime.key.operation -> Chime.operation.create,
-		Chime.key.publish -> publish
+		Chime.key.operation -> Chime.operation.create
 	};
-	if ( exists timerName ) {
-		timer.put( Chime.key.name, timerName );
+	if (exists timerName)  {
+		timer.put(Chime.key.name, timerName);
 	}
-	if ( paused ) {
-		timer.put( Chime.key.state, Chime.state.paused );
+	if (paused) {
+		timer.put(Chime.key.state, Chime.state.paused);
 	}
-	if ( exists maxCount ) {
-		timer.put( Chime.key.maxCount, maxCount );
+	if (exists maxCount) {
+		timer.put(Chime.key.maxCount, maxCount);
 	}
-	if ( exists startDate ) {
+	if (exists startDate) {
 		timer.put (
 			Chime.key.startTime,
 			JsonObject {
@@ -80,7 +79,7 @@ shared void createTimer (
 			}
 		);
 	}
-	if ( exists endDate ) {
+	if (exists endDate) {
 		timer.put (
 			Chime.key.endTime,
 			JsonObject {
@@ -93,35 +92,38 @@ shared void createTimer (
 			}
 		);
 	}
-	if ( exists timeZone ) {
-		timer.put( Chime.key.timeZone, timeZone );
+	if (exists timeZone) {
+		timer.put(Chime.key.timeZone, timeZone);
 	}
-	if ( exists timeZoneProvider ) {
-		timer.put( Chime.key.timeZoneProvider, timeZoneProvider );
+	if (exists timeZoneProvider) {
+		timer.put(Chime.key.timeZoneProvider, timeZoneProvider);
 	}
-	if ( exists message ) {
-		timer.put( Chime.key.message, message );
+	if (exists message) {
+		timer.put(Chime.key.message, message);
 	}
-	if ( exists messageSource ) {
-		timer.put( Chime.key.messageSource, messageSource );
+	if (exists messageSource) {
+		timer.put(Chime.key.messageSource, messageSource);
 	}
-	if ( exists messageSourceConfig ) {
-		timer.put( Chime.key.messageSourceConfig, messageSourceConfig );
+	if (exists messageSourceConfig) {
+		timer.put(Chime.key.messageSourceOptions, messageSourceConfig);
 	}
-	if ( exists options ) {
-		timer.put( Chime.key.deliveryOptions, options.toJson() );
+	if (exists eventProducer) {
+		timer.put(Chime.key.eventProducer, eventProducer);
 	}
-	timer.put( Chime.key.description, description );
+	if (exists eventProducerOptions) {
+		timer.put(Chime.key.eventProducerOptions, eventProducerOptions);
+	}
+	timer.put(Chime.key.description, description);
 	
-	if ( exists sendTimeout ) {
+	if (exists sendTimeout) {
 		eventBus.send<JsonObject> (
-			chimeAddress, timer, DeliveryOptions( null, null, sendTimeout ),
-			SchedulerImpl.replyWithTimer( schedulerName, eventBus, sendTimeout, handler )
+			chimeAddress, timer, DeliveryOptions(null, null, sendTimeout),
+			SchedulerImpl.replyWithTimer(schedulerName, eventBus, sendTimeout, handler)
 		);
 	}
 	else {
 		eventBus.send<JsonObject> (
-			chimeAddress, timer, SchedulerImpl.replyWithTimer( schedulerName, eventBus, sendTimeout, handler )
+			chimeAddress, timer, SchedulerImpl.replyWithTimer(schedulerName, eventBus, sendTimeout, handler)
 		);
 	}
 }
@@ -129,10 +131,10 @@ shared void createTimer (
 
 "Creates an interval timer.  
  If scheduler hasn't been created yet then new scheduler is created."
-tagged( "Proxy" ) since( "0.3.0" ) by( "Lis ")
-see( `function Scheduler.createTimer`, `function Scheduler.createCronTimer`,
+tagged("Proxy") since("0.3.0") by("Lis")
+see(`function Scheduler.createTimer`, `function Scheduler.createCronTimer`,
 	`function Scheduler.createIntervalTimer`, `function Scheduler.createUnionTimer`,
-	`function createTimer`, `function createCronTimer`, `function createUnionTimer` )
+	`function createTimer`, `function createCronTimer`, `function createUnionTimer`)
 shared void createIntervalTimer (
 	"Address to call _Chime_." String chimeAddress,
 	"Event bus to send request over." EventBus eventBus,
@@ -148,8 +150,6 @@ shared void createIntervalTimer (
 	String? timerName = null,
 	"`True` if timer is paused at initial and `false` if running."
 	Boolean paused = false,
-	"`True` if timer has to publish event and `false` if sends."
-	Boolean publish = false,
 	"Maximum number of fires or null if unlimited."
 	Integer? maxCount = null,
 	"Timer start date."
@@ -166,23 +166,25 @@ shared void createIntervalTimer (
 	String? messageSource = null,
 	"Optional configuration passed to message source factory."
 	ObjectValue? messageSourceConfig = null,
-	"Delivery options the timer fire event has to be sent with."
-	DeliveryOptions? options = null,
+	"Event producer provider."
+	String? eventProducer = null,
+	"Optional configuration passed to event producer factory."
+	JsonObject? eventProducerOptions = null,
 	"Timeout to send the request with."
 	Integer? sendTimeout = null
-) => createTimer ( 
+) => createTimer (
 	chimeAddress, eventBus, handler, JsonObject { Chime.key.type -> Chime.type.interval, Chime.key.delay -> delay },
-	schedulerName, timerName, paused, publish, maxCount, startDate, endDate, timeZone, timeZoneProvider,
-	message, messageSource, messageSourceConfig, options, sendTimeout
+	schedulerName, timerName, paused, maxCount, startDate, endDate, timeZone, timeZoneProvider,
+	message, messageSource, messageSourceConfig, eventProducer, eventProducerOptions, sendTimeout
 );
 
 
 "Creates a cron timer.  
  If scheduler hasn't been created yet then new scheduler is created."
-tagged( "Proxy" ) since( "0.3.0" ) by( "Lis ")
-see( `function Scheduler.createTimer`, `function Scheduler.createCronTimer`,
+tagged("Proxy") since("0.3.0") by("Lis")
+see(`function Scheduler.createTimer`, `function Scheduler.createCronTimer`,
 	`function Scheduler.createIntervalTimer`, `function Scheduler.createUnionTimer`,
-	`function createTimer`, `function createIntervalTimer`, `function createUnionTimer` )
+	`function createTimer`, `function createIntervalTimer`, `function createUnionTimer`)
 shared void createCronTimer (
 	"Address to call _Chime_." String chimeAddress,
 	"Event bus to send request over." EventBus eventBus,
@@ -202,8 +204,6 @@ shared void createCronTimer (
 	String? timerName = null,
 	"`True` if timer is paused at initial and `false` if running."
 	Boolean paused = false,
-	"`True` if timer has to publish event and `false` if sends."
-	Boolean publish = false,
 	"Maximum number of fires or null if unlimited."
 	Integer? maxCount = null,
 	"Timer start date."
@@ -220,8 +220,10 @@ shared void createCronTimer (
 	String? messageSource = null,
 	"Optional configuration passed to message source factory."
 	ObjectValue? messageSourceConfig = null,
-	"Delivery options the timer fire event has to be sent with."
-	DeliveryOptions? options = null,
+	"Event producer provider."
+	String? eventProducer = null,
+	"Optional configuration passed to event producer factory."
+	JsonObject? eventProducerOptions = null,
 	"Timeout to send the request with."
 	Integer? sendTimeout = null
 ) {
@@ -233,25 +235,25 @@ shared void createCronTimer (
 		Chime.date.daysOfMonth -> daysOfMonth,
 		Chime.date.months -> months
 	};
-	if ( exists d = daysOfWeek, !d.empty ) {
-		descr.put( Chime.date.daysOfWeek, d );
+	if (exists d = daysOfWeek, !d.empty) {
+		descr.put(Chime.date.daysOfWeek, d);
 	}
-	if ( exists d = years, !d.empty ) {
-		descr.put( Chime.date.years, d );
+	if (exists d = years, !d.empty) {
+		descr.put(Chime.date.years, d);
 	}
-	createTimer ( 
-		chimeAddress, eventBus, handler, descr, schedulerName, timerName, paused, publish, maxCount, startDate, endDate,
-		timeZone, timeZoneProvider, message, messageSource, messageSourceConfig, options, sendTimeout
+	createTimer (
+		chimeAddress, eventBus, handler, descr, schedulerName, timerName, paused, maxCount, startDate, endDate,
+		timeZone, timeZoneProvider, message, messageSource, messageSourceConfig, eventProducer, eventProducerOptions, sendTimeout
 	);
 }
 
 
 "Creates an union timer.  
  If scheduler hasn't been created yet then new scheduler is created."
-tagged( "Proxy" ) since( "0.3.0" ) by( "Lis ")
-see( `function Scheduler.createTimer`, `function Scheduler.createCronTimer`,
+tagged("Proxy") since("0.3.0") by("Lis")
+see(`function Scheduler.createTimer`, `function Scheduler.createCronTimer`,
 	`function Scheduler.createIntervalTimer`, `function Scheduler.createUnionTimer`,
-	`function createTimer`, `function createCronTimer`, `function createIntervalTimer` )
+	`function createTimer`, `function createCronTimer`, `function createIntervalTimer`)
 shared void createUnionTimer (
 	"Address to call _Chime_." String chimeAddress,
 	"Event bus to send request over." EventBus eventBus,
@@ -267,8 +269,6 @@ shared void createUnionTimer (
 	String? timerName = null,
 	"`True` if timer is paused at initial and `false` if running."
 	Boolean paused = false,
-	"`True` if timer has to publish event and `false` if sends."
-	Boolean publish = false,
 	"Maximum number of fires or null if unlimited."
 	Integer? maxCount = null,
 	"Timer start date."
@@ -285,19 +285,21 @@ shared void createUnionTimer (
 	String? messageSource = null,
 	"Optional configuration passed to message source factory."
 	ObjectValue? messageSourceConfig = null,
-	"Delivery options the timer fire event has to be sent with."
-	DeliveryOptions? options = null,
+	"Event producer provider."
+	String? eventProducer = null,
+	"Optional configuration passed to event producer factory."
+	JsonObject? eventProducerOptions = null,
 	"Timeout to send the request with."
 	Integer? sendTimeout = null
-) => createTimer ( 
-	chimeAddress, eventBus, handler, JsonObject { Chime.key.type -> Chime.type.union, Chime.key.timers -> JsonArray( timers ) },
-	schedulerName, timerName, paused, publish, maxCount, startDate, endDate, timeZone, timeZoneProvider,
-	message, messageSource, messageSourceConfig, options, sendTimeout
+) => createTimer (
+	chimeAddress, eventBus, handler, JsonObject { Chime.key.type -> Chime.type.union, Chime.key.timers -> JsonArray(timers) },
+	schedulerName, timerName, paused, maxCount, startDate, endDate, timeZone, timeZoneProvider,
+	message, messageSource, messageSourceConfig, eventProducer, eventProducerOptions, sendTimeout
 );
 
 
 "Requests info on the timers from the given list."
-tagged( "Proxy" ) since( "0.3.0" ) by( "Lis ")
+tagged("Proxy") since("0.3.0") by("Lis ")
 shared void timersInfo (
 	"Address to call _Chime_." String chimeAddress,
 	"Event bus to send request over." EventBus eventBus,
@@ -307,49 +309,49 @@ shared void timersInfo (
 ) {
 	value request = JsonObject {
 		Chime.key.operation -> Chime.operation.info,
-		Chime.key.name -> JsonArray( timers )
+		Chime.key.name -> JsonArray(timers)
 	};
-	if ( exists sendTimeout ) {
+	if (exists sendTimeout) {
 		eventBus.send<JsonObject> (
-			chimeAddress, request, DeliveryOptions( null, null, sendTimeout ), TimerImpl.replyWithInfo( info )
+			chimeAddress, request, DeliveryOptions(null, null, sendTimeout), TimerImpl.replyWithInfo(info)
 		);
 	}
 	else {
-		eventBus.send<JsonObject>( chimeAddress, request, TimerImpl.replyWithInfo( info ) );
+		eventBus.send<JsonObject>(chimeAddress, request, TimerImpl.replyWithInfo(info));
 	}
 }
 
 
 "Deletes timers from the given list."
-tagged( "Proxy" ) since( "0.3.0" ) by( "Lis ")
+tagged("Proxy") since("0.3.0") by("Lis ")
 shared void deleteTimers (
 	"Address to call _Chime_." String chimeAddress,
 	"Event bus to send request over." EventBus eventBus,
 	"Full names of timers to be deleted." {String+} timers,
-	"Callback when operation is completed." Anything( Throwable|{String*} )? handler = null,
+	"Callback when operation is completed." Anything(Throwable|{String*})? handler = null,
 	"Timeout to send message with." Integer? sendTimeout = null
 ) {
 	value request = JsonObject {
 		Chime.key.operation -> Chime.operation.delete,
-		Chime.key.name -> JsonArray( timers )
+		Chime.key.name -> JsonArray(timers)
 	};
-	if ( exists handler ) {
-		if ( exists sendTimeout ) {
+	if (exists handler) {
+		if (exists sendTimeout) {
 			eventBus.send<JsonObject> (
-				chimeAddress, request, DeliveryOptions( null, null, sendTimeout ),
-				SchedulerImpl.replyWithList( handler, Chime.key.timers )
+				chimeAddress, request, DeliveryOptions(null, null, sendTimeout),
+				SchedulerImpl.replyWithList(handler, Chime.key.timers)
 			);
 		}
 		else {
-			eventBus.send<JsonObject>( chimeAddress, request, SchedulerImpl.replyWithList( handler, Chime.key.timers ) );
+			eventBus.send<JsonObject>(chimeAddress, request, SchedulerImpl.replyWithList(handler, Chime.key.timers));
 		}
 	}
 	else {
-		if ( exists sendTimeout ) {
-			eventBus.send( chimeAddress, request, DeliveryOptions( null, null, sendTimeout ) );
+		if (exists sendTimeout) {
+			eventBus.send(chimeAddress, request, DeliveryOptions(null, null, sendTimeout));
 		}
 		else {
-			eventBus.send( chimeAddress, request );
+			eventBus.send(chimeAddress, request);
 		}
 	}
 }
