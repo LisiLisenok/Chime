@@ -20,8 +20,7 @@ import ceylon.time {
 	systemTime,
 	Period,
 	zero,
-	DateTime,
-	now
+	DateTime
 }
 import ceylon.time.timezone {
 
@@ -146,9 +145,6 @@ class TimeScheduler (
 		extends Operator(name, vertx.eventBus())
 {
 	
-	"Next ID used when no timer name specified."
-	variable Integer nextID = 0;
-	
 	String nameWithSeparator = name + Chime.configuration.nameSeparator;
 	
 	"Tolerance to compare fire time."
@@ -187,11 +183,8 @@ class TimeScheduler (
 	
 	"Generates unique name for the timer."
 	String generateUniqueName() {
-		value dt = now().dateTime();
-		String delim = "-";
-		String prefix = "tmr-" + dt.year.string + delim + dt.month.string + delim + dt.day.string
-				+ delim + dt.hours.string + delim + dt.minutes.string + delim + dt.seconds.string
-				+ delim + dt.milliseconds.string + delim;
+		String prefix = uuidString();
+		variable Integer nextID = 0;		
 		while (true) {
 			String name = prefix + (++ nextID).string;
 			if (!timers.contains(name)) {

@@ -19,9 +19,6 @@ import ceylon.collection {
 import herd.schedule.chime.service.message {
 	DirectMessageSourceFactory
 }
-import ceylon.time {
-	now
-}
 import herd.schedule.chime.service.producer {
 	EBProducerFactory,
 	EventProducer
@@ -101,13 +98,6 @@ class SchedulerManager extends Operator
 	"Time schedulers."
 	HashMap<String, TimeScheduler> schedulers = HashMap<String, TimeScheduler>();
 	
-	"Generated scheduler name if requested."
-	late String generatedSchedulerName = let
-		(value dt = now().dateTime(), String delim = "-")
-		"sdr-" + dt.year.string + delim + dt.month.string + delim + dt.day.string
-		+ delim + dt.hours.string + delim + dt.minutes.string + delim + dt.seconds.string
-		+ delim + dt.milliseconds.string;
-	
 	
 	"Tolerance to compare fire time and current time in miliseconds." Integer tolerance;
 	"Mark shows if address is not propagated across the cluster." Boolean local; 	
@@ -131,6 +121,10 @@ class SchedulerManager extends Operator
 		this.creator = TimerCreator(providers);
 	}
 	
+	
+	"Generates scheduler name if requested."
+	late String generatedSchedulerName = uuidString();
+		
 	
 	"Initializes the scheduler. When initialized `complete` is called.
 	 Calls `connect` if successfully initialized.  "
