@@ -5,6 +5,9 @@ import ceylon.json {
 	
 	JsonObject
 }
+import ceylon.language.meta.model {
+	Type
+}
 
 
 "Extension (given as service providers) which acts as factory for some _Chime_ structural elements."
@@ -13,6 +16,9 @@ shared interface Extension<out Element>
 {
 	"Type of service the extension provides."
 	shared formal String type;
+	
+	"Type parameter the extension provides."
+	shared Type<> parameter => `Element`;
 	
 	"Initializes the extension.  
 	 Has to call `complete` when initialization is completed.  

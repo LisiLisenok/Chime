@@ -18,8 +18,7 @@ import ceylon.language.meta {
 	type
 }
 import ceylon.language.meta.declaration {
-	Module,
-	InterfaceDeclaration
+	Module
 }
 import ceylon.language.meta.model {
 	ClassOrInterface,
@@ -84,27 +83,7 @@ class ChimeServiceProvider satisfies ChimeServices
 		}
 		return providers.items;
 	}
-	
-	
-	static Type<>? extensionElement(ClassOrInterface<Anything> model, InterfaceDeclaration toExact) {
-		if (exists t = model.extendedType) {
-			if (exists ret = extensionElement(t, toExact)) {
-				return ret;
-			}
-		}
-		for (item in model.satisfiedTypes) {
-			if (item.declaration == toExact) {
-				return item.typeArgumentList.first;
-			}
-		}
-		for (item in model.satisfiedTypes) {
-			if (exists ret = extensionElement(item, toExact)) {
-				return ret;
-			}
-		}
-		return null;
-	}
-	
+		
 
 	"Factories to create extension."
 	HashMap<Type<>, HashMap<String, Extension<Anything>>> providers
@@ -130,7 +109,6 @@ class ChimeServiceProvider satisfies ChimeServices
 		"Map to add successfully initialized providers."
 		HashMap<Type<>, HashMap<String, Extension<Anything>>> toAddProviders
 	) {
-		value tt = `interface Extension`;
 		Integer total = uninitialized.size;
 		if (total > 0) {
 			variable Integer initialized = 0;
@@ -138,18 +116,13 @@ class ChimeServiceProvider satisfies ChimeServices
 		
 			value added = (Extension<Anything>|Throwable provider) {
 				if (is Extension<Anything> provider) {
-					if (exists extType = extensionElement(type(provider), tt)) {
-						if (exists m = toAddProviders[extType]) {
-							m.put(provider.type, provider);
-						}
-						else {
-							value m = HashMap<String, Extension<Anything>>();
-							m.put(provider.type, provider);
-							toAddProviders.put(extType, m);
-						}
+					if (exists m = toAddProviders[provider.parameter]) {
+						m.put(provider.type, provider);
 					}
 					else {
-						// TODO: log the extension is not of proper type
+						value m = HashMap<String, Extension<Anything>>();
+						m.put(provider.type, provider);
+						toAddProviders.put(provider.parameter, m);
 					}
 				}
 				else {
