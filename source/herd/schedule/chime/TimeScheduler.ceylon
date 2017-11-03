@@ -26,15 +26,6 @@ import ceylon.time.timezone {
 
 	timeZone
 }
-import herd.schedule.chime.service.timezone {
-	TimeZone
-}
-import herd.schedule.chime.service.message {
-	MessageSource
-}
-import herd.schedule.chime.service.producer {
-	EventProducer
-}
 
 
 "Scheduler - listen address of scheduler [[address]] on event bus and manages timers.
@@ -137,10 +128,7 @@ class TimeScheduler (
 	"Vertx the scheduler operates on." Vertx vertx,
 	"Factory to create timers." TimerCreator factory,
 	"Tolerance to compare fire time and current time in miliseconds." Integer tolerance,
-	"Default time zone if not specified at timer level." TimeZone defaultTimeZone,
-	"Default message source used if no one specified at timer." MessageSource defaultMessageSource,
-	"Default event producer applied if no one given at timer create request."
-	EventProducer defaultProducer
+	"Default time services: time zone, message source, event producer, calendar." TimeServices defaultServices
 )
 		extends Operator(name, vertx.eventBus())
 {
@@ -174,7 +162,7 @@ class TimeScheduler (
 		value ret = JsonObject {
 			Chime.key.name -> address,
 			Chime.key.state -> state.string,
-			Chime.key.timeZone -> defaultTimeZone.timeZoneID,
+			Chime.key.timeZone -> defaultServices.timeZoneID,
 			Chime.key.timers -> JsonArray{for (timer in timers.items) timer.fullDescription()}
 		};
 		return ret;
@@ -335,7 +323,7 @@ class TimeScheduler (
 				return Chime.errors.codeTimerAlreadyExists -> Chime.errors.timerAlreadyExists;
 			}
 			else {
-				value timer = factory.createTimer(timerName, request, defaultTimeZone, defaultMessageSource, defaultProducer);
+				value timer = factory.createTimer(timerName, request, defaultServices);
 				if (is TimerContainer timer) {
 					addTimer(timer, extractState(request) else State.running);
 					// timer successfully added

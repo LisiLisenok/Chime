@@ -20,8 +20,7 @@ import herd.schedule.chime.service.message {
 	DirectMessageSourceFactory
 }
 import herd.schedule.chime.service.producer {
-	EBProducerFactory,
-	EventProducer
+	EBProducerFactory
 }
 
 
@@ -103,7 +102,7 @@ class SchedulerManager extends Operator
 	"Mark shows if address is not propagated across the cluster." Boolean local; 	
 	"Provides Chime services." ChimeServiceProvider providers; 
 	"Create timer with container." TimerCreator creator;
-	variable EventProducer? defaultProducerInst = null;
+	"Default time services: time zone, message source, event producer, calendar." TimeServices defaultServices;
 	
 
 	"Instantiates new manager."
@@ -119,6 +118,10 @@ class SchedulerManager extends Operator
 		this.local = local;
 		this.providers = ChimeServiceProvider(vertx, address);
 		this.creator = TimerCreator(providers);
+		this.defaultServices = TimeServices (
+			providers.localTimeZone, DirectMessageSourceFactory.directMessageSource,
+			EBProducerFactory.createDefaultProducer(vertx.eventBus()), emptyCalendar
+		);
 	}
 	
 	
@@ -165,16 +168,6 @@ class SchedulerManager extends Operator
 		}
 	}
 
-	EventProducer defaultProducer() {
-		if (exists dp = defaultProducerInst) {
-			return dp;
-		}
-		else {
-			value dp = EBProducerFactory.createDefaultProducer(eventBus);
-			defaultProducerInst = dp;
-			return dp;
-		}
-	}
 	
 // operation methods
 	
@@ -216,16 +209,12 @@ class SchedulerManager extends Operator
 			}
 		}
 		else {
-			value exactServices = servicesFromRequest (
-				request, providers, providers.localTimeZone,
-				DirectMessageSourceFactory.directMessageSource,
-				defaultProducer()
-			);
-			if (is ExtractedServices exactServices) {
+			value exactServices = servicesFromRequest(request, providers, defaultServices);
+			if (is TimeServices exactServices) {
 				// create new scheduler
 				TimeScheduler scheduler = TimeScheduler (
-					schedulerName, schedulers.remove, providers.vertx, creator,
-					tolerance, exactServices.timeZone, exactServices.messageSource, exactServices.eventProducer
+					schedulerName, schedulers.remove, providers.vertx, creator, tolerance,
+					exactServices
 				);
 				schedulers.put(schedulerName, scheduler);
 				scheduler.connect(local);

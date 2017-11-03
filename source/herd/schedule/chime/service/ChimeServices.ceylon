@@ -21,6 +21,9 @@ import herd.schedule.chime.service.producer {
 import herd.schedule.chime {
 	Chime
 }
+import herd.schedule.chime.service.calendar {
+	Calendar
+}
 
 
 "Provides Chime services:  
@@ -45,6 +48,16 @@ shared interface ChimeServices
 		}
 		else {
 			return Chime.errors.codeTimerTypeHasToBeSpecified->Chime.errors.timerTypeHasToBeSpecified;
+		}		
+	}
+	
+	"Creates calendar by description.  See about description in [[module herd.schedule.chime]]."
+	shared default Calendar|<Integer->String> createCalendar("Calendar description." JsonObject description) {
+		if (is String type = description[Chime.calendar.type]) {
+			return createService<Calendar>(type, description);
+		}
+		else {
+			return Chime.errors.codeCalendarTypeHasToBeSpecified->Chime.errors.calendarTypeHasToBeSpecified;
 		}		
 	}
 	

@@ -89,6 +89,9 @@ shared class Chime extends Verticle
 		shared String eventProducer = "event producer";
 		"Key for the options passed to event producer provider when event producing asked."
 		shared String eventProducerOptions = "event producer options";
+		
+		"Calendar applied to the timer."
+		shared String calendar = "calendar";
 	}
 	
 	
@@ -102,6 +105,36 @@ shared class Chime extends Verticle
 		shared String interval = "interval";
 		"Union timer type."
 		shared String union = "union";
+	}
+	
+	
+	"Cron and date fields."
+	shared static object date { 
+		"Seconds, used in CRON timer and timer start/end date."
+		shared String seconds = "seconds";
+		"Minutes, used in CRON timer and timer start/end date."
+		shared String minutes = "minutes";
+		"Hours, used in CRON timer and timer start/end date."
+		shared String hours = "hours";
+		"Days of week, used in CRON timer."
+		shared String daysOfWeek = "days of week";
+		"Days of month, used in CRON timer."
+		shared String daysOfMonth = "days of month";
+		"Months, used in CRON timer."
+		shared String months = "months";
+		"Years, used in CRON timer."
+		shared String years = "years";
+		
+		"Day of month, used in timer start/end date."
+		shared String dayOfMonth = "day of month";
+		"Day of week."
+		shared String dayOfWeek = "day of week";
+		"Order of nth weekday."
+		shared String order = "order";
+		"Month, used in timer start/end date."
+		shared String month = "month";
+		"Year, used in timer start/end date."
+		shared String year = "year";
 	}
 	
 	
@@ -124,6 +157,65 @@ shared class Chime extends Verticle
 		 See [[herd.schedule.chime.service.message::DirectMessageSourceFactory]].  
 		 This is default provider."
 		shared String direct = "direct";
+	}
+	
+	"Calendar provider."
+	shared static object calendar {
+		"Key for the calendar data."
+		shared String key => Chime.key.calendar;
+		"Key for the calendar type."
+		shared String type => Chime.key.type;
+		
+		"Calendar event ignorance flag.
+		 If set to true restricted time will be ignored and next fire time will be shifted to the next timer time.
+		 Otherwise fire time will be shifted to the next time admitted by calendar.  
+		 Default is `true`."
+		shared String ignoreEvent = "ignore event";
+		
+		"Annually calendar type, see [[herd.schedule.chime.service.calendar::AnnuallyFactory]]."
+		shared String annually = "annually";
+		
+		"Daily calendar type, see [[herd.schedule.chime.service.calendar::DailyFactory]]."
+		shared String daily = "daily";
+		"Key for the _from_ date or time, `JsonObject`."
+		shared String from = "from";
+		"Key for the _to_ date or time, `JsonObject`."
+		shared String to = "to";
+		"Key for the tolerance, Integer in seconds."
+		shared String tolerance = "tolerance";
+		
+		"Dativity calendar type, see [[herd.schedule.chime.service.calendar::DativityFactory]]."
+		shared String dativity = "dativity";
+		"Key for the _dates_ list of dates, `JsonArray` of
+		 	\"dates\" -> JsonArray {
+		 		JsonObject {
+		 			\"day\" -> Integer day
+		 			\"month\" -> Integer or String month
+		 			\"year\" -> Integer year, optional
+		 		}
+		 	} 
+		 "
+		shared String dates = "dates";
+
+		"Intersection calendar type, see [[herd.schedule.chime.service.calendar::IntersectionFactory]]."
+		shared String intersection = "intersection";
+		"Union calendar type, see [[herd.schedule.chime.service.calendar::UnionCalendarFactory]]."
+		shared String union = "union";
+		"Key for the list of calendars."
+		shared String calendars = "calendars";
+		
+		"Last day of week calendar type, see [[herd.schedule.chime.service.calendar::LastDayOfWeekFactory]]."
+		shared String lastDayOfWeek = "last day of week";
+		
+		"Monthly calendar type, see [[herd.schedule.chime.service.calendar::MonthlyFactory]]."
+		shared String monthly = "monthly";
+		
+		"Weekday of month calendar type, see [[herd.schedule.chime.service.calendar::WeekdayOfMonthFactory]]."
+		shared String weekdayOfMonth = "weekday of month";
+		
+		"Weekly calendar type, see [[herd.schedule.chime.service.calendar::WeeklyFactory]]."
+		shared String weekly = "weekly";
+		
 	}
 	
 	"Event producer constants."
@@ -182,35 +274,11 @@ shared class Chime extends Verticle
 		"Value of the state field, if state is completed."
 		shared String completed = "completed";
 	}
-
-
-	"Cron and date fields"
-	shared static object date { 
-		"Seconds, used in CRON timer and timer start/end date."
-		shared String seconds = "seconds";
-		"Minutes, used in CRON timer and timer start/end date."
-		shared String minutes = "minutes";
-		"Hours, used in CRON timer and timer start/end date."
-		shared String hours = "hours";
-		"Days of week, used in CRON timer."
-		shared String daysOfWeek = "days of week";
-		"Days of month, used in CRON timer."
-		shared String daysOfMonth = "days of month";
-		"Months, used in CRON timer."
-		shared String months = "months";
-		"Years, used in CRON timer."
-		shared String years = "years";
-	
-		"Day of month, used in timer start/end date."
-		shared String dayOfMonth = "day of month";
-		"Month, used in timer start/end date."
-		shared String month = "month";
-		"Year, used in timer start/end date."
-		shared String year = "year";
-	}
 	
 	"Defines error messages."
 	shared static object errors {
+		
+		shared Integer assertionErrorCode = 1001;
 		
 		"Code of 'unsupported operation' error."
 		shared Integer codeUnsupportedOperation = 1;
@@ -326,6 +394,46 @@ shared class Chime extends Verticle
 		shared Integer codeUnsupportedServiceProviderType = 23;
 		"Message of 'unsupported service provider' error."
 		shared String unsupportedServiceProviderType = "unsupported service provider";
+		
+		"Code of 'annually calendar requires months to be given' error."
+		shared Integer codeAnnuallyCalendarMonths = 24;
+		"Message of 'annually calendar requires months to be given' error."
+		shared String annuallyCalendarMonths = "annually calendar requires months to be given";
+		
+		"Code of 'daily calendar requires 'to' date to be after 'from'' error."
+		shared Integer codeDailyCalendarOrder = 25;
+		"Message of 'daily calendar requires 'to' date to be after 'from'' error."
+		shared String dailyCalendarOrder = "daily calendar requires 'to' date to be after 'from'";
+		
+		"Code of 'daily calendar requires 'to' and 'from' dates to be specified' error."
+		shared Integer codeDailyCalendarFormat = 26;
+		"Message of 'daily calendar requires 'to' and 'from' dates to be specified' error."
+		shared String dailyCalendarFormat = "daily calendar requires 'to' and 'from' dates to be specified";
+		
+		"Code of 'dativity calendar requires dates to be specified' error."
+		shared Integer codeDativityCalendarDates = 27;
+		"Message of 'dativity calendar requires dates to be specified' error."
+		shared String dativityCalendarDates = "dativity calendar requires dates to be specified";
+		
+		"Code of 'a list of calendars to be specified' error."
+		shared Integer codeCalendars = 28;
+		"Message of 'a list of calendars to be specified' error."
+		shared String calendars = "a list of calendars to be specified";
+		
+		"Code of 'calendar type has to be specified' error."
+		shared Integer codeCalendarTypeHasToBeSpecified = 29;
+		"Message of 'calendar type has to be specified' error."
+		shared String calendarTypeHasToBeSpecified = "calendar type has to be specified";
+		
+		"Code of 'days of month have to be specified' error."
+		shared Integer codeMonthlyCalendarDaysOfMonth = 30;
+		"Message of 'days of month have to be specified' error."
+		shared String monthlyCalendarDaysOfMonth = "days of month have to be specified";
+		
+		"Code of 'days of week have to be specified' error."
+		shared Integer codeWeeklyCalendarDaysOfWeek = 31;
+		"Message of 'days of week have to be specified' error."
+		shared String weeklyCalendarDaysOfWeek = "days of week have to be specified";
 		
 	}
 

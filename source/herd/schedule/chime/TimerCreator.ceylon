@@ -14,18 +14,9 @@ import herd.schedule.chime.service.timer {
 	TimeRowFactory,
 	TimeRow
 }
-import herd.schedule.chime.service.timezone {
-	TimeZone
-}
-import herd.schedule.chime.service.message {
-	MessageSource
-}
 import herd.schedule.chime.cron {
 
 	calendar
-}
-import herd.schedule.chime.service.producer {
-	EventProducer
 }
 
 
@@ -40,17 +31,12 @@ class TimerCreator (
 	shared TimerContainer|<Integer->String> createTimer (
 			"Timer name." String name,
 			"Request with timer description." JsonObject request,
-			"Default time zone applied if no time zone name is given." TimeZone defaultTimeZone,
-			"Default message source used if no one specified at timer." MessageSource defaultMessageSource,
-			"Default event producer applied to timer if no one given at timer create request."
-			EventProducer defaultProducer
+			"Default time services." TimeServices defaultServices
 		) {
 		if (is JsonObject description = request[Chime.key.description]) {
 			value timer = services.createTimeRow(description);
 			if (is TimeRow timer) {
-				return createTimerContainer (
-					request, description, name, timer, defaultTimeZone, defaultMessageSource, defaultProducer
-				);
+				return createTimerContainer(request, description, name, timer, defaultServices);
 			}
 			else {
 				return timer;
@@ -69,10 +55,7 @@ class TimerCreator (
 		"Timer description." JsonObject description,
 		"Timer name." String name,
 		"Timer." TimeRow timer,
-		"Default time zone applied if no time zone name is given." TimeZone defaultTimeZone,
-		"Default message source used if no one specified at timer." MessageSource defaultMessageSource,
-		"Default event producer applied to timer if no one given at timer create request."
-		EventProducer defaultProducer
+		"Default time services." TimeServices defaultServices
 	) {
 		// extract start date if exists
 		DateTime? startDate;
@@ -110,14 +93,13 @@ class TimerCreator (
 		}
 		
 		value exactServices = servicesFromRequest (
-			request, services, defaultTimeZone, defaultMessageSource, defaultProducer
+			request, services, defaultServices
 		);
-		if (is ExtractedServices exactServices) {
+		if (is TimeServices exactServices) {
 			return TimerContainer (
 				name, description, timer,
-				exactServices.timeZone, extractMaxCount(request), startDate, endDate,
-				exactServices.messageSource, request.get(Chime.key.message),
-				exactServices.eventProducer
+				extractMaxCount(request), startDate, endDate,
+				request.get(Chime.key.message), exactServices
 			);
 		}
 		else {

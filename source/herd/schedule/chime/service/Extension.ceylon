@@ -10,7 +10,7 @@ import ceylon.language.meta.model {
 }
 
 
-"Extension (given as service providers) which acts as factory for some _Chime_ structural elements."
+"Extension (given as service provider) which acts as factory for some _Chime_ structural elements."
 since("0.3.0") by("Lis")
 shared interface Extension<out Element>
 {
@@ -18,7 +18,7 @@ shared interface Extension<out Element>
 	shared formal String type;
 	
 	"Type parameter the extension provides."
-	shared Type<> parameter => `Element`;
+	shared Type<Element> parameter => `Element`;
 	
 	"Initializes the extension.  
 	 Has to call `complete` when initialization is completed.  
@@ -34,7 +34,7 @@ shared interface Extension<out Element>
 		Anything(Extension<Anything>|Throwable) complete
 	) => complete(this);
 	
-	"Creates new strucutral element."
+	"Creates new structural element."
 	shared formal Element|<Integer->String> create (
 		"Provides Chime services." ChimeServices services,
 		"Options applied to the factory." JsonObject options

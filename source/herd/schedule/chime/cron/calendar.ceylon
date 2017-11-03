@@ -1,6 +1,10 @@
 import ceylon.time.base {
 	DayOfWeek,
-	Month
+	Month,
+	weekdays
+}
+import ceylon.json {
+	JsonObject
 }
 
 
@@ -68,69 +72,90 @@ shared object calendar
 		};
 	
 	
-	String replaceStringToNumber( String expression, Map<String, Integer> map ) {
+	String replaceStringToNumber(String expression, Map<String, Integer> map) {
 		variable String ret = expression;
-		for ( key -> item in map ) {
-			ret = ret.replace( key, item.string );
+		for (key -> item in map) {
+			ret = ret.replace(key, item.string);
 		}
 		return ret;
 	}
 	
 	"Replace all occurancies of month names by corresponding number."
-	shared String replaceMonthByNumber( String expression )
-			=> replaceStringToNumber( replaceStringToNumber( expression.trimmed.uppercased, monthFullMap ), monthShortMap );
+	shared String replaceMonthByNumber(String expression)
+			=> replaceStringToNumber(replaceStringToNumber(expression.trimmed.uppercased, monthFullMap), monthShortMap);
 	
 	"Replace all occurancies of weekday names by corresponding number."
-	shared String replaceDayOfWeekByNumber( String expression )
-			=> replaceStringToNumber( replaceStringToNumber( expression.trimmed.uppercased, dayOfWeekFullMap ), dayOfWeekShortMap );
+	shared String replaceDayOfWeekByNumber(String expression)
+			=> replaceStringToNumber(replaceStringToNumber(expression.trimmed.uppercased, dayOfWeekFullMap), dayOfWeekShortMap);
 
 	
 	"Integer representation of a day of week."
-	shared Integer digitalDayOfWeek( Integer|DayOfWeek|String dayOfWeek ) {
-		switch ( dayOfWeek )
-		case ( is Integer ) {
+	shared Integer digitalDayOfWeek(Integer|DayOfWeek|String dayOfWeek) {
+		switch (dayOfWeek)
+		case (is Integer) {
 			"Has to be a valid day of week. Actually is ``dayOfWeek``."
-			assert ( dayOfWeek > 0 && dayOfWeek < 8 );
+			assert (dayOfWeek > 0 && dayOfWeek < 8);
 			return dayOfWeek;
 		}
-		case ( is DayOfWeek ) {
+		case (is DayOfWeek) {
 			return dayOfWeek.successor.integer;
 		}
-		case ( is String ) {
+		case (is String) {
 			"Has to be a valid day of week. Actually is ``dayOfWeek``."
-			assert ( is Integer ret = Integer.parse( calendar.replaceDayOfWeekByNumber( dayOfWeek ) ) );
+			assert (is Integer ret = Integer.parse(replaceDayOfWeekByNumber(dayOfWeek)));
 			return ret;
 		}
 	}
 	
-	"Integer representation of a list of day of week."
-	shared {Integer+} digitalDaysOfWeekList( {Integer|DayOfWeek|String+} daysOfWeek ) {
-		return { for ( item in daysOfWeek ) digitalDayOfWeek( item ) };
+	"Day of week from Integer or String."
+	shared DayOfWeek dayOfWeekFromString(Integer|String dayOfWeek) {
+		"Has to be a valid day of week. Actually is ``dayOfWeek``."
+		assert (exists dow = weekdays[digitalDayOfWeek(dayOfWeek) - 1] );
+		return dow;
 	}
 	
-	shared String cronDaysOfWeek( {Integer|DayOfWeek|String+} daysOfWeek ) {
+	"Day of week from json."
+	shared DayOfWeek dayOfWeekFromJson(JsonObject descr, String key) {
+		"Day of week has to be of String or Integer."
+		assert (is Integer|String m = descr[key]);
+		return dayOfWeekFromString(m);
+	}
+
+	"Integer representation of a list of day of week."
+	shared {Integer+} digitalDaysOfWeekList({Integer|DayOfWeek|String+} daysOfWeek) {
+		return {for (item in daysOfWeek) digitalDayOfWeek(item)};
+	}
+	
+	shared String cronDaysOfWeek({Integer|DayOfWeek|String+} daysOfWeek) {
 		StringBuilder builder = StringBuilder();
-		for ( item in daysOfWeek.exceptLast ) {
-			builder.append( digitalDayOfWeek( item ).string + "," );
+		for (item in daysOfWeek.exceptLast) {
+			builder.append(digitalDayOfWeek(item).string + ",");
 		}
-		builder.append( digitalDayOfWeek( daysOfWeek.last ).string );
+		builder.append(digitalDayOfWeek(daysOfWeek.last).string);
 		return builder.string;
 	}
 	
+	"Integer month from json."
+	shared Integer monthFromJson(JsonObject descr, String key) {
+		"Month has to be of String or Integer."
+		assert (is Integer|String m = descr[key]);
+		return digitalMonth(m);
+	}
+	
 	"Integer representation of a month."
-	shared Integer digitalMonth( Integer|Month|String month ) {
-		switch ( month )
-		case ( is Integer ) {
+	shared Integer digitalMonth(Integer|Month|String month) {
+		switch (month)
+		case (is Integer) {
 			"Has to be a valid month. Actually is ``month``."
-			assert ( month > 0 && month < 13 );
+			assert (month > 0 && month < 13);
 			return month;
 		}
-		case ( is Month ) {
+		case (is Month) {
 			return month.integer;
 		}
-		case ( is String ) {
+		case (is String) {
 			"Has to be a valid month. Actually is ``month``."
-			assert ( is Integer ret = Integer.parse( calendar.replaceMonthByNumber( month ) ) );
+			assert (is Integer ret = Integer.parse(calendar.replaceMonthByNumber(month)));
 			return ret;
 		}
 	}

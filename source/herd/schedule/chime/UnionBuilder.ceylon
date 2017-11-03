@@ -25,9 +25,9 @@ import herd.schedule.chime.cron {
  The function may be called in any order and any number of times.  
  Finally, [[UnionBuilder.build]] has to be called to build the timer `JsonObject` description.   
  "
-tagged( "Builder" )
-see( `class CronBuilder`, `function package.every` )
-since( "0.2.1" ) by( "Lis" )
+tagged("Builder")
+see(`class CronBuilder`, `function package.every`)
+since("0.2.1") by("Lis")
 shared class UnionBuilder
 {
 	
@@ -40,8 +40,8 @@ shared class UnionBuilder
 	}
 	
 	"Instatiates new builder and copy data from `other`."
-	shared new fromBuilder( "Builder to copy data from." UnionBuilder other ) {
-		union = ArrayList<JsonObject>{ for( item in other.union ) item.clone() };
+	shared new fromBuilder("Builder to copy data from." UnionBuilder other) {
+		union = ArrayList<JsonObject>{for(item in other.union) item.clone()};
 	}
 	
 	
@@ -49,16 +49,16 @@ shared class UnionBuilder
 	shared JsonObject build()
 		=> JsonObject {
 			Chime.key.type -> Chime.type.union,
-			Chime.key.timers -> JsonArray( union )
+			Chime.key.timers -> JsonArray(union)
 		};
 
 	
 	"Adds timer by its `JSON` description."
-	shared void timer( "Timer description to be added." JsonObject timer ) => union.add( timer );
+	shared void timer("Timer description to be added." JsonObject timer) => union.add(timer);
 	
 	"Fires at the given date / time with year taken into account.
 	 So, this timer will fire just a once."
-	shared void at( "Date / time to fire at." DateTime time )
+	shared void at("Date / time to fire at." DateTime time)
 		=> union.add (
 			JsonObject {
 				Chime.key.type -> Chime.type.cron,
@@ -85,8 +85,8 @@ shared class UnionBuilder
 			Chime.date.minutes -> time.minutes.string,
 			Chime.date.hours -> time.hours.string,
 			Chime.date.daysOfMonth -> dayOfMonth.string,
-			Chime.date.months -> calendar.digitalMonth( month ).string,
-			Chime.date.daysOfWeek -> calendar.cronDaysOfWeek( daysOfWeek ),
+			Chime.date.months -> calendar.digitalMonth(month).string,
+			Chime.date.daysOfWeek -> calendar.cronDaysOfWeek(daysOfWeek),
 			Chime.date.years -> cron.allValues.string
 		}
 	);
@@ -107,7 +107,7 @@ shared class UnionBuilder
 			Chime.date.hours -> time.hours.string,
 			Chime.date.daysOfMonth -> dayOfMonth.string,
 			Chime.date.months -> cron.allValues.string,
-			Chime.date.daysOfWeek -> calendar.cronDaysOfWeek( daysOfWeek ),
+			Chime.date.daysOfWeek -> calendar.cronDaysOfWeek(daysOfWeek),
 			Chime.date.years -> cron.allValues.string
 		}
 	);
@@ -127,7 +127,7 @@ shared class UnionBuilder
 			Chime.date.hours -> time.hours.string,
 			Chime.date.daysOfMonth -> cron.allValues.string,
 			Chime.date.months -> cron.allValues.string,
-			Chime.date.daysOfWeek -> calendar.digitalDayOfWeek( dayOfWeek ).string,
+			Chime.date.daysOfWeek -> calendar.digitalDayOfWeek(dayOfWeek).string,
 			Chime.date.years -> cron.allValues.string
 		}
 	);
@@ -147,7 +147,7 @@ shared class UnionBuilder
 			Chime.date.hours -> time.hours.string,
 			Chime.date.daysOfMonth -> cron.allValues.string,
 			Chime.date.months -> cron.allValues.string,
-			Chime.date.daysOfWeek -> calendar.digitalDayOfWeek( dayOfWeek ).string + cron.last.string,
+			Chime.date.daysOfWeek -> calendar.digitalDayOfWeek(dayOfWeek).string + cron.last.string,
 			Chime.date.years -> cron.allValues.string
 		}
 	);
@@ -168,7 +168,7 @@ shared class UnionBuilder
 			Chime.date.hours -> time.hours.string,
 			Chime.date.daysOfMonth -> cron.allValues.string,
 			Chime.date.months -> cron.allValues.string,
-			Chime.date.daysOfWeek -> calendar.digitalDayOfWeek( dayOfWeek ).string + cron.nth.string + order.string,
+			Chime.date.daysOfWeek -> calendar.digitalDayOfWeek(dayOfWeek).string + cron.nth.string + order.string,
 			Chime.date.years -> cron.allValues.string
 		}
 	);
@@ -188,7 +188,7 @@ shared class UnionBuilder
 			Chime.date.hours -> time.hours.string,
 			Chime.date.daysOfMonth -> cron.allValues.string,
 			Chime.date.months -> cron.allValues.string,
-			Chime.date.daysOfWeek -> calendar.cronDaysOfWeek( daysOfWeek ),
+			Chime.date.daysOfWeek -> calendar.cronDaysOfWeek(daysOfWeek),
 			Chime.date.years -> cron.allValues.string
 		}
 	);
@@ -199,7 +199,7 @@ shared class UnionBuilder
 		"Unit to measure `delay`." TimeUnit timeUnit = TimeUnit.seconds
 	) {
 		"Timer interval has to be positive, while given is ``interval``."
-		assert( interval > 0 );
+		assert(interval > 0);
 		union.add (
 			JsonObject {
 				Chime.key.type -> Chime.type.interval,

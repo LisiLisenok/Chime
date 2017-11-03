@@ -7,40 +7,39 @@ import herd.schedule.chime.service.message {
 import herd.schedule.chime.service.timezone {
 	TimeZone
 }
-import ceylon.json {
-	JsonObject
-}
 import herd.schedule.chime.service.producer {
 	EventProducer
 }
-
-
-"Services extracted from request."
-since("0.3.0") by("Lis")
-final class ExtractedServices (
-	shared TimeZone timeZone,
-	shared MessageSource messageSource,
-	shared EventProducer eventProducer
-) {}
+import herd.schedule.chime.service.calendar {
+	Calendar
+}
+import ceylon.json {
+	JsonObject
+}
 
 
 "Extract services (time zone and message source) from timer or scheduler request."
 since("0.3.0") by("Lis")
-ExtractedServices|<Integer->String> servicesFromRequest (
+TimeServices|<Integer->String> servicesFromRequest (
 	"Timer description to get time zone name." JsonObject request,
 	"Services Chime provides." ChimeServices services,
-	"Default time zone applied if no time zone name is given." TimeZone defaultTimeZone,
-	"Default time zone applied if no time zone name is given." MessageSource defaultMessageSource,
-	"Default event producer applied if no one given at timer create request."
-	EventProducer defaultProducer
+	"Default time services." TimeServices defaultServices
 ) {
-	value converter = timeZoneFromRequest(request, services, defaultTimeZone);
+	value converter = timeZoneFromRequest(request, services, defaultServices.timeZone);
 	if (is TimeZone converter) {
-		value messageSource = messageSourceFromRequest(request, services, defaultMessageSource);
+		value messageSource = messageSourceFromRequest(request, services, defaultServices.messageSource);
 		if (is MessageSource messageSource) {
-			value eventProducer = eventProducerFromRequest(request, services, defaultProducer);
+			value eventProducer = eventProducerFromRequest(request, services, defaultServices.eventProducer);
 			if (is EventProducer eventProducer) {
-				return ExtractedServices(converter, messageSource, eventProducer);
+				value calendar = calendarFromRequest(request, services, defaultServices.calendar);
+				if (is CalendarService calendar) {
+					return TimeServices (
+						converter, messageSource, eventProducer, calendar
+					);
+				}
+				else {
+					return calendar;
+				}
 			}
 			else {
 				return eventProducer;
@@ -116,5 +115,31 @@ EventProducer|<Integer->String> eventProducerFromRequest (
 		else {
 			return defaultProducer;
 		}
+	}
+}
+
+
+"Extracts Calendar from timer or scheduler request."
+since("0.3.0") by("Lis")
+CalendarService|<Integer->String> calendarFromRequest (
+	"Timer description to get time zone name." JsonObject request,
+	"Services Chime provides." ChimeServices services,
+	"Default calendar applied if no one given at timer create request."
+	CalendarService defaultCalendar
+) {
+	if (is JsonObject calendarRequest = request[Chime.calendar.key]) {
+		value cl = services.createCalendar(calendarRequest);
+		if (is Calendar cl) {
+			return CalendarServiceImpl (
+				if (is Boolean ignore = calendarRequest[Chime.calendar.ignoreEvent]) then ignore else true,
+				cl
+			);
+		}
+		else {
+			return cl;
+		}
+	}
+	else {
+		return defaultCalendar;
 	}
 }

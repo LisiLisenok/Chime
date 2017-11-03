@@ -7,7 +7,8 @@ import herd.schedule.chime.service.timezone {
 	JVMTimeZoneFactory
 }
 import ceylon.collection {
-	HashMap
+	HashMap,
+	ArrayList
 }
 import ceylon.json {
 	JsonObject,
@@ -51,16 +52,11 @@ class ChimeServiceProvider satisfies ChimeServices
 	static void collectFromModule (
 		"Module to extract service provider from." Module m,
 		"Interface represented service." ClassOrInterface<Extension<Anything>> providerType,
-		"Map to collect providers. `key` is given with [[Extension.type]]." HashMap<String, Extension<Anything>> map
+		"Map to collect providers. `key` is given with [[Extension.type]]." ArrayList<Extension<Anything>> extensions
 	) {
 		value services = m.findServiceProviders<Extension<Anything>>(providerType);
 		for (serv in services) {
-			if (!map.contains(serv.type)) {
-				map.put(serv.type, serv);
-			}
-			else {
-				// TODO: log the extension hasn't been added
-			}
+			extensions.add(serv);
 		}
 	}
 	
@@ -69,19 +65,23 @@ class ChimeServiceProvider satisfies ChimeServices
 		"module name + version" {String*} moduleNames,
 		"Service type." ClassOrInterface<Extension<Anything>> providerType
 	) {
-		HashMap<String, Extension<Anything>> providers = HashMap<String, Extension<Anything>>();
-		collectFromModule(`module`, providerType, providers);
+		ArrayList<Extension<Anything>> extensions = ArrayList<Extension<Anything>>();
 		for (moduleName in moduleNames) {
 			if (exists splitName = moduleNameAndVersion(moduleName),
 				exists m = modules.find(splitName[0], splitName[1])
 			) {
-				collectFromModule(m, providerType, providers);
+				collectFromModule(m, providerType, extensions);
 			}
 			else {
 				// TODO: log the module hasn't been found
 			}
 		}
-		return providers.items;
+		if (extensions.empty) {
+			// If nothing has been added - add extensions from this modue only,
+			// otherwise extensions from this module have to be already added
+			collectFromModule(`module`, providerType, extensions);
+		}
+		return extensions;
 	}
 		
 

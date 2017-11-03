@@ -7,17 +7,8 @@ import ceylon.time {
 
 	DateTime
 }
-import herd.schedule.chime.service.timezone {
-	TimeZone
-}
-import herd.schedule.chime.service.message {
-	MessageSource
-}
 import herd.schedule.chime.service.timer {
 	TimeRow
-}
-import herd.schedule.chime.service.producer {
-	EventProducer
 }
 
 
@@ -27,13 +18,12 @@ class TimerContainer (
 	"Timer full name, which is **scheduler name:timer name**." shared String name,
 	"Timer `JsonObject` description" JsonObject description,
 	"Timer within this container." TimeRow timer,
-	"Time zone for the timer." TimeZone timeZone,
 	"Max count or null if not specified." Integer? maxCount,
 	"Timer start time or null if to be started immediately." DateTime? startTime,
 	"Timer end time or null if not specified." DateTime? endTime,
-	"Source to extract message." MessageSource messageSource,
 	"Message to be attached to the timer fire event." ObjectValue? message,
-	"Producer used to send timer events." shared EventProducer producer
+	"Timer services: time zone, message source, event producer, calendar."
+	TimeServices services
 ) {
 	
 	"Timer fire counting."
@@ -46,10 +36,10 @@ class TimerContainer (
 	variable DateTime? nextRemoteFireTime = null;
 	
 	"Next fire timer in machine local TZ or null if completed."
-	shared DateTime? localFireTime => if (exists d = nextRemoteFireTime) then timeZone.toLocal(d) else null;
+	shared DateTime? localFireTime => if (exists d = nextRemoteFireTime) then services.toLocal(d) else null;
 	
 	"Time zone ID."
-	shared String timeZoneID => timeZone.timeZoneID;
+	shared String timeZoneID => services.timeZoneID;
 
 
 	"Timer name + state."
@@ -109,17 +99,17 @@ class TimerContainer (
 	shared void timerFireEvent() {
 		if (state == State.running, exists at = nextRemoteFireTime) {
 			TimerFire event = TimerFire(name, count, timeZoneID, at, message);
-			messageSource.extract(event, sendTimerFireEvent(event));
+			services.extract(event, sendTimerFireEvent(event));
 		}
 	}
 	
 	void sendTimerFireEvent(TimerFire event)(ObjectValue? message)
-		=> producer.send(TimerFire(event.timerName, event.count, event.timeZone, event.date, message));
+		=> services.send(TimerFire(event.timerName, event.count, event.timeZone, event.date, message));
 	
 	
 	"Starts the timer."
 	shared void start(DateTime currentLocal) {
-		DateTime currentRemote = timeZone.toRemote(currentLocal);
+		DateTime currentRemote = services.toRemote(currentLocal);
 		// check if max count has been reached before
 		if (exists c = maxCount) {
 			if (count >= c) {
@@ -141,7 +131,7 @@ class TimerContainer (
 			beginning = currentRemote;
 		}
 		// start timer
-		if (exists date = timer.start(beginning)) {
+		if (exists date = calendarDate(timer.start(beginning))) {
 			if (exists ed = endTime) {
 				if (date > ed) {
 					complete();
@@ -161,13 +151,13 @@ class TimerContainer (
 	shared void complete() {
 		nextRemoteFireTime = null;
 		state = State.completed;
-		producer.send(TimerCompleted(name, count));
+		services.send(TimerCompleted(name, count));
 	}
 	
 	"Shifts timer to the next time."
 	shared void shiftTime() {
 		if (state == State.running) {
-			if ( exists date = timer.shiftTime()) {
+			if (exists date = calendarDate(timer.shiftTime())) {
 				// check on complete
 				if (exists ed = endTime) {
 					if (date > ed) {
@@ -190,4 +180,21 @@ class TimerContainer (
 		}
 	}
 	
+	"Returns date bounds by calendar."
+	DateTime? calendarDate(variable DateTime? date) {
+		while (exists cur = date) {
+			if (services.inside(cur)) {
+				if (services.calendarIgnorance) {
+					date = timer.shiftTime();
+				}
+				else {
+					date = services.nextOutside(cur);
+				}
+			}
+			else {
+				return cur;
+			}
+		}
+		return null;
+	}
 }
