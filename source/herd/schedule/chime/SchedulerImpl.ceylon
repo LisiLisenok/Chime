@@ -24,7 +24,7 @@ class SchedulerImpl
 	{
 		if (is Message<JsonObject?> msg) {
 			"Reply from scheduler request has not to be null."
-			assert(exists ret = msg.body());
+			assert (exists ret = msg.body());
 			handler(SchedulerImpl(ret.getString(Chime.key.name), eventBus, sendTimeout));
 		}
 		else {
@@ -37,7 +37,7 @@ class SchedulerImpl
 	{
 		if (is Message<JsonObject?> msg) {
 			"Reply from scheduler request has not to be null."
-			assert(exists ret = msg.body());
+			assert (exists ret = msg.body());
 			value sch = ret.getArray(Chime.key.schedulers);
 			handler([for (item in sch.narrow<JsonObject>()) SchedulerInfo.fromJSON(item)]);
 		}
@@ -51,7 +51,7 @@ class SchedulerImpl
 	{
 		if (is Message<JsonObject?> msg) {
 			"Reply from scheduler request has not to be null."
-			assert(exists ret = msg.body());
+			assert (exists ret = msg.body());
 			handler (
 				ret.getArray(Chime.key.schedulers).narrow<String>()
 						.chain(ret.getArray(Chime.key.timers).narrow<String>())
@@ -67,9 +67,9 @@ class SchedulerImpl
 	{
 		if (is Message<JsonObject?> msg) {
 			"Reply from scheduler request has not to be null."
-			assert(exists ret = msg.body());
+			assert (exists ret = msg.body());
 			"Timer info replied from scheduler has to contain state field."
-			assert(exists state = stateByName(ret.getString(Chime.key.state)));
+			assert (exists state = stateByName(ret.getString(Chime.key.state)));
 			handler(state);
 		}
 		else {
@@ -82,7 +82,7 @@ class SchedulerImpl
 	{
 		if (is Message<JsonObject?> msg) {
 			"Reply from scheduler request has not to be null."
-			assert(exists ret = msg.body());
+			assert (exists ret = msg.body());
 			handler(ret.getString(Chime.key.name));
 		}
 		else {
@@ -91,7 +91,7 @@ class SchedulerImpl
 	}
 	
 	shared static void replyWithTimer (
-		String schedulerName, EventBus eventBus, Integer? sendTimeout, Anything(Throwable|TimerImpl) handler
+		String? schedulerName, EventBus eventBus, Integer? sendTimeout, Anything(Throwable|TimerImpl) handler
 	) (Throwable | Message<JsonObject?> msg)
 	{
 		if (is Throwable msg) {
@@ -99,8 +99,11 @@ class SchedulerImpl
 		}
 		else {
 			"Timer create request has to respond with body."
-			assert(exists rep = msg.body());
-			handler(TimerImpl(rep.getString(Chime.key.name), schedulerName, eventBus, sendTimeout));
+			assert (exists rep = msg.body());
+			String name = rep.getString(Chime.key.name);
+			"Timer full name has to contain scheduler and timer names."
+			assert (exists inc = name.firstOccurrence(Chime.configuration.nameSeparatorChar));
+			handler(TimerImpl(name, name.spanTo(inc - 1), eventBus, sendTimeout));
 		}
 	}
 

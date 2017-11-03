@@ -23,10 +23,10 @@ shared void createTimer (
 	"Event bus to send request over." EventBus eventBus,
 	"Callback when timer created." Anything(Timer|Throwable) handler,
 	"`JSON` timer description." JsonObject description,
-	"Name of the scheduler timer has to work within.  
+	"Optional name of the scheduler timer has to work within.  
 	 If scheduler hasn't been created yet then new scheduler is created."
-	String schedulerName,
-	"Timer name. Timer address is timer full name, i.e. **scheduler name:timer name**.  
+	String? schedulerName = null,
+	"Optional timer name. Timer address is timer full name, i.e. **scheduler name:timer name**.  
 	 By default unique timer name is generate."
 	String? timerName = null,
 	"`True` if timer is paused at initial and `false` if running."
@@ -140,11 +140,11 @@ shared void createIntervalTimer (
 	"Event bus to send request over." EventBus eventBus,
 	"Callback when timer created."
 	Anything(Timer|Throwable) handler,
-	"Name of the scheduler timer has to work within.  
-	 If scheduler hasn't been created yet then new scheduler is created."
-	String schedulerName,
 	"Interval timer delay in seconds."
 	Integer delay,
+	"Optional name of the scheduler timer has to work within.  
+	 If scheduler hasn't been created yet then new scheduler is created."
+	String? schedulerName = null,
 	"Timer name. Timer address is timer full name, i.e. **scheduler name:timer name**.  
 	 By default unique timer name is generate."
 	String? timerName = null,
@@ -173,7 +173,7 @@ shared void createIntervalTimer (
 	"Timeout to send the request with."
 	Integer? sendTimeout = null
 ) => createTimer (
-	chimeAddress, eventBus, handler, JsonObject { Chime.key.type -> Chime.type.interval, Chime.key.delay -> delay },
+	chimeAddress, eventBus, handler, JsonObject {Chime.key.type -> Chime.type.interval, Chime.key.delay -> delay},
 	schedulerName, timerName, paused, maxCount, startDate, endDate, timeZone, timeZoneProvider,
 	message, messageSource, messageSourceConfig, eventProducer, eventProducerOptions, sendTimeout
 );
@@ -189,9 +189,6 @@ shared void createCronTimer (
 	"Address to call _Chime_." String chimeAddress,
 	"Event bus to send request over." EventBus eventBus,
 	"Callback when timer created." Anything(Timer|Throwable) handler,
-	"Name of the scheduler timer has to work within.  
-	 If scheduler hasn't been created yet then new scheduler is created."
-	String schedulerName,
 	"Seconds." String seconds,
 	"Minutes." String minutes,
 	"Hours." String hours,
@@ -199,6 +196,9 @@ shared void createCronTimer (
 	"Months." String months,
 	"Optional days of week." String? daysOfWeek = null,
 	"Optional years." String? years = null,
+	"Optional name of the scheduler timer has to work within.  
+	 If scheduler hasn't been created yet then new scheduler is created."
+	String? schedulerName = null,
 	"Timer name. Timer address is timer full name, i.e. **scheduler name:timer name**.  
 	 By default unique timer name is generate."
 	String? timerName = null,
@@ -259,11 +259,11 @@ shared void createUnionTimer (
 	"Event bus to send request over." EventBus eventBus,
 	"Callback when timer created."
 	Anything(Timer|Throwable) handler,
-	"Name of the scheduler timer has to work within.  
-	 If scheduler hasn't been created yet then new scheduler is created."
-	String schedulerName,
 	"Nonempty list of the timers to be combined into union."
 	{JsonObject+} timers,
+	"Optional name of the scheduler timer has to work within.  
+	 If scheduler hasn't been created yet then new scheduler is created."
+	String? schedulerName = null,
 	"Timer name. Timer address is timer full name, i.e. **scheduler name:timer name**.  
 	 By default unique timer name is generate."
 	String? timerName = null,

@@ -9,30 +9,30 @@ import ceylon.json {
 
 
 "Base class for event bus senders."
-since( "0.3.0" ) by( "Lis" )
+since("0.3.0") by("Lis")
 class Sender (
 	"Address to send." shared String address,
 	"EB" shared EventBus eventBus,
 	"Timeout to send message with." shared Integer? sendTimeout
 ) {
 	
-	DeliveryOptions? options = if ( exists sendTimeout ) then DeliveryOptions( null, null, sendTimeout ) else null;
+	DeliveryOptions? options = if (exists sendTimeout) then DeliveryOptions(null, null, sendTimeout) else null;
 	
-	shared void sendRequest( JsonObject request ) {
-		if ( exists options ) {
-			eventBus.send( address, request, options );
+	shared void sendRequest(JsonObject request) {
+		if (exists options) {
+			eventBus.send(address, request, options);
 		}
 		else {
-			eventBus.send( address, request );
+			eventBus.send(address, request);
 		}
 	}
 	
-	shared void sendRepliedRequest( JsonObject request, Anything(Throwable|Message<JsonObject?>) rep ) {
-		if ( exists options ) {
-			eventBus.send<JsonObject>( address, request, options, rep );
+	shared void sendRepliedRequest(JsonObject request, Anything(Throwable|Message<JsonObject?>) rep) {
+		if (exists options) {
+			eventBus.send<JsonObject>(address, request, options, rep);
 		}
 		else {
-			eventBus.send<JsonObject>( address, request, rep );
+			eventBus.send<JsonObject>(address, request, rep);
 		}
 	}
 	

@@ -195,7 +195,7 @@ class SchedulerManager extends Operator
 		String name = extractNameFromRequest(request) else generatedSchedulerName;
 		String schedulerName =
 				if (exists inc = name.firstOccurrence(Chime.configuration.nameSeparatorChar))
-				then name.spanTo( inc - 1 ) else name;
+				then name.spanTo(inc - 1) else name;
 		
 		if (exists scheduler = schedulers.get(schedulerName)) {
 			// scheduler already exists
