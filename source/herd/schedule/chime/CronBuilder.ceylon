@@ -38,7 +38,7 @@ import ceylon.time.base {
 tagged( "Builder" )
 see( `function every`, `class UnionBuilder` )
 since( "0.2.1" ) by( "Lis" )
-shared class CronBuilder {
+shared final class CronBuilder {
 	
 	StringBuilder seconds = StringBuilder();
 	StringBuilder minutes = StringBuilder();

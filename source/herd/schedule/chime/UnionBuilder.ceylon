@@ -28,7 +28,7 @@ import herd.schedule.chime.cron {
 tagged("Builder")
 see(`class CronBuilder`, `function package.every`)
 since("0.2.1") by("Lis")
-shared class UnionBuilder
+shared final class UnionBuilder
 {
 	
 	ArrayList<JsonObject> union;
@@ -54,7 +54,7 @@ shared class UnionBuilder
 
 	
 	"Adds timer by its `JSON` description."
-	shared void timer("Timer description to be added." JsonObject timer) => union.add(timer);
+	shared void withTimer("Timer description to be added." JsonObject timer) => union.add(timer);
 	
 	"Fires at the given date / time with year taken into account.
 	 So, this timer will fire just a once."

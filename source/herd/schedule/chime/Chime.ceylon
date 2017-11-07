@@ -199,7 +199,7 @@ shared class Chime extends Verticle
 
 		"Intersection calendar type, see [[herd.schedule.chime.service.calendar::IntersectionFactory]]."
 		shared String intersection = "intersection";
-		"Union calendar type, see [[herd.schedule.chime.service.calendar::UnionCalendarFactory]]."
+		"Union calendar type, see [[herd.schedule.chime.service.calendar::UnionFactory]]."
 		shared String union = "union";
 		"Key for the list of calendars."
 		shared String calendars = "calendars";

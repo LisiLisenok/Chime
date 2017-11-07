@@ -57,7 +57,7 @@ class UnionCalendar({Calendar*} calendars) satisfies Calendar
  "
 service(`interface Extension`)
 since("0.3.0") by("Lis")
-shared class UnionCalendarFactory() satisfies CalendarFactory
+shared class UnionFactory() satisfies CalendarFactory
 {
 	
 	shared actual Calendar|<Integer->String> create(ChimeServices services, JsonObject options) {

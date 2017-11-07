@@ -41,7 +41,7 @@ class Dativity(Set<DayMonth> dates) satisfies Calendar
  		// If only a one date is given it can be specified without JsonArray, i.e. JsonObject can be stored under dates key
  		\"dates\" -> JsonArray {
  			JsonObject {
- 				\"day\" -> Integer day
+ 				\"day of month\" -> Integer day
  				\"month\" -> Integer or String month
  				\"year\" -> Integer year, optional
  			}
